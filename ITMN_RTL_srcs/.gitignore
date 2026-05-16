@@ -1,0 +1,41 @@
+#=========================================
+# 1. CHẶN TẤT CẢ MỌI THỨ
+#=========================================
+*
+
+#=========================================
+# 2. NGOẠI LỆ 1: Cho phép Git quét qua các thư mục (Bắt buộc phải có)
+#=========================================
+!*/
+
+#=========================================
+# 3. NGOẠI LỆ 2: CHỈ CHO PHÉP các file sau được đẩy lên GitHub
+#=========================================
+
+# Mã nguồn phần cứng (RTL & Testbench)
+!*.v
+!*.sv
+!*.vh
+!*.svh
+
+# File cấu hình chân và timing (Constraints)
+!*.xdc
+
+# File Project của Vivado
+!*.xpr
+
+# File của các IP Core (Nếu bạn có dùng IP của Xilinx)
+!*.xci
+!*.xcix
+
+# File cấu hình Block Design (Nếu có vẽ sơ đồ)
+!*.bd
+!*.bxml
+
+# Script tự động hóa
+!*.tcl
+
+# File tài liệu và cấu hình Git
+!*.md
+!*.txt
+!.gitignore

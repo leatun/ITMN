@@ -1,0 +1,8 @@
+# Rác của Windows
+desktop.ini
+Thumbs.db
+
+# Rác của các Editor/IDE
+.vscode/
+.idea/
+*.swp
