@@ -7,7 +7,7 @@
 // Supports all 5 ITM block configs:
 //   block 0,1: T=1000, CH_IN=4 (d_in=64),  CH_M=8  (d_inner=128), DT_RANK=4
 //   block 2,3: T=500,  CH_IN=4,             CH_M=8,                DT_RANK=4
-//   block 4:   T=250,  CH_IN=8 (d_in=128),  CH_M=16 (d_inner=256), DT_RANK=8
+//   block 4:   T=250,  CH_IN=4 (d_in=64), CH_OUT=8 (d_out=128), CH_M=16 (d_inner=256), DT_RANK=8
 //
 // Block-4 inception fix:
 //   dim = d_out/4.  Blocks 0-3: dim=16 (1 output word/branch/t).
@@ -50,12 +50,12 @@ module ITM_Top (
     wire [7:0]  d_out        = {CH_OUT, 4'b0};   // P1 output channels
     wire [7:0]  d_in_last    = d_in - 8'd1;
     wire [7:0]  ch_m_actual  = (CH_M == 4'd0) ? 8'd16 : {4'd0, CH_M};
-    wire [7:0]  d_inner      = {ch_m_actual[3:0], 4'b0};
-    wire [7:0]  d_inner_last = d_inner - 8'd1;
+    wire [8:0]  d_inner      = {ch_m_actual[4:0], 4'b0};   // 9-bit: handles 256 for block4 (CH_M=16)
+    wire [7:0]  d_inner_last = d_inner[7:0] - 8'd1;        // 8-bit: 256→255, 128→127
 
     wire [14:0] w_dw_size    = {7'd0, ch_m_actual} * 15'd4;               // CH_M * 4
     wire [14:0] W_XPROJ_BASE_W = W_M_DW_BASE + w_dw_size;
-    wire [14:0] xproj_sz    = 15'd3 * {7'd0, d_inner};                   // 3 * d_inner
+    wire [14:0] xproj_sz    = 15'd3 * {6'd0, d_inner};                   // 3 * d_inner
     wire [14:0] W_DTPROJ_BASE  = W_XPROJ_BASE_W + xproj_sz;
     wire [14:0] dtproj_sz   = {7'd0, ch_m_actual} * {11'd0, DT_RANK};    // CH_M * DT_RANK
     wire [14:0] W_ALOG_BASE    = W_DTPROJ_BASE + dtproj_sz;
@@ -110,11 +110,13 @@ module ITM_Top (
     wire [14:0] w_mx_size   = {7'd0, ch_m_actual} * {7'd0, d_out};      // CH_M * d_out
     wire [14:0] W_M_Z_BASE  = W_M_X_BASE + w_mx_size;
     wire [14:0] W_M_DW_BASE = W_M_Z_BASE + w_mx_size;                   // same size as M_X
-    localparam C_P1_BIAS    = 15'd0;
-    localparam C_INC_SCALE  = 15'd4;
-    localparam C_INC_SHIFT  = 15'd8;
-    localparam C_M_DW_BIAS  = 15'd12;
-    localparam C_M_DT_BIAS  = 15'd20;
+    // Const RAM layout sized for block 4 (max CH_OUT=8, max CH_M=16) to avoid overlaps.
+    localparam C_P1_BIAS    = 15'd0;     // size CH_OUT (<=8)
+    localparam C_INC_SCALE  = 15'd8;     // size CH_OUT (<=8)
+    localparam C_INC_SHIFT  = 15'd16;    // size CH_OUT (<=8)
+    localparam C_M_DW_BIAS  = 15'd24;    // size CH_M (<=16)
+    localparam C_M_DT_BIAS  = 15'd40;    // size CH_M (<=16)
+    localparam C_NORM_W     = 15'd56;    // size CH_OUT (<=8) - RMSNorm gamma weights
 
     // Memory interface
     reg          bank_sel;
@@ -169,6 +171,16 @@ module ITM_Top (
     assign silu_in[10] = m_rd_data[160 +: 16]; assign silu_in[11] = m_rd_data[176 +: 16];
     assign silu_in[12] = m_rd_data[192 +: 16]; assign silu_in[13] = m_rd_data[208 +: 16];
     assign silu_in[14] = m_rd_data[224 +: 16]; assign silu_in[15] = m_rd_data[240 +: 16];
+
+    // RMSNorm registers
+    reg [31:0]        norm_sq_acc;
+    reg signed [15:0] norm_S_reg;
+    // rsqrt ROM for Q9.7 RMSNorm: ROM[m] = round(512/sqrt(m)), sat to 32767
+    reg [15:0] rsqrt_q97_rom [0:8191];
+    initial $readmemh("rsqrt_q97.txt", rsqrt_q97_rom);
+    wire [3:0]  log2_d_out   = (CH_OUT >= 4'd8) ? 4'd7 : 4'd6;
+    wire [31:0] norm_mean_int = norm_sq_acc >> log2_d_out;
+    wire [12:0] norm_rom_idx  = (norm_mean_int > 32'd8191) ? 13'd8191 : norm_mean_int[12:0];
 
     reg signed [15:0] dt_lane [0:15];
     assign sp_in[ 0] = dt_lane[ 0]; assign sp_in[ 1] = dt_lane[ 1];
@@ -248,6 +260,13 @@ module ITM_Top (
     localparam S_FIN_READ_M   = 7'd113; localparam S_FIN_WAIT_M   = 7'd114;
     localparam S_FIN_WRITE    = 7'd37;  localparam S_FIN_NEXT     = 7'd38;
     localparam S_DONE         = 7'd63;
+    // RMSNorm sub-phase states (before M1a and M1b, per-timestep)
+    localparam S_NORM_M1A_SQ_READ  = 7'd115; localparam S_NORM_M1A_SQ_WAIT  = 7'd116;
+    localparam S_NORM_M1A_SQ_LATCH = 7'd117; localparam S_NORM_M1A_SQ_NEXT  = 7'd118;
+    localparam S_NORM_M1A_MEAN     = 7'd119;
+    localparam S_NORM_M1B_SQ_READ  = 7'd120; localparam S_NORM_M1B_SQ_WAIT  = 7'd121;
+    localparam S_NORM_M1B_SQ_LATCH = 7'd122; localparam S_NORM_M1B_SQ_NEXT  = 7'd123;
+    localparam S_NORM_M1B_MEAN     = 7'd124;
 
     // ================================================================
     // FSM registers
@@ -378,6 +397,7 @@ module ITM_Top (
                 u_scalar_reg[i] <= 0; y_acc_reg[i] <= 0; du_reg[i] <= 0;
             end
             h_reg <= 0; y_reg <= 0; incep_reg <= 0;
+            norm_sq_acc <= 32'd0; norm_S_reg <= 16'sd0;
         end else begin
             m_we     <= 0;
             pe_clear <= 0;
@@ -516,7 +536,7 @@ module ITM_Top (
                 mac_idx <= 0; k_idx <= 0; substep <= 0;
                 if (t_cnt == t_last) begin
                     t_cnt <= 0;
-                    if (c_grp_br < br_grp_last) begin
+                    if (c_grp_br != br_grp_last) begin
                         // More output groups in this branch
                         c_grp_br <= c_grp_br + 1'b1;
                         state    <= S_BR_MAC;
@@ -530,8 +550,9 @@ module ITM_Top (
                             3'd4: begin
                                 done_inception <= 1;
                                 t_cnt <= 0; c_grp_m <= 0; mac_idx <= 0;
+                                c_grp <= 0; norm_sq_acc <= 32'd0;
                                 bank_sel <= 1;
-                                state    <= S_M1A_MAC;
+                                state    <= S_NORM_M1A_SQ_READ;
                             end
                             default: state <= S_DONE;
                         endcase
@@ -550,11 +571,14 @@ module ITM_Top (
                     2'd0: begin
                         m_rd_addr <= B_P1_OUT + t_stride_out + {10'd0, mac_idx[7:4]};
                         w_rd_addr <= W_M_X_BASE + ({7'd0, c_grp_m} * {7'd0, d_out}) + {7'd0, mac_idx};
+                        c_rd_addr <= C_NORM_W + {12'd0, mac_idx[7:4]};
                         pe_A <= 16'sd0; substep <= 2'd1;
                     end
                     2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
                     2'd2: begin
-                        pe_A     <= m_rd_data[mac_idx[3:0] * 16 +: 16];
+                        pe_A     <= x_norm_fn(m_rd_data[mac_idx[3:0] * 16 +: 16],
+                                              c_rd_data[mac_idx[3:0] * 16 +: 16],
+                                              norm_S_reg);
                         pe_B     <= w_rd_data;
                         pe_clear <= (mac_idx == 8'd0);
                         if (mac_idx == d_out - 8'd1) state <= S_M1A_WAIT;
@@ -573,9 +597,37 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; state <= S_M1B_MAC;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M1A_MAC; end
+                        t_cnt <= 0; c_grp_m <= 0; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        state <= S_NORM_M1B_SQ_READ;
+                    end else begin
+                        t_cnt <= t_cnt + 10'd1; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        state <= S_NORM_M1A_SQ_READ;
+                    end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M1A_MAC; end
+            end
+
+            // --------------------------------------------------------
+            // RMSNorm sub-phase for M1a: sum-of-squares over B_P1_OUT[t]
+            // --------------------------------------------------------
+            S_NORM_M1A_SQ_READ: begin
+                m_rd_addr <= B_P1_OUT + t_stride_out + {12'd0, c_grp};
+                state     <= S_NORM_M1A_SQ_WAIT;
+            end
+            S_NORM_M1A_SQ_WAIT:  state <= S_NORM_M1A_SQ_LATCH;
+            S_NORM_M1A_SQ_LATCH: begin
+                norm_sq_acc <= norm_sq_acc + norm_sq16_fn(m_rd_data);
+                state       <= S_NORM_M1A_SQ_NEXT;
+            end
+            S_NORM_M1A_SQ_NEXT: begin
+                if (c_grp == ch_out_last[2:0]) begin
+                    c_grp <= 0; state <= S_NORM_M1A_MEAN;
+                end else begin
+                    c_grp <= c_grp + 3'd1; state <= S_NORM_M1A_SQ_READ;
+                end
+            end
+            S_NORM_M1A_MEAN: begin
+                norm_S_reg <= $signed(rsqrt_q97_rom[norm_rom_idx]);
+                c_grp <= 0; state <= S_M1A_MAC;
             end
 
             // --------------------------------------------------------
@@ -586,11 +638,14 @@ module ITM_Top (
                     2'd0: begin
                         m_rd_addr <= B_P1_OUT + t_stride_out + {10'd0, mac_idx[7:4]};
                         w_rd_addr <= W_M_Z_BASE + ({7'd0, c_grp_m} * {7'd0, d_out}) + {7'd0, mac_idx};
+                        c_rd_addr <= C_NORM_W + {12'd0, mac_idx[7:4]};
                         pe_A <= 16'sd0; substep <= 2'd1;
                     end
                     2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
                     2'd2: begin
-                        pe_A     <= m_rd_data[mac_idx[3:0] * 16 +: 16];
+                        pe_A     <= x_norm_fn(m_rd_data[mac_idx[3:0] * 16 +: 16],
+                                              c_rd_data[mac_idx[3:0] * 16 +: 16],
+                                              norm_S_reg);
                         pe_B     <= w_rd_data;
                         pe_clear <= (mac_idx == 8'd0);
                         if (mac_idx == d_out - 8'd1) state <= S_M1B_WAIT;
@@ -610,8 +665,35 @@ module ITM_Top (
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
                         t_cnt <= 0; c_grp_m <= 0; k_idx <= 0; bank_sel <= 0; state <= S_M2_MAC;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M1B_MAC; end
+                    end else begin
+                        t_cnt <= t_cnt + 10'd1; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        state <= S_NORM_M1B_SQ_READ;
+                    end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M1B_MAC; end
+            end
+
+            // --------------------------------------------------------
+            // RMSNorm sub-phase for M1b: sum-of-squares over B_P1_OUT[t]
+            // --------------------------------------------------------
+            S_NORM_M1B_SQ_READ: begin
+                m_rd_addr <= B_P1_OUT + t_stride_out + {12'd0, c_grp};
+                state     <= S_NORM_M1B_SQ_WAIT;
+            end
+            S_NORM_M1B_SQ_WAIT:  state <= S_NORM_M1B_SQ_LATCH;
+            S_NORM_M1B_SQ_LATCH: begin
+                norm_sq_acc <= norm_sq_acc + norm_sq16_fn(m_rd_data);
+                state       <= S_NORM_M1B_SQ_NEXT;
+            end
+            S_NORM_M1B_SQ_NEXT: begin
+                if (c_grp == ch_out_last[2:0]) begin
+                    c_grp <= 0; state <= S_NORM_M1B_MEAN;
+                end else begin
+                    c_grp <= c_grp + 3'd1; state <= S_NORM_M1B_SQ_READ;
+                end
+            end
+            S_NORM_M1B_MEAN: begin
+                norm_S_reg <= $signed(rsqrt_q97_rom[norm_rom_idx]);
+                c_grp <= 0; state <= S_M1B_MAC;
             end
 
             // --------------------------------------------------------
@@ -728,7 +810,7 @@ module ITM_Top (
                 case (substep)
                     2'd0: begin
                         m_rd_addr <= A_X_INNER + t_stride_m + {7'd0, mac_idx[7:4]};
-                        w_rd_addr <= W_XPROJ_BASE_W + ({12'd0, c_grp} * {7'd0, d_inner}) + {7'd0, mac_idx};
+                        w_rd_addr <= W_XPROJ_BASE_W + ({12'd0, c_grp} * {6'd0, d_inner}) + {7'd0, mac_idx};
                         pe_A <= 16'sd0; substep <= 2'd1;
                     end
                     2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
@@ -1132,7 +1214,7 @@ module ITM_Top (
                 case (substep)
                     2'd0: begin
                         m_rd_addr <= B_Y_SSM + t_stride_m + {7'd0, mac_idx[7:4]};
-                        w_rd_addr <= W_OUTPROJ_BASE + ({11'd0, c_grp} * {7'd0, d_inner}) + {7'd0, mac_idx};
+                        w_rd_addr <= W_OUTPROJ_BASE + ({11'd0, c_grp} * {6'd0, d_inner}) + {7'd0, mac_idx};
                         pe_A <= 16'sd0; pe_a_is_vector <= 0; substep <= 2'd1;
                     end
                     2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
@@ -1273,6 +1355,46 @@ module ITM_Top (
             else if (s < -17'sd32768) bn_out = 16'sh8000;
             else                      bn_out = s[15:0];
             bn_relu = bn_out[15] ? 16'sd0 : bn_out;
+        end
+    endfunction
+
+    function [31:0] norm_sq16_fn;
+        input [255:0] word;
+        integer       j;
+        reg signed [15:0] lane;
+        reg signed [15:0] x_sh;
+        reg signed [31:0] sq;
+        reg [31:0]        acc;
+        begin
+            acc = 32'd0;
+            for (j = 0; j < 16; j = j + 1) begin
+                lane = $signed(word[j*16 +: 16]);
+                x_sh = $signed(lane) >>> 5;
+                sq   = $signed(x_sh) * $signed(x_sh);
+                acc  = acc + $unsigned(sq >>> 7);
+            end
+            norm_sq16_fn = acc;
+        end
+    endfunction
+
+    function signed [15:0] x_norm_fn;
+        input signed [15:0] x;
+        input signed [15:0] gamma;
+        input signed [15:0] S;
+        reg signed [31:0] p1_wide;
+        reg signed [15:0] p1;
+        reg signed [31:0] out_wide;
+        begin
+            p1_wide = x * gamma;
+            p1_wide = p1_wide >>> `FRAC_BITS;
+            if      (p1_wide >  32'sd32767) p1 = 16'sh7FFF;
+            else if (p1_wide < -32'sd32768) p1 = 16'sh8000;
+            else                            p1 = p1_wide[15:0];
+            out_wide = p1 * S;
+            out_wide = out_wide >>> `FRAC_BITS;
+            if      (out_wide >  32'sd32767) x_norm_fn = 16'sh7FFF;
+            else if (out_wide < -32'sd32768) x_norm_fn = 16'sh8000;
+            else                             x_norm_fn = out_wide[15:0];
         end
     endfunction
 

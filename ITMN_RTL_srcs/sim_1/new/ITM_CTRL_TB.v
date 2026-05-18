@@ -72,21 +72,14 @@ module ITMN_TB;
     localparam B_X_CONV     = 15'd12000;
     localparam B_U_SAFE     = 15'd15000;
     localparam B_Y_SSM      = 15'd23000;
-    localparam W_P1_BASE    = 15'd0;
-    localparam W_BOT_BASE   = 15'd256;
-    localparam W_B1_BASE    = 15'd320;
-    localparam W_B2_BASE    = 15'd384;
-    localparam W_B3_BASE    = 15'd528;
-    localparam W_B4_BASE    = 15'd832;
-    localparam W_M_X_BASE   = 15'd1456;
-    localparam W_M_Z_BASE   = 15'd1968;
-    localparam W_M_DW_BASE  = 15'd2480;
-    localparam W_XPROJ_BASE = 15'd2512;
-    localparam C_P1_BIAS    = 15'd0;
-    localparam C_INC_SCALE  = 15'd4;
-    localparam C_INC_SHIFT  = 15'd8;
-    localparam C_M_DW_BIAS  = 15'd12;
-    localparam C_M_DT_BIAS  = 15'd20;
+    // Const RAM layout - must match ITM_CONTROLLER.v.
+    // Sized for block 4 (CH_OUT<=8, CH_M<=16) to avoid address overlaps.
+    localparam C_P1_BIAS    = 15'd0;     // size CH_OUT
+    localparam C_INC_SCALE  = 15'd8;     // size CH_OUT
+    localparam C_INC_SHIFT  = 15'd16;    // size CH_OUT
+    localparam C_M_DW_BIAS  = 15'd24;    // size CH_M
+    localparam C_M_DT_BIAS  = 15'd40;    // size CH_M
+    localparam C_NORM_W     = 15'd56;    // size CH_OUT - RMSNorm gamma
 
     localparam TOLERANCE  = 2;
     localparam MAX_CYCLES = 100_000_000;
@@ -114,6 +107,7 @@ module ITMN_TB;
     reg signed [15:0] f_Alog     [0:4095];
     reg signed [15:0] f_Dparam   [0:255];
     reg signed [15:0] f_Woutproj [0:32767];
+    reg signed [15:0] f_Norm_W   [0:127];   // RMSNorm gamma (max CH_OUT=8, 128 values)
 
     // Goldens
     reg signed [15:0] goldfp_p1     [0:127999];
@@ -280,7 +274,7 @@ module ITMN_TB;
                 dma_write(3, C_INC_SHIFT + c_grp, dma_wdata);
             end
 
-            // -- Inception branch weights (Bot, B1: dim×d_out, dim=d_out/4)
+            // -- Inception branch weights (Bot, B1: dimï¿½d_out, dim=d_out/4)
             // Bot/B1 input = d_out channels. Output = dim channels = dim/16 output groups.
             // Each output group: 16 output channels, d_out input channels.
             for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
@@ -295,7 +289,7 @@ module ITMN_TB;
                         dma_wdata[i*16 +: 16] = f_Wb1[(c_grp_br*16+i)*(BLK_CH_OUT*16)+c];
                     dma_write(2, DW_B1 + c_grp_br*(BLK_CH_OUT*16) + c, dma_wdata);
                 end
-            // B2 (dim×dim, k=9), dim = BLK_CH_OUT*4
+            // B2 (dimï¿½dim, k=9), dim = BLK_CH_OUT*4
             for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
                 for (k = 0; k < 9; k = k + 1)
                     for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
@@ -303,7 +297,7 @@ module ITMN_TB;
                             dma_wdata[i*16 +: 16] = f_Wb2[(c_grp_br*16+i)*(BLK_CH_OUT*4)*9 + c*9 + k];
                         dma_write(2, DW_B2 + c_grp_br*9*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
                     end
-            // B3 (dim×dim, k=19), dim = BLK_CH_OUT*4
+            // B3 (dimï¿½dim, k=19), dim = BLK_CH_OUT*4
             for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
                 for (k = 0; k < 19; k = k + 1)
                     for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
@@ -311,14 +305,16 @@ module ITMN_TB;
                             dma_wdata[i*16 +: 16] = f_Wb3[(c_grp_br*16+i)*(BLK_CH_OUT*4)*19 + c*19 + k];
                         dma_write(2, DW_B3 + c_grp_br*19*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
                     end
-            // B4 (dim×dim, k=39), dim = BLK_CH_OUT*4
-            for (k = 0; k < 39; k = k + 1)
-                for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
-                    for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Wb4[i*(39*BLK_CH_OUT*4)+c*39+k];
-                    dma_write(2, DW_B4 + k*(BLK_CH_OUT*4) + c, dma_wdata);
-                end
+            // B4 (dimï¿½dim, k=39), dim = BLK_CH_OUT*4
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (k = 0; k < 39; k = k + 1)
+                    for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
+                        for (i = 0; i < 16; i = i + 1)
+                            dma_wdata[i*16 +: 16] = f_Wb4[(c_grp_br*16+i)*(BLK_CH_OUT*4)*39 + c*39 + k];
+                        dma_write(2, DW_B4 + c_grp_br*39*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
+                    end
 
-            // -- InProj X (d_inner × d_in)
+            // -- InProj X (d_inner ï¿½ d_in)
             for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1)
                 for (c = 0; c < BLK_CH_OUT*16; c = c + 1) begin
                     for (i = 0; i < 16; i = i + 1)
@@ -333,7 +329,7 @@ module ITMN_TB;
                     dma_write(2, DW_MZ + c_grp_m*(BLK_CH_OUT*16) + c, dma_wdata);
                 end
 
-            // -- DW Conv weight (d_inner × 4) + bias
+            // -- DW Conv weight (d_inner ï¿½ 4) + bias
             for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1) begin
                 for (k = 0; k < 4; k = k + 1) begin
                     for (i = 0; i < 16; i = i + 1)
@@ -344,15 +340,15 @@ module ITMN_TB;
                 dma_write(3, C_M_DW_BIAS + c_grp_m, dma_wdata);
             end
 
-            // -- X_proj (3 groups × d_inner)
+            // -- X_proj (3 groups ï¿½ d_inner)
             for (c_grp = 0; c_grp < 3; c_grp = c_grp + 1)
                 for (c = 0; c < BLK_D_INNER; c = c + 1) begin
                     for (i = 0; i < 16; i = i + 1)
                         dma_wdata[i*16 +: 16] = f_Wxproj[(c_grp*16+i)*BLK_D_INNER+c];
-                    dma_write(2, W_XPROJ_BASE + c_grp*BLK_D_INNER + c, dma_wdata);
+                    dma_write(2, DW_XPROJ + c_grp*BLK_D_INNER + c, dma_wdata);
                 end
 
-            // -- DtProj (d_inner × dt_rank) + bias
+            // -- DtProj (d_inner ï¿½ dt_rank) + bias
             for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1) begin
                 for (k = 0; k < BLK_DT_RANK; k = k + 1) begin
                     for (i = 0; i < 16; i = i + 1)
@@ -363,7 +359,7 @@ module ITMN_TB;
                 dma_write(3, C_M_DT_BIAS + c_grp_m, dma_wdata);
             end
 
-            // -- A_signed (d_inner × 16 states)
+            // -- A_signed (d_inner ï¿½ 16 states)
             for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1)
                 for (k = 0; k < 16; k = k + 1) begin
                     for (i = 0; i < 16; i = i + 1)
@@ -377,13 +373,19 @@ module ITMN_TB;
                 dma_write(2, DW_DPARAM + c_grp_m, dma_wdata);
             end
 
-            // -- OutProj (d_in × d_inner)
+            // -- OutProj (d_in ï¿½ d_inner)
             for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1)
                 for (c = 0; c < BLK_D_INNER; c = c + 1) begin
                     for (i = 0; i < 16; i = i + 1)
                         dma_wdata[i*16 +: 16] = f_Woutproj[(c_grp*16+i)*BLK_D_INNER+c];
                     dma_write(2, DW_OUTPROJ + c_grp*BLK_D_INNER + c, dma_wdata);
                 end
+
+            // -- RMSNorm gamma weights -> Const RAM (target=3)
+            for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1) begin
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Norm_W[c_grp*16+i];
+                dma_write(3, C_NORM_W + c_grp, dma_wdata);
+            end
         end
     endtask
 
@@ -393,10 +395,10 @@ module ITMN_TB;
     task sanity_check;
         input integer T;
         input integer ch_m;
-        input integer ch_in;
+        input integer ch_out;
         begin
             sanity_x_cnt = 0;
-            for (i = 0; i < ch_in*16*T;  i = i + 1) begin
+            for (i = 0; i < ch_out*16*T;  i = i + 1) begin
                 if (^goldfp_p1[i]    === 1'bx) sanity_x_cnt = sanity_x_cnt + 1;
                 if (^goldfp_final[i] === 1'bx) sanity_x_cnt = sanity_x_cnt + 1;
                 if (^gold_mout[i]    === 1'bx) sanity_x_cnt = sanity_x_cnt + 1;
@@ -485,16 +487,16 @@ module ITMN_TB;
     // ======================================================================
     task compare_all_stages;
         input integer T;
-        input integer ch_in;  // d_in/16
+        input integer ch_out;  // d_out/16 (CH_OUT)
         input integer ch_m;   // d_inner/16 (or 16 for block4)
         integer dim_cmp, br_grps;
         begin
-            dim_cmp = ch_in * 4;   // dim = d_out/4
-            br_grps = (ch_in >= 8) ? 2 : 1;  // words per branch per timestep
-            // -- P1 output (RAM B, B_P1_OUT + t*ch_in + (c>>4))
-            for (c_idx = 0; c_idx < ch_in*16; c_idx = c_idx + 1)
+            dim_cmp = ch_out * 4;   // dim = d_out/4
+            br_grps = (ch_out >= 8) ? 2 : 1;  // words per branch per timestep
+            // -- P1 output (RAM B, B_P1_OUT + t*ch_out + (c>>4))
+            for (c_idx = 0; c_idx < ch_out*16; c_idx = c_idx + 1)
                 for (t_idx = 0; t_idx < T; t_idx = t_idx + 1) begin
-                    rdata = uut.mem_sys.ram_b.ram[B_P1_OUT + t_idx*ch_in + (c_idx>>4)];
+                    rdata = uut.mem_sys.ram_b.ram[B_P1_OUT + t_idx*ch_out + (c_idx>>4)];
                     r_raw = rdata[(c_idx & 4'hF)*16 +: 16];
                     r_got = (^r_raw === 1'bx) ? 16'sd0 : $signed(r_raw);
                     r_exp = goldfp_p1[c_idx*T + t_idx];
@@ -646,10 +648,10 @@ module ITMN_TB;
                     if (diff > TOLERANCE) err_ygated = err_ygated + 1;
                 end
 
-            // -- Mamba Out / OutProj (RAM A, A_MAMBA_OUT + t*ch_in + c>>4)
-            for (c_idx = 0; c_idx < ch_in*16; c_idx = c_idx + 1)
+            // -- Mamba Out / OutProj (RAM A, A_MAMBA_OUT + t*ch_out + c>>4)
+            for (c_idx = 0; c_idx < ch_out*16; c_idx = c_idx + 1)
                 for (t_idx = 0; t_idx < T; t_idx = t_idx + 1) begin
-                    rdata = uut.mem_sys.ram_a.ram[A_MAMBA_OUT + t_idx*ch_in + (c_idx>>4)];
+                    rdata = uut.mem_sys.ram_a.ram[A_MAMBA_OUT + t_idx*ch_out + (c_idx>>4)];
                     r_raw = rdata[(c_idx&4'hF)*16 +: 16];
                     r_got = (^r_raw === 1'bx) ? 16'sd0 : $signed(r_raw);
                     r_exp = gold_mout[c_idx*T + t_idx];
@@ -659,12 +661,12 @@ module ITMN_TB;
                 end
 
             // -- Final (RAM B for c_grp=0, RAM A for c_grp 1..3)
-            for (c_idx = 0; c_idx < ch_in*16; c_idx = c_idx + 1)
+            for (c_idx = 0; c_idx < ch_out*16; c_idx = c_idx + 1)
                 for (t_idx = 0; t_idx < T; t_idx = t_idx + 1) begin
                     if ((c_idx>>4) == 0)
-                        rdata = uut.mem_sys.ram_b.ram[B_FINAL_OUT + t_idx*ch_in + 0];
+                        rdata = uut.mem_sys.ram_b.ram[B_FINAL_OUT + t_idx*ch_out + 0];
                     else
-                        rdata = uut.mem_sys.ram_a.ram[A_FINAL_OUT + t_idx*ch_in + (c_idx>>4)];
+                        rdata = uut.mem_sys.ram_a.ram[A_FINAL_OUT + t_idx*ch_out + (c_idx>>4)];
                     r_raw = rdata[(c_idx&4'hF)*16 +: 16];
                     r_got = (^r_raw === 1'bx) ? 16'sd0 : $signed(r_raw);
                     r_exp = goldfp_final[c_idx*T + t_idx];
@@ -681,12 +683,12 @@ module ITMN_TB;
     task print_block_report;
         input integer bid;
         input integer T;
-        input integer ch_in;
+        input integer ch_out;
         input integer ch_m;
         begin
             $display("\n================================================================");
             $display("  BLOCK %0d REPORT   T=%0d  d_in=%0d  d_inner=%0d",
-                     bid, T, ch_in*16, ch_m*16);
+                     bid, T, ch_out*16, ch_m*16);
             $display("  FRAC_BITS=%0d  TOLERANCE=%0d", `FRAC_BITS, TOLERANCE);
             $display("================================================================");
             $display("  Timing:");
@@ -699,17 +701,17 @@ module ITMN_TB;
             $display("  Stage              | size     | err     | max_d  | result");
             $display("  -------------------+----------+---------+--------+-------");
             $display("  P1 Output          | %7d  |  %6d |  %5d | %s",
-                     ch_in*16*T, err_p1,    max_p1,    (err_p1==0)   ?"PASS":"FAIL");
+                     ch_out*16*T, err_p1,    max_p1,    (err_p1==0)   ?"PASS":"FAIL");
             $display("  Inc Bot            | %7d  |  %6d |  %5d | %s",
-                     16*T,       err_bot,   max_bot,   (err_bot==0)  ?"PASS":"FAIL");
+                     ch_out*4*T,  err_bot,   max_bot,   (err_bot==0)  ?"PASS":"FAIL");
             $display("  Inc B1             | %7d  |  %6d |  %5d | %s",
-                     16*T,       err_b1,    max_b1,    (err_b1==0)   ?"PASS":"FAIL");
+                     ch_out*4*T,  err_b1,    max_b1,    (err_b1==0)   ?"PASS":"FAIL");
             $display("  Inc B2             | %7d  |  %6d |  %5d | %s",
-                     16*T,       err_b2,    max_b2,    (err_b2==0)   ?"PASS":"FAIL");
+                     ch_out*4*T,  err_b2,    max_b2,    (err_b2==0)   ?"PASS":"FAIL");
             $display("  Inc B3             | %7d  |  %6d |  %5d | %s",
-                     16*T,       err_b3,    max_b3,    (err_b3==0)   ?"PASS":"FAIL");
+                     ch_out*4*T,  err_b3,    max_b3,    (err_b3==0)   ?"PASS":"FAIL");
             $display("  Inc B4             | %7d  |  %6d |  %5d | %s",
-                     16*T,       err_b4,    max_b4,    (err_b4==0)   ?"PASS":"FAIL");
+                     ch_out*4*T,  err_b4,    max_b4,    (err_b4==0)   ?"PASS":"FAIL");
             $display("  -------------------+----------+---------+--------+-------");
             $display("  Mam Z_Gate  (M1b)  | %7d  |  %6d |  %5d | %s",
                      ch_m*16*T,  err_zgate, max_zgate, (err_zgate==0)?"PASS":"FAIL");
@@ -724,10 +726,10 @@ module ITMN_TB;
             $display("  Mam Y_Gated (M7)   | %7d  |  %6d |  %5d | %s",
                      ch_m*16*T,  err_ygated,max_ygated,(err_ygated==0)?"PASS":"FAIL");
             $display("  Mam OutProj (M8)   | %7d  |  %6d |  %5d | %s",
-                     ch_in*16*T, err_mout,  max_mout,  (err_mout==0) ?"PASS":"FAIL");
+                     ch_out*16*T, err_mout,  max_mout,  (err_mout==0) ?"PASS":"FAIL");
             $display("  -------------------+----------+---------+--------+-------");
             $display("  Final Full Output  | %7d  |  %6d |  %5d | %s",
-                     ch_in*16*T, err_fin,   max_fin,   (err_fin==0)  ?"PASS":"FAIL");
+                     ch_out*16*T, err_fin,   max_fin,   (err_fin==0)  ?"PASS":"FAIL");
             $display("================================================================");
         end
     endtask
@@ -780,6 +782,162 @@ module ITMN_TB;
                 end
             end
             $display("[TB] MaxPool done - %0d words written to A_INPUT_BASE.", (T_in/2)*ch);
+        end
+    endtask
+
+    // ======================================================================
+    // task copy_final_to_input - copy final output to input for block chaining
+    // (same-T transition, no MaxPool; reads B_FINAL_OUT/A_FINAL_OUT -> A_INPUT_BASE)
+    // ======================================================================
+    task copy_final_to_input;
+        input integer T_val;
+        input integer ch;
+        begin
+            $display("[TB] copy_final_to_input: T=%0d ch_grps=%0d", T_val, ch);
+            for (t = 0; t < T_val; t = t + 1) begin
+                for (c_grp = 0; c_grp < ch; c_grp = c_grp + 1) begin
+                    if (c_grp == 0)
+                        rdata = uut.mem_sys.ram_b.ram[B_FINAL_OUT + t*ch + 0];
+                    else
+                        rdata = uut.mem_sys.ram_a.ram[A_FINAL_OUT + t*ch + c_grp];
+                    dma_write(0, A_INPUT_BASE + t*ch + c_grp, rdata);
+                end
+            end
+            $display("[TB] copy_final_to_input done - %0d words written.", T_val*ch);
+        end
+    endtask
+
+    // ======================================================================
+    // task load_weights_only - same as load_weights_and_input without X DMA
+    // (use when input is already in RAM A from previous block or MaxPool)
+    // ======================================================================
+    task load_weights_only;
+        begin
+            // -- P1 weight -> W RAM (target=2)
+            for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1)
+                for (c = 0; c < BLK_CH_IN*16; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wp1[(c_grp*16+i)*(BLK_CH_IN*16)+c];
+                    dma_write(2, DW_P1 + c_grp*(BLK_CH_IN*16) + c, dma_wdata);
+                end
+
+            // -- P1 bias + Inc BN scale/shift -> Const RAM (target=3)
+            for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1) begin
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Bconv[c_grp*16+i];
+                dma_write(3, C_P1_BIAS + c_grp, dma_wdata);
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Inc_Scale[c_grp*16+i];
+                dma_write(3, C_INC_SCALE + c_grp, dma_wdata);
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Inc_Shift[c_grp*16+i];
+                dma_write(3, C_INC_SHIFT + c_grp, dma_wdata);
+            end
+
+            // -- Inception branch weights
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (c = 0; c < BLK_CH_OUT*16; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wbot[(c_grp_br*16+i)*(BLK_CH_OUT*16)+c];
+                    dma_write(2, DW_BOT + c_grp_br*(BLK_CH_OUT*16) + c, dma_wdata);
+                end
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (c = 0; c < BLK_CH_OUT*16; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wb1[(c_grp_br*16+i)*(BLK_CH_OUT*16)+c];
+                    dma_write(2, DW_B1 + c_grp_br*(BLK_CH_OUT*16) + c, dma_wdata);
+                end
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (k = 0; k < 9; k = k + 1)
+                    for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
+                        for (i = 0; i < 16; i = i + 1)
+                            dma_wdata[i*16 +: 16] = f_Wb2[(c_grp_br*16+i)*(BLK_CH_OUT*4)*9 + c*9 + k];
+                        dma_write(2, DW_B2 + c_grp_br*9*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
+                    end
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (k = 0; k < 19; k = k + 1)
+                    for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
+                        for (i = 0; i < 16; i = i + 1)
+                            dma_wdata[i*16 +: 16] = f_Wb3[(c_grp_br*16+i)*(BLK_CH_OUT*4)*19 + c*19 + k];
+                        dma_write(2, DW_B3 + c_grp_br*19*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
+                    end
+            for (c_grp_br = 0; c_grp_br < (BLK_CH_OUT >= 8 ? 2 : 1); c_grp_br = c_grp_br + 1)
+                for (k = 0; k < 39; k = k + 1)
+                    for (c = 0; c < BLK_CH_OUT*4; c = c + 1) begin
+                        for (i = 0; i < 16; i = i + 1)
+                            dma_wdata[i*16 +: 16] = f_Wb4[(c_grp_br*16+i)*(BLK_CH_OUT*4)*39 + c*39 + k];
+                        dma_write(2, DW_B4 + c_grp_br*39*(BLK_CH_OUT*4) + k*(BLK_CH_OUT*4) + c, dma_wdata);
+                    end
+
+            // -- InProj X
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1)
+                for (c = 0; c < BLK_CH_OUT*16; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wmx[(c_grp_m*16+i)*(BLK_CH_OUT*16)+c];
+                    dma_write(2, DW_MX + c_grp_m*(BLK_CH_OUT*16) + c, dma_wdata);
+                end
+            // -- InProj Z
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1)
+                for (c = 0; c < BLK_CH_OUT*16; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wmz[(c_grp_m*16+i)*(BLK_CH_OUT*16)+c];
+                    dma_write(2, DW_MZ + c_grp_m*(BLK_CH_OUT*16) + c, dma_wdata);
+                end
+
+            // -- DW Conv weight + bias
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1) begin
+                for (k = 0; k < 4; k = k + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wconv[(c_grp_m*16+i)*4+k];
+                    dma_write(2, DW_DW + c_grp_m*4 + k, dma_wdata);
+                end
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Bconv_dw[c_grp_m*16+i];
+                dma_write(3, C_M_DW_BIAS + c_grp_m, dma_wdata);
+            end
+
+            // -- X_proj
+            for (c_grp = 0; c_grp < 3; c_grp = c_grp + 1)
+                for (c = 0; c < BLK_D_INNER; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wxproj[(c_grp*16+i)*BLK_D_INNER+c];
+                    dma_write(2, DW_XPROJ + c_grp*BLK_D_INNER + c, dma_wdata);
+                end
+
+            // -- DtProj weight + bias
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1) begin
+                for (k = 0; k < BLK_DT_RANK; k = k + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Wdt[(c_grp_m*16+i)*BLK_DT_RANK+k];
+                    dma_write(2, DW_DTPROJ + c_grp_m*BLK_DT_RANK + k, dma_wdata);
+                end
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Bdt[c_grp_m*16+i];
+                dma_write(3, C_M_DT_BIAS + c_grp_m, dma_wdata);
+            end
+
+            // -- A_signed
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1)
+                for (k = 0; k < 16; k = k + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Alog[(c_grp_m*16+i)*16+k];
+                    dma_write(2, DW_ALOG + c_grp_m*16 + k, dma_wdata);
+                end
+
+            // -- D param
+            for (c_grp_m = 0; c_grp_m < BLK_CH_M; c_grp_m = c_grp_m + 1) begin
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Dparam[c_grp_m*16+i];
+                dma_write(2, DW_DPARAM + c_grp_m, dma_wdata);
+            end
+
+            // -- OutProj
+            for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1)
+                for (c = 0; c < BLK_D_INNER; c = c + 1) begin
+                    for (i = 0; i < 16; i = i + 1)
+                        dma_wdata[i*16 +: 16] = f_Woutproj[(c_grp*16+i)*BLK_D_INNER+c];
+                    dma_write(2, DW_OUTPROJ + c_grp*BLK_D_INNER + c, dma_wdata);
+                end
+
+            // -- RMSNorm gamma weights -> Const RAM (target=3)
+            for (c_grp = 0; c_grp < BLK_CH_OUT; c_grp = c_grp + 1) begin
+                for (i = 0; i < 16; i = i + 1) dma_wdata[i*16 +: 16] = f_Norm_W[c_grp*16+i];
+                dma_write(3, C_NORM_W + c_grp, dma_wdata);
+            end
         end
     endtask
 
@@ -843,6 +1001,7 @@ module ITMN_TB;
         $readmemh("golden_all/block_00_layer00/Mam_Y_Gated_FP.txt",     gold_y_gated);
         $readmemh("golden_all/block_00_layer00/Mam_OutProj_FP.txt",     gold_mout);
         $readmemh("golden_all/block_00_layer00/Final_ITM_Full_FP.txt",  goldfp_final);
+        $readmemh("golden_all/block_00_layer00/Mam_W_Norm.txt",         f_Norm_W);
 
         $display(">> Sanity check block 0:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
@@ -898,11 +1057,14 @@ module ITMN_TB;
         $readmemh("golden_all/block_01_layer01/Mam_Y_Gated_FP.txt",     gold_y_gated);
         $readmemh("golden_all/block_01_layer01/Mam_OutProj_FP.txt",     gold_mout);
         $readmemh("golden_all/block_01_layer01/Final_ITM_Full_FP.txt",  goldfp_final);
+        $readmemh("golden_all/block_01_layer01/Mam_W_Norm.txt",         f_Norm_W);
 
         $display(">> Sanity check block 1:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> DMA loading block 1...");
-        load_weights_and_input;
+        $display(">> Chaining: copying block 0 final output to input...");
+        copy_final_to_input(1000, 4);
+        $display(">> DMA loading block 1 weights...");
+        load_weights_only;
         $display("   DMA load complete.");
         $display(">> Running block 1...");
         run_one_block;
@@ -956,12 +1118,12 @@ module ITMN_TB;
         $readmemh("golden_all/block_02_layer03/Mam_Y_Gated_FP.txt",     gold_y_gated);
         $readmemh("golden_all/block_02_layer03/Mam_OutProj_FP.txt",     gold_mout);
         $readmemh("golden_all/block_02_layer03/Final_ITM_Full_FP.txt",  goldfp_final);
+        $readmemh("golden_all/block_02_layer03/Mam_W_Norm.txt",         f_Norm_W);
 
         $display(">> Sanity check block 2:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> DMA loading block 2 weights (input from MaxPool)...");
-        load_weights_and_input;  // X DMA overwrites pool result - OK for isolated block test
-        // Note: for true chained test, comment out X DMA above and keep pool output
+        $display(">> DMA loading block 2 weights (input from MaxPool of block 1)...");
+        load_weights_only;
         $display("   DMA load complete.");
         $display(">> Running block 2...");
         run_one_block;
@@ -1011,11 +1173,14 @@ module ITMN_TB;
         $readmemh("golden_all/block_03_layer04/Mam_Y_Gated_FP.txt",     gold_y_gated);
         $readmemh("golden_all/block_03_layer04/Mam_OutProj_FP.txt",     gold_mout);
         $readmemh("golden_all/block_03_layer04/Final_ITM_Full_FP.txt",  goldfp_final);
+        $readmemh("golden_all/block_03_layer04/Mam_W_Norm.txt",         f_Norm_W);
 
         $display(">> Sanity check block 3:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> DMA loading block 3...");
-        load_weights_and_input;
+        $display(">> Chaining: copying block 2 final output to input...");
+        copy_final_to_input(500, 4);
+        $display(">> DMA loading block 3 weights...");
+        load_weights_only;
         $display("   DMA load complete.");
         $display(">> Running block 3...");
         run_one_block;
@@ -1033,7 +1198,7 @@ module ITMN_TB;
         // ??????????????????????????????????????????????????????????????????
         blk = 4; set_block_params(blk);
         $display("\n>> [BLOCK 4] T=%0d  d_in=%0d  d_inner=%0d  dt_rank=%0d",
-                 BLK_T, BLK_CH_OUT*16, BLK_D_INNER, BLK_DT_RANK);
+                 BLK_T, BLK_CH_IN*16, BLK_D_INNER, BLK_DT_RANK);
 
         $readmemh("golden_all/block_04_layer06/P1_Input_X.txt",         f_Xin);
         $readmemh("golden_all/block_04_layer06/P1_Weight_Fused.txt",    f_Wp1);
@@ -1069,11 +1234,12 @@ module ITMN_TB;
         $readmemh("golden_all/block_04_layer06/Mam_Y_Gated_FP.txt",     gold_y_gated);
         $readmemh("golden_all/block_04_layer06/Mam_OutProj_FP.txt",     gold_mout);
         $readmemh("golden_all/block_04_layer06/Final_ITM_Full_FP.txt",  goldfp_final);
+        $readmemh("golden_all/block_04_layer06/Mam_W_Norm.txt",         f_Norm_W);
 
         $display(">> Sanity check block 4:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> DMA loading block 4...");
-        load_weights_and_input;
+        $display(">> DMA loading block 4 weights (input from MaxPool of block 3)...");
+        load_weights_only;
         $display("   DMA load complete.");
         $display(">> Running block 4...");
         run_one_block;

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ADMIN/Downloads/ITMN_Pytorch/**)",
+      "Read(//c/Users/ADMIN/Downloads/ITMN_Pytorch/golden_all/**)"
+    ]
+  }
+}

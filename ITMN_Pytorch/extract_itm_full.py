@@ -104,6 +104,42 @@ _LUT_SILU = _build_lut('silu')
 _LUT_SP   = _build_lut('softplus')
 _LUT_EXP  = _build_lut('exp')
 
+# =====================================================================
+#  RMSNorm rsqrt ROM  (Q9.7 inline approach)
+#  ROM[m] = round(512 / sqrt(m)), saturated to 32767.
+#  m = Σ((x>>5)^2 >> 7) / d_out  per timestep.
+#  Scale factor: y_norm = sat16(sat16((x*gamma)>>7) * ROM[m] >> 7)
+# =====================================================================
+def gen_rsqrt_q97_rom(size=8192):
+    rom = [np.int64(32767)]
+    for m in range(1, size):
+        val = 512.0 / math.sqrt(float(m))
+        rom.append(np.int64(min(32767, int(round(val)))))
+    return rom
+
+_RSQRT_ROM = gen_rsqrt_q97_rom(8192)
+
+def hw_rms_norm_inline(x_q, w_norm_q, d_out, fb=FB):
+    """HW-exact RMSNorm: inline per-timestep scale, matches RTL M1a/M1b substep."""
+    T = x_q.shape[1]
+    norm_q = np.zeros_like(x_q)
+    CH_OUT = d_out // 16
+    log2_d = int(round(math.log2(d_out)))
+    for t in range(T):
+        norm_sq_acc = np.int64(0)
+        for cg in range(CH_OUT):
+            word = x_q[cg*16:(cg+1)*16, t].astype(np.int64)
+            x_sh = np.right_shift(word, 5)
+            norm_sq_acc += int(np.sum(np.right_shift(x_sh * x_sh, fb)))
+        mean_int = int(norm_sq_acc >> log2_d)
+        S_t = int(_RSQRT_ROM[min(mean_int, 8191)])
+        for ch in range(d_out):
+            x_i  = int(x_q[ch, t])
+            g_i  = int(w_norm_q[ch])
+            p1   = max(-32768, min(32767, (x_i * g_i) >> fb))
+            norm_q[ch, t] = max(-32768, min(32767, (p1 * S_t) >> fb))
+    return norm_q
+
 def _lut_apply(x_q, table, oor_lo, oor_hi_fn):
     x = np.asarray(x_q, np.int64)
     in_range = (x >= -1024) & (x < 1024)
@@ -208,8 +244,9 @@ def register_hooks(model):
 def extract_mamba_hwexact(mamba_block, p1_q, out_dir, fb=FB):
     """
     Full Mamba in HW-exact integer domain.
-    NOTE: RTL feeds P1 output DIRECTLY to in_proj (NO RMSNorm).
-    Golden must match: M1a = W_x @ p1_q, M1b = W_z @ p1_q.
+    RMSNorm is applied inline before M1a/M1b (matching RTL NORM_M1A/M1B substates).
+    p1_norm = hw_rms_norm_inline(p1_q, norm.weight)
+    M1a = W_x @ p1_norm, M1b = W_z @ p1_norm.
     """
     mixer = mamba_block.mixer
     d_inner = mixer.in_proj.weight.shape[0] // 2
@@ -240,12 +277,17 @@ def extract_mamba_hwexact(mamba_block, p1_q, out_dir, fb=FB):
     D_q     = q(to_f32(mixer.D))
     w_out_q = q(to_f32(mixer.out_proj.weight))
 
-    # ---- M1a: x_inner = in_proj_x(p1)  [NO NORM] ----
-    x_inner_q = pe_mac_mv(p1_q, w_mx_q)
+    # ---- RMSNorm (inline, matches RTL NORM_M1A/M1B states) ----
+    w_norm_q = q(to_f32(mamba_block.norm.weight))
+    p1_norm_q = hw_rms_norm_inline(p1_q, w_norm_q, d_in, fb=fb)
+    save_iq(p1_norm_q, out_dir / 'P1_Norm_Output_FP.txt')
+
+    # ---- M1a: x_inner = in_proj_x(p1_norm) ----
+    x_inner_q = pe_mac_mv(p1_norm_q, w_mx_q)
     save_iq(x_inner_q, out_dir / 'Mam_X_Inner_FP.txt')
 
-    # ---- M1b: z_gate = in_proj_z(p1)  [NO NORM] ----
-    z_gate_q = pe_mac_mv(p1_q, w_mz_q)
+    # ---- M1b: z_gate = in_proj_z(p1_norm) ----
+    z_gate_q = pe_mac_mv(p1_norm_q, w_mz_q)
     save_iq(z_gate_q, out_dir / 'Mam_Z_Gate_FP.txt')
 
     # ---- M2: depthwise conv1d k=4 causal pad=3 + bias ----
@@ -474,6 +516,12 @@ def save_lut_files(out_dir):
             for v in table:
                 f.write(f'{int(v) & 0xFFFF:04x}\n')
         print(f'  -> {name:<36s} (256 entries)')
+    # rsqrt Q9.7 ROM for RMSNorm
+    p = out_dir / 'rsqrt_q97.txt'
+    with open(p, 'w') as f:
+        for v in _RSQRT_ROM:
+            f.write(f'{int(v) & 0xFFFF:04x}\n')
+    print(f'  -> rsqrt_q97.txt                     (8192 entries)')
 
 # =====================================================================
 #  MAIN
