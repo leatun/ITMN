@@ -2,7 +2,7 @@
 `define _PARAMETER_V
 
 `define DATA_WIDTH 16
-`define FRAC_BITS  7
+`define FRAC_BITS  11
 
 `define MODE_MAC 2'd0
 `define MODE_MUL 2'd1

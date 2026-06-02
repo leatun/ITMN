@@ -1,3 +1,57 @@
+# Session 2026-05-20: Final Stage Investigation
+
+## Status: ROOT CAUSE IDENTIFIED — awaiting golden regeneration
+
+## Symptom
+Block 0 simulation: all stages PASS except `Final Full Output` → 46306/64000 errors, max_d=30319.
+All inception branches (Inc B1/B2/B3/B4) and all Mamba stages including Mam OutProj PASS with 0 errors.
+
+## Debug method
+Added `$display` in `ITM_CTRL_TB.v compare_all_stages` task (Final loop) to dump first 8 mismatches with raw inputs:
+- per-c_grp error counters (`err_fin_c0..c3`)
+- inception value, mamba value, BN scale, BN shift for each mismatch
+
+## Debug output analysis (key samples)
+```
+[DBG #1] c=0 t=1 got=  9740 exp= 16712  inc=  -87 mam= 16712 scale= 75 shift= -1
+[DBG #3] c=0 t=3 got= 19051 exp= 32767  inc= -250 mam= 32767 scale= 75 shift= -1
+[DBG #5] c=0 t=5 got= 12392 exp= 21500  inc= -349 mam= 21500 scale= 75 shift= -1
+[DBG] err per c_grp: c0=12134 c1=11126 c2=11407 c3=11639  (uniform → not address/bank bug)
+```
+
+Manual verification:
+- **RTL `got` matches `bn_relu(sat_add(inc, mam), scale, shift)`** — the HW formula. RTL is CORRECT.
+- **Golden `exp` matches `bn_relu(inc, scale, shift) + relu(mam)`** — the PyTorch formula.
+  Example t=1: `bn_relu(-87, 75, -1) = 0`, `relu(16712) = 16712`, sum = 16712 = exp ✓
+
+## Root cause
+`golden_all/block_*/Final_ITM_Full_FP.txt` files are STALE from an earlier extractor run that used the PyTorch formula `relu(bn(inc)) + relu(mam)`. We later reverted `extract_itm_full.py` Phase 4 back to `bn_relu(inc+mam)` (matching RTL) but **did NOT regenerate the golden files**. So:
+- RTL computes `bn_relu(inc+mam)` ✓
+- Current extractor Phase 4 computes `bn_relu(inc+mam)` ✓
+- Golden files on disk still contain `relu(bn(inc)) + relu(mam)` ✗
+
+This is a workflow bug, not an RTL bug.
+
+## Fix (single action)
+```bash
+cd ITMN_Pytorch
+python extract_itm_full.py --out ../golden_all --all_blocks
+```
+Then re-run sim. All 5 blocks should pass Final.
+
+## Pending cleanup (optional, after sim passes)
+- Debug `$display` in `ITM_CTRL_TB.v` Final loop — can remove for clean log
+- `m_we <= 0` adds in `S_M8_NEXT` (line 1245) and `S_FIN_NEXT` (line 1302) — defensive only, no functional effect; keep or revert as preferred
+
+## Things RULED OUT during this session (do not re-investigate)
+1. **Memory bank addressing**: `Memory_System.v` confirms `bank_sel=0 → read RAM_A / write RAM_B`; `bank_sel=1 → read RAM_B / write RAM_A`. Both `fin_branch_bank` and `S_FIN_WAIT2 bank_sel=0` are CORRECT for the current address layout.
+2. **bn_relu / sat_add16 functions**: identical to extractor's `bn_relu_hw` / `sat_add` — verified line by line.
+3. **BN scale/shift DMA loading**: `f_Inc_Scale[c_grp*16+i] → C_INC_SCALE+c_grp lane i` matches `scale_q[c_grp*16+i]`. Verified via debug dump (scale=75, shift=-1 for ch 0 matches PyTorch fold_bn output).
+4. **Channel ordering**: `inc_cat_q = concat([b1,b2,b3,b4])` ↔ `fin_branch=0,1,2,3 → A_CH1, B_CH2, B_CH3, B_CH4`.
+5. **m_we corruption hypothesis**: Originally suspected spurious writes from m_we staying 1 through Phase 4. Defensive fix added but error count unchanged → corruption was not actually happening (Vivado NBA semantics make spurious writes idempotent as long as m_wr_data is read in same edge it's updated).
+
+---
+
 # Block 4 Debug Summary
 
 ## Problem Statement

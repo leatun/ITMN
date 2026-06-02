@@ -12,8 +12,8 @@
 //
 // Out-of-range behavior:
 //   SiLU:
-//     x ? -8:  silu(x) ? 0  (sigmoid(x) ? 0, x×0 = 0; small negative for x near 0)
-//     x ?  8:  silu(x) ? x  (sigmoid(x) ? 1, x×1 = x)
+//     x ? -8:  silu(x) ? 0  (sigmoid(x) ? 0, xï¿½0 = 0; small negative for x near 0)
+//     x ?  8:  silu(x) ? x  (sigmoid(x) ? 1, xï¿½1 = x)
 //   Softplus:
 //     x ? -8:  softplus(x) ? exp(x) ? 0
 //     x ?  8:  softplus(x) ? x  (since log(1+e^x) ? x for large x)
@@ -28,10 +28,13 @@ module Activation_LUT (
     output signed [15:0] exp_out
 );
 
-    // Range check: x_int is the integer rep of Q9.7 value
+    // LUT range: float [-8, +8)  â†’  int [-(8<<FRAC_BITS), 8<<FRAC_BITS)
+    // LUT_SHIFT = FRAC_BITS - 4,  index = (x - LUT_LO) >> LUT_SHIFT  âˆˆ [0..255]
+    localparam signed [15:0] LUT_LO    = -(16'sd1 << (`FRAC_BITS + 3));
+    localparam        [3:0]  LUT_SHIFT = `FRAC_BITS - 4'd4;
     wire signed [15:0] x = x_in;
-    wire in_range = (x >= -16'sd1024) && (x < 16'sd1024);   // [-8.0, +8.0)
-    wire [7:0] idx = in_range ? ((x + 16'sd1024) >>> 3) : 8'd0;
+    wire in_range = (x >= LUT_LO) && (x < -LUT_LO);
+    wire [7:0] idx = in_range ? ($signed(x - LUT_LO) >>> LUT_SHIFT) : 8'd0;
     
     // SiLU LUT (256 entries)
     reg signed [15:0] silu_table [0:255];
@@ -44,9 +47,10 @@ module Activation_LUT (
     reg signed [15:0] exp_table [0:255];
     
     initial begin
-        $readmemh("silu_lut.txt", silu_table);
-        $readmemh("softplus_lut.txt", softplus_table);
-        $readmemh("exp_lut.txt", exp_table);
+        $readmemh("golden_all/silu_lut.txt", silu_table);
+        $readmemh("golden_all/softplus_lut.txt", softplus_table);
+        $readmemh("golden_all/exp_lut.txt", exp_table);
+        $display("[LUT] FRAC_BITS=%0d LUT_LO=%0d LUT_SHIFT=%0d", `FRAC_BITS, LUT_LO, LUT_SHIFT);
     end
     
     wire signed [15:0] silu_lut_val = silu_table[idx];
@@ -54,10 +58,9 @@ module Activation_LUT (
     wire signed [15:0] exp_lut_val = exp_table[idx];
     
     // Out-of-range fallbacks
-    wire signed [15:0] silu_oor = (x < -16'sd1024) ? 16'sd0 : x;
-    wire signed [15:0] softplus_oor = (x < -16'sd1024) ? 16'sd0 : x;
-    // exp(x) for x ? -8: ? 0. For x ? 8: very large, saturate to max.
-    wire signed [15:0] exp_oor = (x < -16'sd1024) ? 16'sd0 : 16'sh7FFF;
+    wire signed [15:0] silu_oor     = (x < LUT_LO) ? 16'sd0 : x;
+    wire signed [15:0] softplus_oor = (x < LUT_LO) ? 16'sd0 : x;
+    wire signed [15:0] exp_oor      = (x < LUT_LO) ? 16'sd0 : 16'sh7FFF;
     
     assign silu_out     = in_range ? silu_lut_val     : silu_oor;
     assign softplus_out = in_range ? softplus_lut_val : softplus_oor;

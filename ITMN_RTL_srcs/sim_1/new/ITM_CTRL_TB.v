@@ -38,40 +38,50 @@ module ITMN_TB;
     reg  [3:0] BLK_CH_OUT_REG;
     reg  [3:0] BLK_CH_M_REG;
     reg  [3:0] BLK_DT_REG;
+    // Cascade control: blk 0,2 → cascade copy; blk 1,3 → cascade pool; blk 4 → terminal
+    reg        BLK_NEED_POOL_REG;
+    reg        BLK_CASCADE_REG;
 
     initial begin clk = 0; forever #5 clk = ~clk; end
 
     // Instantiate the parameterized ITM_Top directly (V9 style)
+    // DMA read interface tied off (not exercised by this TB — sim reads via hierarchy).
+    wire [255:0] dma_rdata_unused;
     ITM_Top uut (
         .clk(clk), .rst(rst), .start(start),
         .done_phase1(done_phase1), .done_inception(done_inception),
         .done_mamba(done_mamba), .done_all(done_all),
         .T_MAX(BLK_T_REG), .CH_IN(BLK_CH_IN_REG), .CH_OUT(BLK_CH_OUT_REG),
         .CH_M(BLK_CH_M_REG), .DT_RANK(BLK_DT_REG),
+        .need_pool(BLK_NEED_POOL_REG), .cascade_mode(BLK_CASCADE_REG),
         .dma_write_en(dma_write_en), .dma_target(dma_target),
         .dma_addr(dma_addr), .dma_wdata(dma_wdata),
-        .dma_ready(dma_ready)
+        .dma_ready(dma_ready),
+        .dma_read_en(1'b0), .dma_rtarget(2'd0), .dma_raddr(15'd0),
+        .dma_rdata(dma_rdata_unused)
     );
 
     // ======================================================================
     // Address map (must match ITM_CONTROLLER.v)
     // ======================================================================
+    // RAM-2 compact memory map: aggressive overlap of temporal-disjoint
+    // regions.  Keep in sync with ITM_CONTROLLER.v localparams.
     localparam A_INPUT_BASE = 15'd0;
-    localparam A_BOT_OUT    = 15'd4000;
-    localparam A_CH1_OUT    = 15'd5000;
-    localparam A_FINAL_OUT  = 15'd8000;
-    localparam A_X_INNER    = 15'd12000;
-    localparam A_Z_GATE     = 15'd20000;
-    localparam A_MAMBA_OUT  = 15'd28128;
-    localparam A_H_STATE    = 15'd28000;
+    localparam A_X_INNER    = 15'd0;
+    localparam A_BOT_OUT    = 15'd0;
+    localparam A_Z_GATE     = 15'd8000;
+    localparam A_MAMBA_OUT  = 15'd8000;
+    localparam A_FINAL_OUT  = 15'd12000;
+    localparam A_CH1_OUT    = 15'd16000;
+    localparam A_H_STATE    = 15'd17000;
     localparam B_P1_OUT     = 15'd0;
-    localparam B_CH2_OUT    = 15'd4000;
-    localparam B_CH3_OUT    = 15'd5000;
-    localparam B_CH4_OUT    = 15'd6000;
-    localparam B_FINAL_OUT  = 15'd8000;
-    localparam B_X_CONV     = 15'd12000;
-    localparam B_U_SAFE     = 15'd15000;
-    localparam B_Y_SSM      = 15'd23000;
+    localparam B_X_CONV     = 15'd0;
+    localparam B_FINAL_OUT  = 15'd0;
+    localparam B_U_SAFE     = 15'd8000;
+    localparam B_Y_SSM      = 15'd8000;   // fix: was 0, conflicts with X_CONV in M6
+    localparam B_CH2_OUT    = 15'd16000;
+    localparam B_CH3_OUT    = 15'd17000;
+    localparam B_CH4_OUT    = 15'd18000;
     // Const RAM layout - must match ITM_CONTROLLER.v.
     // Sized for block 4 (CH_OUT<=8, CH_M<=16) to avoid address overlaps.
     localparam C_P1_BIAS    = 15'd0;     // size CH_OUT
@@ -161,6 +171,9 @@ module ITMN_TB;
     integer err_ygated,max_ygated;
     integer err_mout, max_mout;
     integer err_fin,  max_fin;
+    // DEBUG: per-c_grp counters + first-mismatch dump
+    integer err_fin_c0, err_fin_c1, err_fin_c2, err_fin_c3;
+    integer dbg_dumped;
     // Accumulators
     integer tot_err_p1, tot_err_fin, tot_err_mout, tot_err_h;
     integer tot_err_yg, tot_err_dt, tot_err_xp, tot_err_us, tot_err_zg;
@@ -225,6 +238,18 @@ module ITMN_TB;
             W_ALOG    = W_DTPROJ + dtproj_words_r;
             W_DPARAM  = W_ALOG   + ((BLK_D_INNER==128) ? 15'd128 : 15'd256);
             W_OUTPROJ = W_DPARAM + ((BLK_D_INNER==128) ? 15'd8   : 15'd16);
+            // Cascade control — drives RTL S_CASCADE_* states after FIN finishes.
+            //   blk 0 → blk 1 : same T (1000) → copy
+            //   blk 1 → blk 2 : T halves (1000→500) → pool
+            //   blk 2 → blk 3 : same T (500)  → copy
+            //   blk 3 → blk 4 : T halves (500→250) → pool
+            //   blk 4         : terminal → cascade off
+            case (bid)
+                0, 2:    begin BLK_CASCADE_REG = 1'b1; BLK_NEED_POOL_REG = 1'b0; end
+                1, 3:    begin BLK_CASCADE_REG = 1'b1; BLK_NEED_POOL_REG = 1'b1; end
+                4:       begin BLK_CASCADE_REG = 1'b0; BLK_NEED_POOL_REG = 1'b0; end
+                default: begin BLK_CASCADE_REG = 1'b0; BLK_NEED_POOL_REG = 1'b0; end
+            endcase
         end
     endtask
 
@@ -239,6 +264,7 @@ module ITMN_TB;
             err_xproj=0;max_xproj=0; err_delta=0;max_delta=0;
             err_h=0;max_h=0; err_ygated=0;max_ygated=0;
             err_mout=0;max_mout=0; err_fin=0;max_fin=0;
+            err_fin_c0=0; err_fin_c1=0; err_fin_c2=0; err_fin_c3=0; dbg_dumped=0;
         end
     endtask
 
@@ -490,6 +516,9 @@ module ITMN_TB;
         input integer ch_out;  // d_out/16 (CH_OUT)
         input integer ch_m;   // d_inner/16 (or 16 for block4)
         integer dim_cmp, br_grps;
+        // DEBUG: temps for first-mismatch dump
+        reg [255:0] dbg_inc_word, dbg_mam_word, dbg_sc_word, dbg_sh_word;
+        reg signed [15:0] dbg_inc_val, dbg_mam_val, dbg_sc_val, dbg_sh_val;
         begin
             dim_cmp = ch_out * 4;   // dim = d_out/4
             br_grps = (ch_out >= 8) ? 2 : 1;  // words per branch per timestep
@@ -672,8 +701,40 @@ module ITMN_TB;
                     r_exp = goldfp_final[c_idx*T + t_idx];
                     diff = (r_got>r_exp) ? (r_got-r_exp) : (r_exp-r_got);
                     if (diff > max_fin) max_fin = diff;
-                    if (diff > TOLERANCE) err_fin = err_fin + 1;
+                    if (diff > TOLERANCE) begin
+                        err_fin = err_fin + 1;
+                        // DEBUG: per-c_grp counter
+                        case (c_idx>>4)
+                            0: err_fin_c0 = err_fin_c0 + 1;
+                            1: err_fin_c1 = err_fin_c1 + 1;
+                            2: err_fin_c2 = err_fin_c2 + 1;
+                            3: err_fin_c3 = err_fin_c3 + 1;
+                        endcase
+                        // DEBUG: dump first 8 mismatches with raw inception + mamba inputs
+                        if (dbg_dumped < 8) begin
+                            // inception read: same address used by S_FIN_READ (fin_branch_base + t*br_grps)
+                            case (c_idx>>4)
+                                0: dbg_inc_word = uut.mem_sys.ram_a.ram[A_CH1_OUT + t_idx*br_grps + 0];
+                                1: dbg_inc_word = uut.mem_sys.ram_b.ram[B_CH2_OUT + t_idx*br_grps + 0];
+                                2: dbg_inc_word = uut.mem_sys.ram_b.ram[B_CH3_OUT + t_idx*br_grps + 0];
+                                3: dbg_inc_word = uut.mem_sys.ram_b.ram[B_CH4_OUT + t_idx*br_grps + 0];
+                            endcase
+                            dbg_inc_val = $signed(dbg_inc_word[(c_idx&4'hF)*16 +: 16]);
+                            // mamba read: A_MAMBA_OUT + t*ch_out + c_grp
+                            dbg_mam_word = uut.mem_sys.ram_a.ram[A_MAMBA_OUT + t_idx*ch_out + (c_idx>>4)];
+                            dbg_mam_val  = $signed(dbg_mam_word[(c_idx&4'hF)*16 +: 16]);
+                            // BN scale + shift from const RAM (now in Const_Storage after D3.A)
+                            dbg_sc_word = uut.u_const.ram_const.ram[C_INC_SCALE + (c_idx>>4)];
+                            dbg_sh_word = uut.u_const.ram_const.ram[C_INC_SHIFT + (c_idx>>4)];
+                            dbg_sc_val  = $signed(dbg_sc_word[(c_idx&4'hF)*16 +: 16]);
+                            dbg_sh_val  = $signed(dbg_sh_word[(c_idx&4'hF)*16 +: 16]);
+                            $display("  [DBG #%0d] c=%0d t=%0d got=%6d exp=%6d  inc=%6d mam=%6d scale=%6d shift=%6d",
+                                     dbg_dumped, c_idx, t_idx, r_got, r_exp, dbg_inc_val, dbg_mam_val, dbg_sc_val, dbg_sh_val);
+                            dbg_dumped = dbg_dumped + 1;
+                        end
+                    end
                 end
+            $display("  [DBG] err per c_grp: c0=%0d c1=%0d c2=%0d c3=%0d", err_fin_c0, err_fin_c1, err_fin_c2, err_fin_c3);
         end
     endtask
 
@@ -1061,8 +1122,7 @@ module ITMN_TB;
 
         $display(">> Sanity check block 1:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> Chaining: copying block 0 final output to input...");
-        copy_final_to_input(1000, 4);
+        $display(">> Chaining: block 0 wrote to A_INPUT_BASE via S_CASCADE (copy mode).");
         $display(">> DMA loading block 1 weights...");
         load_weights_only;
         $display("   DMA load complete.");
@@ -1073,9 +1133,8 @@ module ITMN_TB;
         print_block_report(1, BLK_T, BLK_CH_OUT, BLK_CH_M);
         accum_err;
 
-        // MaxPool after block 1 (T: 1000?500)
-        $display("\n>> MaxPool after block 1...");
-        maxpool_tb(1000, 4);
+        // Block 1 cascaded with pool: RTL halved T and wrote to A_INPUT_BASE.
+        $display("\n>> Block 1 finished with cascade-pool (T 1000 → 500).");
 
         // ??????????????????????????????????????????????????????????????????
         // BLOCK 2  block_02_layer03   T=500  d_in=64  d_inner=128
@@ -1177,8 +1236,7 @@ module ITMN_TB;
 
         $display(">> Sanity check block 3:");
         sanity_check(BLK_T, BLK_CH_M, BLK_CH_OUT);
-        $display(">> Chaining: copying block 2 final output to input...");
-        copy_final_to_input(500, 4);
+        $display(">> Chaining: block 2 wrote to A_INPUT_BASE via S_CASCADE (copy mode).");
         $display(">> DMA loading block 3 weights...");
         load_weights_only;
         $display("   DMA load complete.");
@@ -1189,9 +1247,8 @@ module ITMN_TB;
         print_block_report(3, BLK_T, BLK_CH_OUT, BLK_CH_M);
         accum_err;
 
-        // MaxPool after block 3 (T: 500?250)
-        $display("\n>> MaxPool after block 3...");
-        maxpool_tb(500, 4);
+        // Block 3 cascaded with pool: RTL halved T and wrote to A_INPUT_BASE.
+        $display("\n>> Block 3 finished with cascade-pool (T 500 → 250).");
 
         // ??????????????????????????????????????????????????????????????????
         // BLOCK 4  block_04_layer06   T=250  d_in=128  d_inner=256

@@ -31,11 +31,26 @@ module ITM_Top (
     input  wire [3:0]  CH_M,
     input  wire [3:0]  DT_RANK,
 
+    // Cascade control (sampled at start):
+    //   need_pool=1     : after FIN, run stride-2 MaxPool over T into A_INPUT_BASE
+    //   cascade_mode=1  : after FIN (and pool if any), copy/pool result into A_INPUT_BASE
+    //                     for next block's P1 to consume. When 0, FINAL_OUT is the
+    //                     terminal output (last block / host read-back).
+    input  wire        need_pool,
+    input  wire        cascade_mode,
+
     input  wire        dma_write_en,
     input  wire [1:0]  dma_target,
     input  wire [14:0] dma_addr,
     input  wire [255:0] dma_wdata,
-    output wire        dma_ready
+    output wire        dma_ready,
+    // ---- DMA READ interface: host reads back BRAM contents ----
+    //   dma_rtarget = 0/1/2/3  ->  ram_a / ram_b / ram_weight / ram_const
+    //   dma_rdata is registered (1-cycle latency from dma_raddr presented).
+    input  wire        dma_read_en,
+    input  wire [1:0]  dma_rtarget,
+    input  wire [14:0] dma_raddr,
+    output wire [255:0] dma_rdata
 );
 
     assign dma_ready = ~(dma_write_en & (dma_target == 2'd2 | dma_target == 2'd3) & m_we);
@@ -64,35 +79,59 @@ module ITM_Top (
     wire [14:0] dparam_sz   = {7'd0, ch_m_actual};                       // CH_M
     wire [14:0] W_OUTPROJ_BASE = W_DPARAM_BASE + dparam_sz;
 
-    // Address stride precomputes (registered combinational)
+    // CP-4 fix: t_stride_* are now REGISTERED incremental accumulators, updated in
+    // lockstep with t_cnt via tasks t_cnt_zero / t_cnt_inc (see below). This removes
+    // four combinational multipliers (t_cnt * CH_IN/CH_OUT/ch_m_actual/3) from every
+    // address path. NBA updates inside always @(posedge clk) keep strides perfectly
+    // in sync with t_cnt — both registers latch at the same clock edge.
     reg  [14:0] t_stride_in;
     reg  [14:0] t_stride_m;
     reg  [14:0] t_stride_out;
     reg  [14:0] t_stride_xp;
-    always @(*) begin
-        t_stride_in  = {5'd0, t_cnt} * {11'd0, CH_IN};
-        t_stride_m   = {5'd0, t_cnt} * {7'd0,  ch_m_actual};
-        t_stride_out = {5'd0, t_cnt} * {11'd0, CH_OUT};
-        t_stride_xp  = {5'd0, t_cnt} * 15'd3;
-    end
 
-    // Fixed RAM base addresses
+    // ----------------------------------------------------------------------
+    // Compact memory map (RAM-2): aggressive overlap of temporal-disjoint
+    // regions.  See RAM_LAYOUT_PLAN.md for lifetime analysis.
+    //
+    // Bank A (ram_a) — peak 17256 words:
+    //   [0,8000)      A_INPUT_BASE | A_X_INNER | A_BOT_OUT
+    //                 INPUT alive P1 only; X_INNER alive M1A..M6A;
+    //                 BOT_OUT alive during BR only.  All sequential, share base.
+    //   [8000,16000)  A_Z_GATE | A_MAMBA_OUT | A_FINAL_OUT
+    //                 Z_GATE alive M1B..M7; MAMBA_OUT M8..FIN ([8000,12000));
+    //                 FINAL_OUT FIN..end ([12000,16000)).  Z_GATE dead before
+    //                 M8 → MAMBA_OUT writes can start.  MAMBA_OUT and
+    //                 FINAL_OUT alive concurrently in FIN but at disjoint
+    //                 addresses (8000-12000 vs 12000-16000).
+    //   [16000,17000) A_CH1_OUT — alive BR..FIN, dedicated slot
+    //   [17000,17256) A_H_STATE — alive M6 only, dedicated slot
+    //
+    // Bank B (ram_b) — peak 19000 words:
+    //   [0,8000)      B_P1_OUT | B_X_CONV | B_FINAL_OUT
+    //                 Sequential lifetimes: P1_OUT (P1..M1B) → X_CONV (M2..M5)
+    //                 → Y_SSM (M6B..M7) → FINAL_OUT (FIN..end).  Share base.
+    //   [8000,16000)  B_U_SAFE | B_Y_SSM — alive M3CP..M6B
+    //   [16000,17000) B_CH2_OUT — alive BR..FIN
+    //   [17000,18000) B_CH3_OUT — alive BR..FIN
+    //   [18000,19000) B_CH4_OUT — alive BR..FIN
+    // ----------------------------------------------------------------------
     localparam A_INPUT_BASE = 15'd0;
-    localparam A_BOT_OUT    = 15'd4000;
-    localparam A_CH1_OUT    = 15'd5000;
-    localparam A_FINAL_OUT  = 15'd8000;
-    localparam A_X_INNER    = 15'd12000;
-    localparam A_Z_GATE     = 15'd20000;
-    localparam A_MAMBA_OUT  = 15'd28128;  // was 20000; moved to preserve Z_GATE for debug
-    localparam A_H_STATE    = 15'd28000;
+    localparam A_X_INNER    = 15'd0;       // overlaps A_INPUT_BASE (temporal disjoint)
+    localparam A_BOT_OUT    = 15'd0;       // overlaps A_INPUT_BASE / A_X_INNER (temporal disjoint)
+    localparam A_Z_GATE     = 15'd8000;
+    localparam A_MAMBA_OUT  = 15'd8000;    // overlaps A_Z_GATE first half (temporal disjoint)
+    localparam A_FINAL_OUT  = 15'd12000;   // overlaps A_Z_GATE second half (temporal disjoint)
+    localparam A_CH1_OUT    = 15'd16000;
+    localparam A_H_STATE    = 15'd17000;
+
     localparam B_P1_OUT     = 15'd0;
-    localparam B_CH2_OUT    = 15'd4000;
-    localparam B_CH3_OUT    = 15'd5000;
-    localparam B_CH4_OUT    = 15'd6000;
-    localparam B_FINAL_OUT  = 15'd8000;
-    localparam B_X_CONV     = 15'd12000;
-    localparam B_U_SAFE     = 15'd15000;  // was 20000; moved to reuse stale x_conv region
-    localparam B_Y_SSM      = 15'd23000;  // was 24000; moved to avoid U_SAFE overlap
+    localparam B_X_CONV     = 15'd0;       // overlaps B_P1_OUT (temporal disjoint)
+    localparam B_Y_SSM      = 15'd8000;    // overlaps B_P1_OUT / B_X_CONV (temporal disjoint)
+    localparam B_FINAL_OUT  = 15'd0;       // overlaps all above (temporal disjoint)
+    localparam B_U_SAFE     = 15'd8000;
+    localparam B_CH2_OUT    = 15'd16000;
+    localparam B_CH3_OUT    = 15'd17000;
+    localparam B_CH4_OUT    = 15'd18000;
     // Dynamic weight base addresses - computed from block config
     localparam W_P1_BASE    = 15'd0;
     wire [14:0] w_p1_size   = {7'd0, CH_OUT} * {7'd0, d_in};             // CH_OUT * d_in
@@ -132,15 +171,23 @@ module ITM_Top (
     reg  [255:0] pe_B;
     wire [255:0] pe_out;
 
+    // Memory_System holds bulk R/W working memory (ram_a/b + ram_weight).
+    // Constants (ram_const + activation LUTs + rsqrt ROM) live in Const_Storage,
+    // instantiated further below.  DMA signals fan out to both modules; top-level
+    // dma_rdata is muxed between them based on dma_rtarget==2'd3.
+    wire [255:0] mem_dma_rdata;
+    wire [255:0] const_dma_rdata;
     Memory_System mem_sys (
         .clk(clk), .reset(rst), .bank_sel(bank_sel),
         .core_read_addr(m_rd_addr),   .core_read_data(m_rd_data),
         .core_write_en(m_we),         .core_write_addr(m_wr_addr), .core_write_data(m_wr_data),
         .weight_read_addr(w_rd_addr), .weight_read_data(w_rd_data),
-        .const_read_addr(c_rd_addr),  .const_read_data(c_rd_data),
         .dma_write_en(dma_write_en),  .dma_target(dma_target),
-        .dma_addr(dma_addr),          .dma_wdata(dma_wdata)
+        .dma_addr(dma_addr),          .dma_wdata(dma_wdata),
+        .dma_read_en(dma_read_en),    .dma_rtarget(dma_rtarget),
+        .dma_raddr(dma_raddr),        .dma_rdata(mem_dma_rdata)
     );
+    assign dma_rdata = (dma_rtarget == 2'd3) ? const_dma_rdata : mem_dma_rdata;
 
     PE_Array pe_arr (
         .clk(clk), .rst(rst),
@@ -150,16 +197,28 @@ module ITM_Top (
         .out_vector(pe_out)
     );
 
-    // Activation LUTs (16 lanes each function)
+    // ----------------------------------------------------------------------
+    // Activation LUT lanes (16 each: silu, softplus, exp).  Arrays are wired
+    // from FSM data sources (m_rd_data / dt_lane / pe_out) on the input side
+    // and feed write-back muxes on the output side.  The actual tables live
+    // in Const_Storage; see D3.A refactor in OPTIMIZATION_NOTES.md.
+    // ----------------------------------------------------------------------
     wire signed [15:0] silu_in [0:15], silu_o [0:15];
     wire signed [15:0] sp_in   [0:15], sp_o   [0:15];
     wire signed [15:0] exp_in  [0:15], exp_o  [0:15];
-    genvar gi;
+
+    // Pack/unpack array ↔ 256-bit flat for Const_Storage's interface.
+    wire [255:0] silu_in_flat,  sp_in_flat,  exp_in_flat;
+    wire [255:0] silu_out_flat, sp_out_flat, exp_out_flat;
+    genvar gp;
     generate
-        for (gi = 0; gi < 16; gi = gi + 1) begin : ACT_LANES
-            Activation_LUT lut_silu (.x_in(silu_in[gi]), .silu_out(silu_o[gi]), .softplus_out(),    .exp_out());
-            Activation_LUT lut_sp   (.x_in(sp_in[gi]),   .silu_out(),           .softplus_out(sp_o[gi]),  .exp_out());
-            Activation_LUT lut_exp  (.x_in(exp_in[gi]),  .silu_out(),           .softplus_out(),    .exp_out(exp_o[gi]));
+        for (gp = 0; gp < 16; gp = gp + 1) begin : PACK_UNPACK
+            assign silu_in_flat[gp*16 +: 16] = silu_in[gp];
+            assign sp_in_flat  [gp*16 +: 16] = sp_in  [gp];
+            assign exp_in_flat [gp*16 +: 16] = exp_in [gp];
+            assign silu_o[gp] = silu_out_flat[gp*16 +: 16];
+            assign sp_o  [gp] = sp_out_flat  [gp*16 +: 16];
+            assign exp_o [gp] = exp_out_flat [gp*16 +: 16];
         end
     endgenerate
 
@@ -172,15 +231,64 @@ module ITM_Top (
     assign silu_in[12] = m_rd_data[192 +: 16]; assign silu_in[13] = m_rd_data[208 +: 16];
     assign silu_in[14] = m_rd_data[224 +: 16]; assign silu_in[15] = m_rd_data[240 +: 16];
 
-    // RMSNorm registers
-    reg [31:0]        norm_sq_acc;
+    // RMSNorm registers — v2 (no pre-shift, raw x*x accumulator, finer ROM)
+    // Each lane: |x|≤32767 → x² ≤ 2^30. Sum over CH_OUT*16 ≤ 128 lanes: ≤ 2^37. Use 40-bit.
+    reg [39:0]        norm_sq_acc;
     reg signed [15:0] norm_S_reg;
-    // rsqrt ROM for Q9.7 RMSNorm: ROM[m] = round(512/sqrt(m)), sat to 32767
-    reg [15:0] rsqrt_q97_rom [0:8191];
-    initial $readmemh("rsqrt_q97.txt", rsqrt_q97_rom);
-    wire [3:0]  log2_d_out   = (CH_OUT >= 4'd8) ? 4'd7 : 4'd6;
-    wire [31:0] norm_mean_int = norm_sq_acc >> log2_d_out;
-    wire [12:0] norm_rom_idx  = (norm_mean_int > 32'd8191) ? 13'd8191 : norm_mean_int[12:0];
+
+    // CP-1: RMSNorm 2-step normalize unit (separate module, 1-cycle pipeline).
+    // Inputs are the lane selected by mac_idx[3:0] from m_rd_data / c_rd_data,
+    // S is the rsqrt result computed earlier (norm_S_reg). Output `rms_norm_out`
+    // is valid 1 cycle after inputs present. Used by S_M1A_MAC and S_M1B_MAC.
+    wire signed [15:0] rms_x_lane     = m_rd_data[mac_idx[3:0] * 16 +: 16];
+    wire signed [15:0] rms_gamma_lane = c_rd_data[mac_idx[3:0] * 16 +: 16];
+    wire signed [15:0] rms_norm_out;
+    RMSNorm_Mul u_rmsnorm_mul (
+        .clk        (clk),
+        .x_in       (rms_x_lane),
+        .gamma_in   (rms_gamma_lane),
+        .S_in       (norm_S_reg),
+        .x_norm_out (rms_norm_out)
+    );
+    // RMSNorm v2 mean-square → ROM index: total shift = log2_d + 2*FB - 1 - N
+    // = log2_d + 15 (for FB=11, N=6).
+    //   block 4   : CH_OUT=8, log2_d=7 → shift 22
+    //   blocks 0-3: CH_OUT=4, log2_d=6 → shift 21
+    wire [3:0]  log2_d_out    = (CH_OUT >= 4'd8) ? 4'd7 : 4'd6;
+    wire [39:0] norm_mean_int = (CH_OUT >= 4'd8) ? (norm_sq_acc >> 22) : (norm_sq_acc >> 21);
+    wire [12:0] norm_rom_idx  = (norm_mean_int > 40'd8191) ? 13'd8191 : norm_mean_int[12:0];
+
+    // ----------------------------------------------------------------------
+    // Const_Storage — every read-only / config storage in one hierarchy:
+    //   • 48 activation LUT lanes (silu, softplus, exp; 16 each)
+    //   • 8K×16 rsqrt ROM (RMSNorm)
+    //   • 64×256 ram_const (per-block bias/scale/shift/gamma, DMA-loaded)
+    // See Const_Storage.v.  ram_const takes the full DMA write port (it
+    // consumes dma_target == 2'd3) and a registered core read port driven by
+    // c_rd_addr — same 1-cycle latency the FSM previously expected.
+    // ----------------------------------------------------------------------
+    wire [15:0] rsqrt_rom_data;
+    Const_Storage u_const (
+        .clk             (clk),
+        .silu_in_flat    (silu_in_flat),
+        .sp_in_flat      (sp_in_flat),
+        .exp_in_flat     (exp_in_flat),
+        .silu_out_flat   (silu_out_flat),
+        .sp_out_flat     (sp_out_flat),
+        .exp_out_flat    (exp_out_flat),
+        .rsqrt_idx       (norm_rom_idx),
+        .rsqrt_data      (rsqrt_rom_data),
+        .dma_write_en    (dma_write_en),
+        .dma_target      (dma_target),
+        .dma_addr        (dma_addr),
+        .dma_wdata       (dma_wdata),
+        .const_read_addr (c_rd_addr),
+        .const_read_data (c_rd_data),
+        .dma_read_en     (dma_read_en),
+        .dma_rtarget     (dma_rtarget),
+        .dma_raddr       (dma_raddr),
+        .dma_rdata_const (const_dma_rdata)
+    );
 
     reg signed [15:0] dt_lane [0:15];
     assign sp_in[ 0] = dt_lane[ 0]; assign sp_in[ 1] = dt_lane[ 1];
@@ -267,6 +375,19 @@ module ITM_Top (
     localparam S_NORM_M1B_SQ_READ  = 7'd120; localparam S_NORM_M1B_SQ_WAIT  = 7'd121;
     localparam S_NORM_M1B_SQ_LATCH = 7'd122; localparam S_NORM_M1B_SQ_NEXT  = 7'd123;
     localparam S_NORM_M1B_MEAN     = 7'd124;
+    // Cascade write-back: copy (need_pool=0) or stride-2 MaxPool (need_pool=1).
+    // Reads FINAL_OUT, writes A_INPUT_BASE for next block's P1.
+    // BRAM_256b: dout_b is REGISTERED (1-cycle latency on read pipe), and the
+    // address-mux is combinational from the m_rd_addr REG → effective 2-cycle
+    // latency between m_rd_addr set and m_rd_data valid (matches S_BR_MAC pattern).
+    // 5 states per (c_grp, t_out):
+    //   RA: set addr_A          WA: wait        RB: latch m_rd_data=A, set addr_B (if pool)
+    //   WB: wait                WR: m_rd_data=B (pool) or stale (copy); compute+write; advance
+    localparam S_CASCADE_RA = 7'd125;
+    localparam S_CASCADE_WA = 7'd87;
+    localparam S_CASCADE_RB = 7'd126;
+    localparam S_CASCADE_WB = 7'd88;
+    localparam S_CASCADE_WR = 7'd127;
 
     // ================================================================
     // FSM registers
@@ -277,7 +398,8 @@ module ITM_Top (
     reg [2:0]  c_grp;
     reg [7:0]  mac_idx;
     reg [5:0]  k_idx;
-    reg [1:0]  substep;
+    reg [2:0]  substep;
+    reg [255:0] max_buf;
     reg [2:0]  branch_id;
     reg [3:0]  s_idx;
     reg        c_grp_br;   // inception output-group within branch (0 or 1)
@@ -293,6 +415,15 @@ module ITM_Top (
     reg signed [15:0] du_reg    [0:15];
     reg        [255:0] y_reg;
     reg        [255:0] incep_reg;
+
+    // Cascade control regs (latched at start)
+    reg        need_pool_reg, cascade_mode_reg;
+    reg [9:0]  t_out_cnt;        // output timestep for cascade write (0..T_MAX/2-1 pool, 0..T_MAX-1 copy)
+    wire [9:0] t_out_last_pool = (T_MAX >> 1) - 10'd1;     // T/2 - 1
+    wire [9:0] t_out_last      = need_pool_reg ? t_out_last_pool : t_last;
+    // Source-side t index into FINAL: pool reads even+odd of 2*t_out; copy reads t_out only.
+    wire [9:0] src_t_a = need_pool_reg ? (t_out_cnt << 1) : t_out_cnt;
+    wire [9:0] src_t_b = (t_out_cnt << 1) | 10'd1;          // only used if need_pool
 
     // ================================================================
     // Inception helpers - block-4 aware
@@ -346,6 +477,9 @@ module ITM_Top (
         {{2{1'b0}}, t_cnt} + {{6{1'b0}}, k_idx} - {{6{1'b0}}, current_pad};
     wire        is_padding  = (t_eff_signed < 12'sd0) || (t_eff_signed >= {2'b0, T_MAX});
     wire [9:0]  t_eff       = t_eff_signed[9:0];
+    wire [9:0]  b1_t_prev   = (t_cnt == 10'd0)    ? 10'd0  : t_cnt - 10'd1;
+    wire [9:0]  b1_t_next   = (t_cnt == t_last)   ? t_last : t_cnt + 10'd1;
+    wire [255:0] b1_max_final = elem_max16(max_buf, m_rd_data);
     wire [7:0]  mac_target  = current_num_in_ch - 8'd1;
     wire [5:0]  k_target    = current_kernel - 6'd1;
 
@@ -376,6 +510,25 @@ module ITM_Top (
 
     integer i;
 
+    // CP-4 helper tasks — call alongside every `t_cnt <= ...` assignment so the
+    // four address strides stay in lockstep without combinational multipliers.
+    task t_cnt_zero;
+        begin
+            t_stride_in  <= 15'd0;
+            t_stride_m   <= 15'd0;
+            t_stride_out <= 15'd0;
+            t_stride_xp  <= 15'd0;
+        end
+    endtask
+    task t_cnt_inc;
+        begin
+            t_stride_in  <= t_stride_in  + {11'd0, CH_IN};
+            t_stride_m   <= t_stride_m   + {7'd0,  ch_m_actual};
+            t_stride_out <= t_stride_out + {11'd0, CH_OUT};
+            t_stride_xp  <= t_stride_xp  + 15'd3;
+        end
+    endtask
+
     // ================================================================
     // FSM
     // ================================================================
@@ -397,7 +550,12 @@ module ITM_Top (
                 u_scalar_reg[i] <= 0; y_acc_reg[i] <= 0; du_reg[i] <= 0;
             end
             h_reg <= 0; y_reg <= 0; incep_reg <= 0;
-            norm_sq_acc <= 32'd0; norm_S_reg <= 16'sd0;
+            norm_sq_acc <= 40'd0; norm_S_reg <= 16'sd0;
+            max_buf <= 256'd0;
+            need_pool_reg <= 1'b0; cascade_mode_reg <= 1'b0;
+            t_out_cnt <= 10'd0;
+            t_stride_in <= 15'd0; t_stride_m <= 15'd0;
+            t_stride_out <= 15'd0; t_stride_xp <= 15'd0;
         end else begin
             m_we     <= 0;
             pe_clear <= 0;
@@ -410,10 +568,14 @@ module ITM_Top (
                 if (start) begin
                     done_phase1 <= 0; done_inception <= 0;
                     done_mamba  <= 0; done_all       <= 0;
-                    t_cnt <= 0; c_grp <= 0; c_grp_m <= 0; mac_idx <= 0;
+                    t_cnt <= 0; c_grp <= 0; c_grp_m <= 0; mac_idx <= 0; t_cnt_zero;
                     k_idx <= 0; substep <= 0; branch_id <= 0; s_idx <= 0; c_grp_br <= 0;
                     bank_sel  <= 0;
                     c_rd_addr <= C_P1_BIAS;
+                    // Latch cascade control for this run
+                    need_pool_reg    <= need_pool;
+                    cascade_mode_reg <= cascade_mode;
+                    t_out_cnt        <= 10'd0;
                     state     <= S_P1_MAC;
                 end
             end
@@ -466,11 +628,11 @@ module ITM_Top (
                 if (c_grp == ch_out_last[2:0]) begin
                     c_grp <= 0;
                     if (t_cnt == t_last) begin
-                        done_phase1 <= 1; t_cnt <= 0; k_idx <= 0;
+                        done_phase1 <= 1; t_cnt <= 0; t_cnt_zero; k_idx <= 0;
                         branch_id <= 0; bank_sel <= 1; c_grp_br <= 0;
                         state <= S_BR_MAC;
                     end else begin
-                        t_cnt     <= t_cnt + 10'd1;
+                        t_cnt     <= t_cnt + 10'd1; t_cnt_inc;
                         c_rd_addr <= C_P1_BIAS;
                         state     <= S_P1_MAC;
                     end
@@ -486,41 +648,77 @@ module ITM_Top (
             // --------------------------------------------------------
             S_BR_MAC: begin
                 case (substep)
-                    2'd0: begin
-                        if (is_padding)
+                    3'd0: begin
+                        if (branch_id == 3'd1) begin
+                            // B1 MaxPool pass 1: read P1[t_prev]
+                            m_rd_addr <= current_data_base
+                                       + ({5'd0, b1_t_prev} * {11'd0, CH_OUT})
+                                       + {10'd0, mac_idx[7:4]};
+                        end else if (is_padding) begin
                             m_rd_addr <= 15'd0;
-                        else if (is_ch64_branch)
-                            // Bot/B1: d_out channels, CH_OUT words per t
+                        end else if (is_ch64_branch) begin
+                            // Bot: d_out channels, CH_OUT words per t
                             m_rd_addr <= current_data_base
                                        + ({5'd0, t_eff} * {11'd0, CH_OUT})
                                        + {10'd0, mac_idx[7:4]};
-                        else
-                            // B2/B3/B4: dim channels, br_dim_groups words per t
-                            // mac_idx[4] selects sub-word for block 4 (dim=32)
+                        end else begin
+                            // B2/B3/B4: dim channels
                             m_rd_addr <= current_data_base
                                        + ({5'd0, t_eff} * br_dim_groups)
                                        + {14'd0, mac_idx[4]};
-                        // Weight: base + output-group-offset + tap*num_in + mac
+                        end
                         w_rd_addr <= current_w_base + br_w_offset
                                    + ({9'd0, k_idx} * {7'd0, current_num_in_ch})
                                    + {7'd0, mac_idx};
-                        pe_A <= 16'sd0; substep <= 2'd1;
+                        pe_A <= 16'sd0; substep <= 3'd1;
                     end
-                    2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
-                    2'd2: begin
-                        if (is_padding) pe_A <= 16'sd0;
-                        else            pe_A <= m_rd_data[mac_idx[3:0] * 16 +: 16];
+                    3'd1: begin pe_A <= 16'sd0; substep <= 3'd2; end
+                    3'd2: begin
+                        if (branch_id == 3'd1) begin
+                            // B1 MaxPool: save P1[t_prev]; issue P1[t_cnt]
+                            max_buf   <= m_rd_data;
+                            m_rd_addr <= current_data_base
+                                       + ({5'd0, t_cnt}    * {11'd0, CH_OUT})
+                                       + {10'd0, mac_idx[7:4]};
+                            substep <= 3'd3;
+                        end else begin
+                            if (is_padding) pe_A <= 16'sd0;
+                            else            pe_A <= m_rd_data[mac_idx[3:0] * 16 +: 16];
+                            pe_B     <= w_rd_data;
+                            pe_clear <= (k_idx == 6'd0 && mac_idx == 8'd0);
+                            if (mac_idx == mac_target[7:0]) begin
+                                mac_idx <= 0;
+                                if (k_idx == k_target) state <= S_BR_WAIT;
+                                else begin k_idx <= k_idx + 6'd1; substep <= 3'd0; end
+                            end else begin
+                                mac_idx <= mac_idx + 8'd1; substep <= 3'd0;
+                            end
+                        end
+                    end
+                    3'd3: begin substep <= 3'd4; end  // B1: wait for P1[t_cnt]
+                    3'd4: begin
+                        // B1: max(t_prev, t_curr); issue P1[t_next]
+                        max_buf   <= elem_max16(max_buf, m_rd_data);
+                        m_rd_addr <= current_data_base
+                                   + ({5'd0, b1_t_next} * {11'd0, CH_OUT})
+                                   + {10'd0, mac_idx[7:4]};
+                        substep <= 3'd5;
+                    end
+                    3'd5: begin substep <= 3'd6; end  // B1: wait for P1[t_next]
+                    3'd6: begin
+                        // B1: final max, MAC
+                        pe_A     <= b1_max_final[mac_idx[3:0] * 16 +: 16];
                         pe_B     <= w_rd_data;
-                        pe_clear <= (k_idx == 6'd0 && mac_idx == 8'd0);
+                        pe_clear <= (mac_idx == 8'd0);
                         if (mac_idx == mac_target[7:0]) begin
                             mac_idx <= 0;
                             if (k_idx == k_target) state <= S_BR_WAIT;
-                            else begin k_idx <= k_idx + 6'd1; substep <= 2'd0; end
+                            else begin k_idx <= k_idx + 6'd1; substep <= 3'd0; end
                         end else begin
-                            mac_idx <= mac_idx + 8'd1; substep <= 2'd0;
+                            mac_idx <= mac_idx + 8'd1; substep <= 3'd0;
                         end
                     end
-                    default: substep <= 2'd0;
+                    default: substep <= 3'd0;
                 endcase
             end
             S_BR_WAIT:  state <= S_BR_WRITE;
@@ -535,7 +733,7 @@ module ITM_Top (
             S_BR_NEXT: begin
                 mac_idx <= 0; k_idx <= 0; substep <= 0;
                 if (t_cnt == t_last) begin
-                    t_cnt <= 0;
+                    t_cnt <= 0; t_cnt_zero;
                     if (c_grp_br != br_grp_last) begin
                         // More output groups in this branch
                         c_grp_br <= c_grp_br + 1'b1;
@@ -549,8 +747,8 @@ module ITM_Top (
                             3'd3: begin branch_id <= 3'd4; bank_sel <= 0; state <= S_BR_MAC; end
                             3'd4: begin
                                 done_inception <= 1;
-                                t_cnt <= 0; c_grp_m <= 0; mac_idx <= 0;
-                                c_grp <= 0; norm_sq_acc <= 32'd0;
+                                t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; mac_idx <= 0;
+                                c_grp <= 0; norm_sq_acc <= 40'd0;
                                 bank_sel <= 1;
                                 state    <= S_NORM_M1A_SQ_READ;
                             end
@@ -558,7 +756,7 @@ module ITM_Top (
                         endcase
                     end
                 end else begin
-                    t_cnt <= t_cnt + 10'd1;
+                    t_cnt <= t_cnt + 10'd1; t_cnt_inc;
                     state <= S_BR_MAC;
                 end
             end
@@ -566,25 +764,32 @@ module ITM_Top (
             // --------------------------------------------------------
             // M1a : in_proj_x   d_out -> d_inner
             // --------------------------------------------------------
+            // CP-1: 4-substep inner loop. substep 2 presents inputs to
+            // RMSNorm_Mul (its internal p1_reg latches at end of cycle);
+            // substep 3 captures the now-valid `rms_norm_out` into pe_A
+            // together with pe_B/pe_clear (all aligned for PE_Array MAC).
             S_M1A_MAC: begin
                 case (substep)
-                    2'd0: begin
+                    3'd0: begin
                         m_rd_addr <= B_P1_OUT + t_stride_out + {10'd0, mac_idx[7:4]};
                         w_rd_addr <= W_M_X_BASE + ({7'd0, c_grp_m} * {7'd0, d_out}) + {7'd0, mac_idx};
                         c_rd_addr <= C_NORM_W + {12'd0, mac_idx[7:4]};
-                        pe_A <= 16'sd0; substep <= 2'd1;
+                        pe_A <= 16'sd0; substep <= 3'd1;
                     end
-                    2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
-                    2'd2: begin
-                        pe_A     <= x_norm_fn(m_rd_data[mac_idx[3:0] * 16 +: 16],
-                                              c_rd_data[mac_idx[3:0] * 16 +: 16],
-                                              norm_S_reg);
+                    3'd1: begin pe_A <= 16'sd0; substep <= 3'd2; end
+                    3'd2: begin
+                        // Inputs (rms_x_lane, rms_gamma_lane, norm_S_reg) feed
+                        // RMSNorm_Mul combinationally; its p1_reg latches now.
+                        substep <= 3'd3;
+                    end
+                    3'd3: begin
+                        pe_A     <= rms_norm_out;
                         pe_B     <= w_rd_data;
                         pe_clear <= (mac_idx == 8'd0);
                         if (mac_idx == d_out - 8'd1) state <= S_M1A_WAIT;
-                        else begin mac_idx <= mac_idx + 8'd1; substep <= 2'd0; end
+                        else begin mac_idx <= mac_idx + 8'd1; substep <= 3'd0; end
                     end
-                    default: substep <= 2'd0;
+                    default: substep <= 3'd0;
                 endcase
             end
             S_M1A_WAIT:  state <= S_M1A_WRITE;
@@ -597,10 +802,10 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; c_grp <= 0; norm_sq_acc <= 40'd0;
                         state <= S_NORM_M1B_SQ_READ;
                     end else begin
-                        t_cnt <= t_cnt + 10'd1; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        t_cnt <= t_cnt + 10'd1; t_cnt_inc; c_grp <= 0; norm_sq_acc <= 40'd0;
                         state <= S_NORM_M1A_SQ_READ;
                     end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M1A_MAC; end
@@ -626,32 +831,35 @@ module ITM_Top (
                 end
             end
             S_NORM_M1A_MEAN: begin
-                norm_S_reg <= $signed(rsqrt_q97_rom[norm_rom_idx]);
+                norm_S_reg <= $signed(rsqrt_rom_data);
                 c_grp <= 0; state <= S_M1A_MAC;
             end
 
             // --------------------------------------------------------
             // M1b : in_proj_z   d_out -> d_inner  -> A_Z_GATE
             // --------------------------------------------------------
+            // CP-1: same 4-substep structure as M1A_MAC (see explanation above).
             S_M1B_MAC: begin
                 case (substep)
-                    2'd0: begin
+                    3'd0: begin
                         m_rd_addr <= B_P1_OUT + t_stride_out + {10'd0, mac_idx[7:4]};
                         w_rd_addr <= W_M_Z_BASE + ({7'd0, c_grp_m} * {7'd0, d_out}) + {7'd0, mac_idx};
                         c_rd_addr <= C_NORM_W + {12'd0, mac_idx[7:4]};
-                        pe_A <= 16'sd0; substep <= 2'd1;
+                        pe_A <= 16'sd0; substep <= 3'd1;
                     end
-                    2'd1: begin pe_A <= 16'sd0; substep <= 2'd2; end
-                    2'd2: begin
-                        pe_A     <= x_norm_fn(m_rd_data[mac_idx[3:0] * 16 +: 16],
-                                              c_rd_data[mac_idx[3:0] * 16 +: 16],
-                                              norm_S_reg);
+                    3'd1: begin pe_A <= 16'sd0; substep <= 3'd2; end
+                    3'd2: begin
+                        // RMSNorm_Mul Stage 1 register latches at end of cycle.
+                        substep <= 3'd3;
+                    end
+                    3'd3: begin
+                        pe_A     <= rms_norm_out;
                         pe_B     <= w_rd_data;
                         pe_clear <= (mac_idx == 8'd0);
                         if (mac_idx == d_out - 8'd1) state <= S_M1B_WAIT;
-                        else begin mac_idx <= mac_idx + 8'd1; substep <= 2'd0; end
+                        else begin mac_idx <= mac_idx + 8'd1; substep <= 3'd0; end
                     end
-                    default: substep <= 2'd0;
+                    default: substep <= 3'd0;
                 endcase
             end
             S_M1B_WAIT:  state <= S_M1B_WRITE;
@@ -664,9 +872,9 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; k_idx <= 0; bank_sel <= 0; state <= S_M2_MAC;
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; k_idx <= 0; bank_sel <= 0; state <= S_M2_MAC;
                     end else begin
-                        t_cnt <= t_cnt + 10'd1; c_grp <= 0; norm_sq_acc <= 32'd0;
+                        t_cnt <= t_cnt + 10'd1; t_cnt_inc; c_grp <= 0; norm_sq_acc <= 40'd0;
                         state <= S_NORM_M1B_SQ_READ;
                     end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M1B_MAC; end
@@ -692,7 +900,7 @@ module ITM_Top (
                 end
             end
             S_NORM_M1B_MEAN: begin
-                norm_S_reg <= $signed(rsqrt_q97_rom[norm_rom_idx]);
+                norm_S_reg <= $signed(rsqrt_rom_data);
                 c_grp <= 0; state <= S_M1B_MAC;
             end
 
@@ -749,8 +957,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; bank_sel <= 1; state <= S_M3_READ;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M2_MAC; end
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; bank_sel <= 1; state <= S_M3_READ;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M2_MAC; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M2_MAC; end
             end
 
@@ -778,8 +986,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; substep <= 0; bank_sel <= 0; state <= S_M3CP_READ;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M3_READ; end
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; substep <= 0; bank_sel <= 0; state <= S_M3CP_READ;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M3_READ; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M3_READ; end
             end
 
@@ -798,8 +1006,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp <= 0; mac_idx <= 0; substep <= 0; bank_sel <= 0; state <= S_M4_MAC;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M3CP_READ; end
+                        t_cnt <= 0; t_cnt_zero; c_grp <= 0; mac_idx <= 0; substep <= 0; bank_sel <= 0; state <= S_M4_MAC;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M3CP_READ; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M3CP_READ; end
             end
 
@@ -834,8 +1042,8 @@ module ITM_Top (
                 if (c_grp == 3'd2) begin
                     c_grp <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; mac_idx <= 0; k_idx <= 0; substep <= 0; bank_sel <= 1; state <= S_M5_MAC;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M4_MAC; end
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; mac_idx <= 0; k_idx <= 0; substep <= 0; bank_sel <= 1; state <= S_M5_MAC;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M4_MAC; end
                 end else begin c_grp <= c_grp + 3'd1; state <= S_M4_MAC; end
             end
 
@@ -899,8 +1107,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; s_idx <= 0; bank_sel <= 1; state <= S_M6A_INIT_H;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M5_MAC; end
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; s_idx <= 0; bank_sel <= 1; state <= S_M6A_INIT_H;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M5_MAC; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M5_MAC; end
             end
 
@@ -916,7 +1124,7 @@ module ITM_Top (
                 if (s_idx == 4'd15) begin
                     s_idx <= 0;
                     if (c_grp_m == ch_m_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; s_idx <= 0; bank_sel <= 1; state <= S_M6A_DA_READ;
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; s_idx <= 0; bank_sel <= 1; state <= S_M6A_DA_READ;
                     end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M6A_INIT_H; end
                 end else begin s_idx <= s_idx + 4'd1; state <= S_M6A_INIT_H; end
             end
@@ -1156,8 +1364,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp_m <= 0; bank_sel <= 1; state <= S_M7_RY_READ;
-                    end else begin t_cnt <= t_cnt + 10'd1; s_idx <= 0; state <= S_M6A_DA_READ; end
+                        t_cnt <= 0; t_cnt_zero; c_grp_m <= 0; bank_sel <= 1; state <= S_M7_RY_READ;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; s_idx <= 0; state <= S_M6A_DA_READ; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M6B_INIT; end
             end
 
@@ -1202,8 +1410,8 @@ module ITM_Top (
                 if (c_grp_m == ch_m_last) begin
                     c_grp_m <= 0;
                     if (t_cnt == t_last) begin
-                        t_cnt <= 0; c_grp <= 0; mac_idx <= 0; substep <= 0; bank_sel <= 1; state <= S_M8_MAC;
-                    end else begin t_cnt <= t_cnt + 10'd1; state <= S_M7_RY_READ; end
+                        t_cnt <= 0; t_cnt_zero; c_grp <= 0; mac_idx <= 0; substep <= 0; bank_sel <= 1; state <= S_M8_MAC;
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_M7_RY_READ; end
                 end else begin c_grp_m <= c_grp_m + 4'd1; state <= S_M7_RY_READ; end
             end
 
@@ -1241,16 +1449,20 @@ module ITM_Top (
                     c_grp <= 0;
                     if (t_cnt == t_last) begin
                         done_mamba <= 1;
-                        t_cnt <= 0; c_grp <= 0; substep <= 0;
-                        bank_sel  <= 0;
+                        t_cnt <= 0; t_cnt_zero; c_grp <= 0; substep <= 0;
+                        bank_sel  <= 0; m_we <= 0;
                         c_rd_addr <= C_INC_SCALE;
                         state     <= S_FIN_READ;
-                    end else begin t_cnt <= t_cnt + 10'd1; bank_sel <= 1; state <= S_M8_MAC; end
+                    end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; bank_sel <= 1; state <= S_M8_MAC; end
                 end else begin c_grp <= c_grp + 3'd1; bank_sel <= 1; state <= S_M8_MAC; end
             end
 
             // --------------------------------------------------------
-            // PHASE 4 : Final  bn_relu(inception + mamba_out)
+            // PHASE 4 : Final  relu(bn(inception)) + relu(mamba_out)
+            //          (PyTorch ITMBlock formula — see ITMN.py:123-128)
+            //   x1 = bn_relu(incep, scale, shift)   �? inception's BN+ReLU
+            //   x2 = relu16(mamba_out)              �? mamba branch ReLU
+            //   out = sat_add16(x1, x2)
             // c_grp 0..CH_OUT-1. For blk4: c_grp encodes branch[2:1] + sub[0].
             // --------------------------------------------------------
             S_FIN_READ: begin
@@ -1280,35 +1492,109 @@ module ITM_Top (
                 m_we      <= 1;
                 m_wr_addr <= (c_grp == 3'd0) ? (B_FINAL_OUT + t_stride_out)
                                               : (A_FINAL_OUT + t_stride_out + {12'd0, c_grp});
-                m_wr_data[  0 +: 16] <= bn_relu(sat_add16(incep_reg[  0 +: 16], m_rd_data[  0 +: 16]), m_wr_data[  0 +: 16], c_rd_data[  0 +: 16]);
-                m_wr_data[ 16 +: 16] <= bn_relu(sat_add16(incep_reg[ 16 +: 16], m_rd_data[ 16 +: 16]), m_wr_data[ 16 +: 16], c_rd_data[ 16 +: 16]);
-                m_wr_data[ 32 +: 16] <= bn_relu(sat_add16(incep_reg[ 32 +: 16], m_rd_data[ 32 +: 16]), m_wr_data[ 32 +: 16], c_rd_data[ 32 +: 16]);
-                m_wr_data[ 48 +: 16] <= bn_relu(sat_add16(incep_reg[ 48 +: 16], m_rd_data[ 48 +: 16]), m_wr_data[ 48 +: 16], c_rd_data[ 48 +: 16]);
-                m_wr_data[ 64 +: 16] <= bn_relu(sat_add16(incep_reg[ 64 +: 16], m_rd_data[ 64 +: 16]), m_wr_data[ 64 +: 16], c_rd_data[ 64 +: 16]);
-                m_wr_data[ 80 +: 16] <= bn_relu(sat_add16(incep_reg[ 80 +: 16], m_rd_data[ 80 +: 16]), m_wr_data[ 80 +: 16], c_rd_data[ 80 +: 16]);
-                m_wr_data[ 96 +: 16] <= bn_relu(sat_add16(incep_reg[ 96 +: 16], m_rd_data[ 96 +: 16]), m_wr_data[ 96 +: 16], c_rd_data[ 96 +: 16]);
-                m_wr_data[112 +: 16] <= bn_relu(sat_add16(incep_reg[112 +: 16], m_rd_data[112 +: 16]), m_wr_data[112 +: 16], c_rd_data[112 +: 16]);
-                m_wr_data[128 +: 16] <= bn_relu(sat_add16(incep_reg[128 +: 16], m_rd_data[128 +: 16]), m_wr_data[128 +: 16], c_rd_data[128 +: 16]);
-                m_wr_data[144 +: 16] <= bn_relu(sat_add16(incep_reg[144 +: 16], m_rd_data[144 +: 16]), m_wr_data[144 +: 16], c_rd_data[144 +: 16]);
-                m_wr_data[160 +: 16] <= bn_relu(sat_add16(incep_reg[160 +: 16], m_rd_data[160 +: 16]), m_wr_data[160 +: 16], c_rd_data[160 +: 16]);
-                m_wr_data[176 +: 16] <= bn_relu(sat_add16(incep_reg[176 +: 16], m_rd_data[176 +: 16]), m_wr_data[176 +: 16], c_rd_data[176 +: 16]);
-                m_wr_data[192 +: 16] <= bn_relu(sat_add16(incep_reg[192 +: 16], m_rd_data[192 +: 16]), m_wr_data[192 +: 16], c_rd_data[192 +: 16]);
-                m_wr_data[208 +: 16] <= bn_relu(sat_add16(incep_reg[208 +: 16], m_rd_data[208 +: 16]), m_wr_data[208 +: 16], c_rd_data[208 +: 16]);
-                m_wr_data[224 +: 16] <= bn_relu(sat_add16(incep_reg[224 +: 16], m_rd_data[224 +: 16]), m_wr_data[224 +: 16], c_rd_data[224 +: 16]);
-                m_wr_data[240 +: 16] <= bn_relu(sat_add16(incep_reg[240 +: 16], m_rd_data[240 +: 16]), m_wr_data[240 +: 16], c_rd_data[240 +: 16]);
+                m_wr_data[  0 +: 16] <= sat_add16(bn_relu(incep_reg[  0 +: 16], m_wr_data[  0 +: 16], c_rd_data[  0 +: 16]), relu16(m_rd_data[  0 +: 16]));
+                m_wr_data[ 16 +: 16] <= sat_add16(bn_relu(incep_reg[ 16 +: 16], m_wr_data[ 16 +: 16], c_rd_data[ 16 +: 16]), relu16(m_rd_data[ 16 +: 16]));
+                m_wr_data[ 32 +: 16] <= sat_add16(bn_relu(incep_reg[ 32 +: 16], m_wr_data[ 32 +: 16], c_rd_data[ 32 +: 16]), relu16(m_rd_data[ 32 +: 16]));
+                m_wr_data[ 48 +: 16] <= sat_add16(bn_relu(incep_reg[ 48 +: 16], m_wr_data[ 48 +: 16], c_rd_data[ 48 +: 16]), relu16(m_rd_data[ 48 +: 16]));
+                m_wr_data[ 64 +: 16] <= sat_add16(bn_relu(incep_reg[ 64 +: 16], m_wr_data[ 64 +: 16], c_rd_data[ 64 +: 16]), relu16(m_rd_data[ 64 +: 16]));
+                m_wr_data[ 80 +: 16] <= sat_add16(bn_relu(incep_reg[ 80 +: 16], m_wr_data[ 80 +: 16], c_rd_data[ 80 +: 16]), relu16(m_rd_data[ 80 +: 16]));
+                m_wr_data[ 96 +: 16] <= sat_add16(bn_relu(incep_reg[ 96 +: 16], m_wr_data[ 96 +: 16], c_rd_data[ 96 +: 16]), relu16(m_rd_data[ 96 +: 16]));
+                m_wr_data[112 +: 16] <= sat_add16(bn_relu(incep_reg[112 +: 16], m_wr_data[112 +: 16], c_rd_data[112 +: 16]), relu16(m_rd_data[112 +: 16]));
+                m_wr_data[128 +: 16] <= sat_add16(bn_relu(incep_reg[128 +: 16], m_wr_data[128 +: 16], c_rd_data[128 +: 16]), relu16(m_rd_data[128 +: 16]));
+                m_wr_data[144 +: 16] <= sat_add16(bn_relu(incep_reg[144 +: 16], m_wr_data[144 +: 16], c_rd_data[144 +: 16]), relu16(m_rd_data[144 +: 16]));
+                m_wr_data[160 +: 16] <= sat_add16(bn_relu(incep_reg[160 +: 16], m_wr_data[160 +: 16], c_rd_data[160 +: 16]), relu16(m_rd_data[160 +: 16]));
+                m_wr_data[176 +: 16] <= sat_add16(bn_relu(incep_reg[176 +: 16], m_wr_data[176 +: 16], c_rd_data[176 +: 16]), relu16(m_rd_data[176 +: 16]));
+                m_wr_data[192 +: 16] <= sat_add16(bn_relu(incep_reg[192 +: 16], m_wr_data[192 +: 16], c_rd_data[192 +: 16]), relu16(m_rd_data[192 +: 16]));
+                m_wr_data[208 +: 16] <= sat_add16(bn_relu(incep_reg[208 +: 16], m_wr_data[208 +: 16], c_rd_data[208 +: 16]), relu16(m_rd_data[208 +: 16]));
+                m_wr_data[224 +: 16] <= sat_add16(bn_relu(incep_reg[224 +: 16], m_wr_data[224 +: 16], c_rd_data[224 +: 16]), relu16(m_rd_data[224 +: 16]));
+                m_wr_data[240 +: 16] <= sat_add16(bn_relu(incep_reg[240 +: 16], m_wr_data[240 +: 16], c_rd_data[240 +: 16]), relu16(m_rd_data[240 +: 16]));
                 state <= S_FIN_NEXT;
             end
             S_FIN_NEXT: begin
+                m_we <= 0;
                 if (t_cnt == t_last) begin
-                    t_cnt <= 0;
+                    t_cnt <= 0; t_cnt_zero;
                     if (c_grp == ch_out_last[2:0]) begin
-                        done_all <= 1; state <= S_DONE;
+                        // FIN complete. Branch on cascade mode:
+                        //   cascade_mode=0 : terminal block, host reads FINAL_OUT
+                        //   cascade_mode=1 : write back to A_INPUT_BASE (copy or pooled)
+                        if (cascade_mode_reg) begin
+                            c_grp     <= 3'd0;
+                            t_out_cnt <= 10'd0;
+                            bank_sel  <= 1'b0;          // FINAL c_grp=0 lives in bank 0
+                            state     <= S_CASCADE_RA;
+                        end else begin
+                            done_all <= 1; state <= S_DONE;
+                        end
                     end else begin
                         c_grp    <= c_grp + 3'd1;
                         bank_sel <= 1;
                         state    <= S_FIN_READ;
                     end
-                end else begin t_cnt <= t_cnt + 10'd1; state <= S_FIN_READ; end
+                end else begin t_cnt <= t_cnt + 10'd1; t_cnt_inc; state <= S_FIN_READ; end
+            end
+
+            // --------------------------------------------------------
+            // Cascade write-back  (copy or stride-2 MaxPool)
+            //   Outer loop: c_grp = 0..ch_out_last
+            //   Inner loop: t_out_cnt = 0..t_out_last
+            //     READ FINAL[c_grp][src_t_a] — c_grp=0 lives in ram_b (B_FINAL_OUT),
+            //                                  c_grp>=1 lives in ram_a (A_FINAL_OUT)
+            //     if need_pool: also read FINAL[c_grp][src_t_b] and take elem_max16
+            //     WRITE result to A_INPUT_BASE in ram_a + t_out_cnt*CH_OUT + c_grp
+            //
+            // Memory_System bank_sel routing (asymmetric):
+            //   read : bank_sel=0 → ram_a;  bank_sel=1 → ram_b
+            //   write: bank_sel=0 → ram_b;  bank_sel=1 → ram_a   (we_a triggered by bank_sel==1)
+            // --------------------------------------------------------
+            S_CASCADE_RA: begin
+                // bank_sel for READ: c_grp=0 → ram_b (set 1); c_grp>=1 → ram_a (set 0)
+                bank_sel  <= (c_grp == 3'd0) ? 1'b1 : 1'b0;
+                m_rd_addr <= ((c_grp == 3'd0) ? B_FINAL_OUT : A_FINAL_OUT)
+                           + ({5'd0, src_t_a} * {11'd0, CH_OUT})
+                           + {12'd0, c_grp};
+                state     <= S_CASCADE_WA;
+            end
+
+            S_CASCADE_WA: state <= S_CASCADE_RB;   // wait 1 cycle for BRAM dout_b
+
+            S_CASCADE_RB: begin
+                // m_rd_data here = FINAL[c_grp][src_t_a].  bank_sel held from RA.
+                max_buf <= m_rd_data;
+                if (need_pool_reg) begin
+                    m_rd_addr <= ((c_grp == 3'd0) ? B_FINAL_OUT : A_FINAL_OUT)
+                               + ({5'd0, src_t_b} * {11'd0, CH_OUT})
+                               + {12'd0, c_grp};
+                end
+                state <= S_CASCADE_WB;
+            end
+
+            S_CASCADE_WB: state <= S_CASCADE_WR;   // wait 1 cycle for BRAM dout_b (B read, pool only)
+
+            S_CASCADE_WR: begin
+                // m_rd_data this cycle = FINAL[c_grp][src_t_b]  (pool) or unused (copy).
+                // Drive write: bank_sel=1 routes core_write to ram_a (A_INPUT_BASE).
+                m_we      <= 1'b1;
+                bank_sel  <= 1'b1;
+                m_wr_addr <= A_INPUT_BASE
+                           + ({5'd0, t_out_cnt} * {11'd0, CH_OUT})
+                           + {12'd0, c_grp};
+                m_wr_data <= need_pool_reg ? elem_max16(max_buf, m_rd_data) : max_buf;
+
+                // Advance counters inline
+                if (t_out_cnt == t_out_last) begin
+                    t_out_cnt <= 10'd0;
+                    if (c_grp == ch_out_last[2:0]) begin
+                        done_all <= 1'b1;
+                        state    <= S_DONE;
+                    end else begin
+                        c_grp <= c_grp + 3'd1;
+                        state <= S_CASCADE_RA;
+                    end
+                end else begin
+                    t_out_cnt <= t_out_cnt + 10'd1;
+                    state     <= S_CASCADE_RA;
+                end
             end
 
             S_DONE: begin
@@ -1336,6 +1622,24 @@ module ITM_Top (
         end
     endfunction
 
+    function [255:0] elem_max16;
+        input [255:0] a;
+        input [255:0] b;
+        integer jj;
+        begin
+            for (jj = 0; jj < 16; jj = jj + 1)
+                elem_max16[jj*16 +: 16] = ($signed(a[jj*16 +: 16]) >= $signed(b[jj*16 +: 16]))
+                                          ? a[jj*16 +: 16] : b[jj*16 +: 16];
+        end
+    endfunction
+
+    function signed [15:0] relu16;
+        input signed [15:0] v;
+        begin
+            relu16 = v[15] ? 16'sd0 : v;
+        end
+    endfunction
+
     function signed [15:0] bn_relu;
         input signed [15:0] raw;
         input signed [15:0] scale;
@@ -1358,44 +1662,27 @@ module ITM_Top (
         end
     endfunction
 
-    function [31:0] norm_sq16_fn;
+    // v2: raw x*x accumulator, no >>>5 pre-shift, no per-channel >>>FRAC_BITS.
+    // Each lane x² ≤ 2^30; sum of 16 lanes ≤ 2^34. Return 35-bit (use 40 for alignment).
+    function [39:0] norm_sq16_fn;
         input [255:0] word;
         integer       j;
         reg signed [15:0] lane;
-        reg signed [15:0] x_sh;
         reg signed [31:0] sq;
-        reg [31:0]        acc;
+        reg [39:0]        acc;
         begin
-            acc = 32'd0;
+            acc = 40'd0;
             for (j = 0; j < 16; j = j + 1) begin
                 lane = $signed(word[j*16 +: 16]);
-                x_sh = $signed(lane) >>> 5;
-                sq   = $signed(x_sh) * $signed(x_sh);
-                acc  = acc + $unsigned(sq >>> 7);
+                sq   = $signed(lane) * $signed(lane);
+                acc  = acc + {{8{1'b0}}, $unsigned(sq)};
             end
             norm_sq16_fn = acc;
         end
     endfunction
 
-    function signed [15:0] x_norm_fn;
-        input signed [15:0] x;
-        input signed [15:0] gamma;
-        input signed [15:0] S;
-        reg signed [31:0] p1_wide;
-        reg signed [15:0] p1;
-        reg signed [31:0] out_wide;
-        begin
-            p1_wide = x * gamma;
-            p1_wide = p1_wide >>> `FRAC_BITS;
-            if      (p1_wide >  32'sd32767) p1 = 16'sh7FFF;
-            else if (p1_wide < -32'sd32768) p1 = 16'sh8000;
-            else                            p1 = p1_wide[15:0];
-            out_wide = p1 * S;
-            out_wide = out_wide >>> `FRAC_BITS;
-            if      (out_wide >  32'sd32767) x_norm_fn = 16'sh7FFF;
-            else if (out_wide < -32'sd32768) x_norm_fn = 16'sh8000;
-            else                             x_norm_fn = out_wide[15:0];
-        end
-    endfunction
+    // x_norm_fn function removed in CP-1 — RMSNorm normalize now lives in
+    // the separate `RMSNorm_Mul` module instance (u_rmsnorm_mul), with a
+    // 1-cycle pipeline register between the two saturating multiplies.
 
 endmodule

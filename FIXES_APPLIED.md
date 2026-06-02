@@ -1,3 +1,58 @@
+# Session 2026-05-20: Final Stage + Phase 4 Formula
+
+## Current state of the tree (uncommitted)
+- `ITM_CONTROLLER.v` — RTL S_FIN_WRITE on OLD formula `bn_relu(sat_add16(incep, mamba), scale, shift)`; m_we cleared in S_M8_NEXT and S_FIN_NEXT (defensive)
+- `extract_itm_full.py` — Phase 4 on OLD formula `bn_relu_hw(sat_add(inc_cat_q[ch], mamba_out_q[ch]), scale_q[ch], shift_q[ch])`; new RMSNorm inline + integer chaining across blocks
+- `ITM_CTRL_TB.v` — added debug `$display` in Final compare loop (8 first mismatches + per-c_grp counters)
+
+RTL and extractor are IN SYNC on formula. Only golden files on disk are stale.
+
+## Next action (single command, no code change)
+```bash
+cd ITMN_Pytorch
+python extract_itm_full.py --out ../golden_all --all_blocks
+```
+This regenerates `Final_ITM_Full_FP.txt` for every block with the matching formula. Then re-run xsim — block 0 Final should pass.
+
+## What was changed this session (chronological)
+
+### A. Extractor (`ITMN_Pytorch/extract_itm_full.py`)
+1. Added `hw_maxpool(x_q, stride=2)` for integer-chain transitions at T=1000→500 and T=500→250
+2. Modified `extract_block(model, bk, out_dir, dumps, x_q_chain=None)` to accept integer chain input
+3. Main loop chains blocks: `prev_final_q → hw_maxpool (if needed) → next block input`
+4. Added `block_sqnr()` and `analyze_accuracy()` for per-block SQNR + classifier prediction
+5. Removed "NO RMSNorm" comment in header; Phase 3 now applies `hw_rms_norm_inline(p1_q, w_norm_q)` before M1a/M1b (matches RTL NORM_M1A/B states)
+6. Phase 4: tried PyTorch formula `bn_relu(inc, scale, shift) + relu(mam)` → -44 dB SQNR + max saturation → **REVERTED** back to `bn_relu(sat_add(inc, mam), scale, shift)`
+7. Registered hook for `ITMBlock_{bk}` output (used by accuracy analysis only, not by golden)
+
+### B. RTL (`ITMN_RTL_srcs/sources_1/new/ITM_CONTROLLER.v`)
+1. **REVERTED** S_FIN_WRITE 16 lanes back to OLD `bn_relu(sat_add16(incep_reg[X+:16], m_rd_data[X+:16]), m_wr_data[X+:16], c_rd_data[X+:16])` after PyTorch-formula attempt failed
+2. Comment at line 1253 set to `// PHASE 4 : Final  bn_relu(inception + mamba_out)`
+3. Defensive: `m_we <= 0` added in `S_M8_NEXT` (line 1245) on transition to S_FIN_READ
+4. Defensive: `m_we <= 0` added in `S_FIN_NEXT` (line 1302)
+   - Both fixes had no measurable impact (error count unchanged) → cabinet for future cleanup but harmless
+
+### C. Testbench (`ITMN_RTL_srcs/sim_1/new/ITM_CTRL_TB.v`) — DEBUG, REMOVE BEFORE COMMIT
+1. Added `err_fin_c0/c1/c2/c3` and `dbg_dumped` counters (after err_fin/max_fin)
+2. Added init `err_fin_c*=0; dbg_dumped=0;` in counter reset block
+3. Added task-scope debug temps `dbg_inc_word/mam_word/sc_word/sh_word/inc_val/mam_val/sc_val/sh_val`
+4. In Final compare loop: per-c_grp counter increment + dump first 8 mismatches with raw inception, mamba, scale, shift
+5. After loop: `$display("  [DBG] err per c_grp: ...")`
+
+## Things ruled out (do NOT redo)
+- Bank addressing for inception + mamba reads (confirmed against `Memory_System.v`)
+- bn_relu / sat_add16 function equivalence with extractor
+- BN scale/shift DMA loading order
+- Channel ordering inception ↔ goldens
+- m_we spurious-write corruption (Vivado NBA timing makes idempotent)
+
+## Open items / followups
+- After golden regen + sim pass: remove debug `$display` block (or wrap in `ifdef DEBUG`)
+- Decide whether to keep the two `m_we <= 0` defensive fixes (no functional effect)
+- Run full-test-set accuracy analysis (analyze_accuracy in extractor) to compare HW vs float model classifier predictions
+
+---
+
 # Block 4 Debug - All Fixes Applied
 
 ## Summary

@@ -68,10 +68,16 @@
 // ============================================================================
 
 // ============================================================================
-// Derived RAM address constants as a function of block params.
-// All addresses computed as functions of T and CH_M (= d_inner/16).
+// NOTE (RAM-2 compact map, 2026-06-02):
+//   The `define addresses below are DOCUMENTATION ONLY and NOT used anywhere
+//   in the design.  The authoritative address layout lives in
+//   ITM_CONTROLLER.v localparams (see "Compact memory map" comment).
+//   The old layout below is preserved as historical reference; current
+//   addresses are aggressively overlapped at temporal-disjoint regions:
+//     Bank A peak 17256 (was ~32000), Bank B peak 19000 (was ~32000).
+// ============================================================================
 //
-// RAM A layout:
+// RAM A layout (historical, pre-RAM-2):
 `define A_INPUT_DEF       15'd0                    // C_IN groups x T words
 `define A_BOT_OUT         15'd4000                 // 1 group ? T (BOT always 16ch)
 `define A_B1_OUT          15'd5000                 // 1 group ? T
