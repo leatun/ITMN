@@ -1,0 +1,205 @@
+% Fig 4 — ITMN model architecture (algorithm level)
+% Compile:  pdflatex fig4_itmn_model.tex
+% Requires: tikz, xcolor
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+
+% ── palette ──────────────────────────────────────────────────────────────────
+\definecolor{clrHost}{RGB}{220,230,245}   % blue-grey  – host (PS) modules
+\definecolor{clrRTL} {RGB}{198,232,198}   % green      – RTL accelerator
+\definecolor{clrPool}{RGB}{255,235,180}   % amber      – MaxPool
+\definecolor{clrInc} {RGB}{230,210,250}   % violet     – Inception branch
+\definecolor{clrMam} {RGB}{250,215,215}   % rose       – Mamba branch
+\definecolor{clrSum} {RGB}{245,245,245}   % light grey – sum node
+\definecolor{clrBord}{RGB}{90,90,90}
+
+\tikzset{
+  blk/.style   = {rectangle, draw=clrBord, line width=0.8pt,
+                  minimum width=26mm, minimum height=8mm,
+                  align=center, font=\small},
+  hostblk/.style = {blk, fill=clrHost},
+  rtlblk/.style  = {blk, fill=clrRTL},
+  poolblk/.style = {blk, fill=clrPool, minimum width=26mm, minimum height=6mm},
+  incblk/.style  = {blk, fill=clrInc, minimum width=22mm, minimum height=7mm, font=\scriptsize},
+  mamblk/.style  = {blk, fill=clrMam, minimum width=22mm, minimum height=7mm, font=\scriptsize},
+  sumnode/.style = {circle, draw=clrBord, fill=clrSum, minimum size=6mm,
+                    line width=0.8pt, font=\small},
+  arr/.style     = {-{Stealth[length=4pt]}, line width=0.7pt},
+  dimarr/.style  = {arr, color=gray!70},
+  shapelbl/.style= {font=\scriptsize\ttfamily, color=gray!80},
+  grouplbl/.style= {font=\footnotesize\bfseries, color=gray!60},
+  dashedbox/.style={draw=gray!50, dashed, line width=0.7pt, rounded corners=3pt},
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=5mm]
+
+%% ═══════════════════════════════════════════════════════════════
+%% LEFT COLUMN: full pipeline (top → bottom)
+%% ═══════════════════════════════════════════════════════════════
+
+% Input
+\node[hostblk] (inp) {ECG Input};
+\node[shapelbl, right=2mm of inp] {$(B,1000,12)$};
+
+% Encoder (host)
+\node[hostblk, below=5mm of inp] (enc)
+  {Encoder\\{\scriptsize Conv1d(12{\to}64, k=1) + BN}};
+\node[shapelbl, right=2mm of enc] {$(B,64,1000)$};
+
+% RTL boundary label
+\node[grouplbl, below=3mm of enc, xshift=-1mm] (rtllbl) {RTL Accelerator (PL)};
+
+% ITM Block 0
+\node[rtlblk, below=5mm of rtllbl] (b0) {ITM Block 0\\{\scriptsize $d=64,\ T=1000$}};
+\node[shapelbl, right=2mm of b0] {$(B,64,1000)$};
+
+% ITM Block 1
+\node[rtlblk, below=5mm of b0] (b1) {ITM Block 1\\{\scriptsize $d=64,\ T=1000$}};
+\node[shapelbl, right=2mm of b1] {$(B,64,1000)$};
+
+% MaxPool 1
+\node[poolblk, below=5mm of b1] (mp1) {MaxPool1d(2)};
+\node[shapelbl, right=2mm of mp1] {$(B,64,500)$};
+
+% ITM Block 2
+\node[rtlblk, below=5mm of mp1] (b2) {ITM Block 2\\{\scriptsize $d=64,\ T=500$}};
+\node[shapelbl, right=2mm of b2] {$(B,64,500)$};
+
+% ITM Block 3
+\node[rtlblk, below=5mm of b2] (b3) {ITM Block 3\\{\scriptsize $d=64,\ T=500$}};
+\node[shapelbl, right=2mm of b3] {$(B,64,500)$};
+
+% MaxPool 2
+\node[poolblk, below=5mm of b3] (mp2) {MaxPool1d(2)};
+\node[shapelbl, right=2mm of mp2] {$(B,64,250)$};
+
+% ITM Block 4
+\node[rtlblk, below=5mm of mp2] (b4) {ITM Block 4\\{\scriptsize $d{:}64{\to}128,\ T=250$}};
+\node[shapelbl, right=2mm of b4] {$(B,128,250)$};
+
+% GAP (host)
+\node[hostblk, below=5mm of b4] (gap) {Global Avg Pool\\{\scriptsize mean(dim$=-1$)}};
+\node[shapelbl, right=2mm of gap] {$(B,128)$};
+
+% Classifier (host)
+\node[hostblk, below=5mm of gap] (cls) {FC Classifier\\{\scriptsize Linear(128{\to}5) + Sigmoid}};
+\node[shapelbl, right=2mm of cls] {$(B,5)$};
+
+% Output
+\node[hostblk, below=5mm of cls] (out) {5-Class Output\\{\scriptsize PTB-XL super-diagnostic}};
+
+%% arrows – main pipeline
+\foreach \a/\b in {inp/enc, enc/b0, b0/b1, b1/mp1, mp1/b2, b2/b3,
+                   b3/mp2, mp2/b4, b4/gap, gap/cls, cls/out}
+  \draw[arr] (\a) -- (\b);
+
+%% dashed RTL region
+\begin{scope}[on background layer]
+  \node[dashedbox, fit=(rtllbl)(b0)(b1)(mp1)(b2)(b3)(mp2)(b4),
+        inner sep=4pt, fill=clrRTL!15] (rtlbox) {};
+\end{scope}
+
+%% host region label
+\node[grouplbl, above=2mm of enc, xshift=-1mm] {Host (PS / CPU)};
+
+%% ═══════════════════════════════════════════════════════════════
+%% RIGHT COLUMN: ITMBlock internals (zoom-in of one block)
+%% ═══════════════════════════════════════════════════════════════
+
+% Anchor to the right of the main pipeline
+\coordinate (zoomanchor) at ($(b1.east)+(58mm,0)$);
+
+% P1 Conv
+\node[rtlblk, minimum width=30mm] (zp1) at (zoomanchor)
+  {P1 Conv\\{\scriptsize Conv1d(k=1) + BN + ReLU}};
+
+% Fork point below P1
+\coordinate (fork) at ($(zp1.south)+(0,-7mm)$);
+\draw[arr] (zp1.south) -- (fork);
+
+%% ── Inception branch (left of fork) ────────────────────────────
+% Left arm of fork
+\coordinate (forkL) at ($(fork)+(-22mm,0)$);
+\draw (fork) -- (forkL);
+
+% MaxPool arm (leftmost)
+\node[poolblk, below=8mm of forkL, xshift=-8mm,
+      minimum width=18mm, minimum height=7mm] (zmp)
+  {MaxPool(k=3)\\{\scriptsize +Conv1d(k=1)}};
+
+% Bottleneck (centre-left)
+\node[incblk, below=8mm of forkL, xshift=14mm,
+      minimum width=22mm] (zinc_bot)
+  {Bottleneck\\{\scriptsize $d \to d/4$ ch.}};
+
+\draw[arr] (forkL) -- ++(0,-3mm) -| (zmp.north);
+\draw[arr] (forkL) -- ++(0,-3mm) -| (zinc_bot.north);
+
+% Three parallel conv branches below bottleneck
+\node[incblk, below=7mm of zinc_bot, xshift=-14mm,
+      minimum width=13mm] (zk9)  {k=9};
+\node[incblk, below=7mm of zinc_bot, xshift=0mm,
+      minimum width=13mm] (zk19) {k=19};
+\node[incblk, below=7mm of zinc_bot, xshift=14mm,
+      minimum width=13mm] (zk39) {k=39};
+
+\draw[arr] (zinc_bot.south) -- ++(0,-2mm) -| (zk9.north);
+\draw[arr] (zinc_bot.south) -- ++(0,-2mm) -- (zk19.north);
+\draw[arr] (zinc_bot.south) -- ++(0,-2mm) -| (zk39.north);
+
+% Concat + BN + ReLU
+\node[incblk, below=9mm of zk19, minimum width=36mm] (zinc_out)
+  {Concat(4) + BN + ReLU\\{\scriptsize $4{\times}(d/4) = d$ ch.}};
+
+% Arrows into concat from all 4 branches
+\draw[arr] (zk9.south)  -- ++(0,-2mm) -| (zinc_out.north);
+\draw[arr] (zk19.south) -- (zinc_out.north);
+\draw[arr] (zk39.south) -- ++(0,-2mm) -| (zinc_out.north);
+\draw[arr] (zmp.south)  -- ++(0,-30mm) -| (zinc_out.north);
+
+\node[grouplbl, above=2mm of zmp, xshift=4mm] {Inception ($x_1$)};
+
+%% ── Mamba branch (right of fork) ───────────────────────────────
+\coordinate (forkR) at ($(fork)+(22mm,0)$);
+\draw (fork) -- (forkR);
+
+\node[mamblk, minimum width=26mm, below=8mm of forkR] (zrms)
+  {RMSNorm\\{\scriptsize learnable $\gamma$, Q4.11}};
+\node[mamblk, minimum width=26mm, below=5mm of zrms] (zmam)
+  {Mamba SSM\\{\scriptsize dim=16, $\Delta$,B,C,D}};
+\node[mamblk, minimum width=26mm, below=5mm of zmam] (zmrelu)
+  {ReLU};
+
+\draw[arr] (forkR) -- ++(0,-3mm) |- (zrms.north);
+\draw[arr] (zrms) -- (zmam);
+\draw[arr] (zmam) -- (zmrelu);
+
+\node[grouplbl, right=2mm of zrms, yshift=2mm] {Mamba ($x_2$)};
+
+%% ── Sum node ────────────────────────────────────────────────────
+\coordinate (midpoint) at ($(zinc_out.south)!0.5!(zmrelu.south)$);
+\node[sumnode, below=12mm of midpoint] (zsum) {$+$};
+\draw[arr] (zinc_out.south) -- ++(0,-4mm) -| (zsum.north);
+\draw[arr] (zmrelu.south)   -- ++(0,-4mm) -| (zsum.north);
+
+%% output
+\node[rtlblk, minimum width=30mm, below=6mm of zsum] (zout)
+  {Block Output ($x_1 + x_2$)};
+\draw[arr] (zsum) -- (zout);
+
+%% dashed zoom region
+\begin{scope}[on background layer]
+  \node[dashedbox, fill=clrRTL!10,
+        fit=(zp1)(zmp)(zinc_bot)(zk9)(zk19)(zk39)(zinc_out)(zrms)(zmam)(zmrelu)(zsum)(zout),
+        inner sep=6pt] (zoombox) {};
+\end{scope}
+
+\node[grouplbl, above=2mm of zp1] {\textbf{ITMBlock (zoom)}};
+
+%% annotation arrow from main pipeline to zoom
+\draw[arr, dashed, gray!60] (b1.east) -- (zoombox.west);
+
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,21 @@
+============================================================
+  D1 Separation — Standalone vs Integrated Resource Compare
+  Target: KV260 / xck26-sfvc784-2LV-c, OOC synth, clk=10 ns
+============================================================
+
+Resource     |    Mamba |  Incept. |     Full |  Sum-Full (shared)
+-------------+----------+----------+----------+-------------------
+LUT          |     7513 |     5346 |    10491 | 2368 (sum=12859)
+REG          |     3945 |     2103 |     4504 | 1544 (sum=6048)
+CARRY        |      420 |      379 |        0 | 799 (sum=799)
+BRAM         |      118 |      118 |      118 | 118 (sum=236)
+URAM         |       40 |       40 |       40 | 40 (sum=80)
+DSP          |       39 |       37 |       59 | 17 (sum=76)
+WNS          |    0.710 |    1.973 |    0.646 | —
+WHS          |    0.095 |    0.096 |    0.089 | —
+
+Sharing analysis (logic-only, memory is fully shared by design):
+  LUT shared : 2368 (18% saved by fusion)
+  REG shared : 1544 (26% saved by fusion)
+  DSP shared : 17 (22% saved by fusion)
+  Memory (BRAM/URAM): 100% shared (single Memory_System instance)

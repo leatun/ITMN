@@ -8,7 +8,8 @@ Every golden is computed with integer arithmetic matching the RTL PE exactly:
   - bn_relu function (mul>>7 + shift + relu)
   - Activation LUT emulation (SiLU, softplus, exp) matching Activation_LUT.v
   - SSM scan in integer domain
-  - NO RMSNorm (RTL does not implement it — M1a reads P1_out directly)
+  - RMSNorm applied inline before M1a/M1b (per-timestep, matches RTL NORM_M1A/M1B substates)
+  - Integer chaining across blocks: final_q of block k → input of block k+1 (with hw_maxpool where needed)
 
 Usage:
     python extract_itm_full_hwexact.py --out ./golden_all --all_blocks
@@ -23,8 +24,10 @@ from dataset import get_loaders
 from ecg_models.ITMN import ITMN
 from utils.utils import get_config
 
-FB = 7
-SCALE = 1 << FB  # 128
+FB = 11
+SCALE = 1 << FB  # 2048
+RMS_EXTRA_PREC = 6   # N: extra precision bits for RMSNorm ROM index (v2)
+                     # Effective target_rms quantum ~0.044 at N=6 (vs old ~0.7 at N=0)
 
 # =====================================================================
 #  Low-level int16 helpers
@@ -35,7 +38,7 @@ def to_f32(x):
     return np.asarray(x, np.float32)
 
 def q(arr):
-    """Float → int64 Q9.7 (floor, clip to int16)."""
+    """Float → int64 Qfb (floor, clip to int16). Format determined by FB/SCALE."""
     return np.clip(np.floor(np.asarray(arr, np.float64) * SCALE).astype(np.int64),
                    -32768, 32767)
 
@@ -49,7 +52,7 @@ def sat_add(a, b):
 #  File I/O
 # =====================================================================
 def save_hex(arr_float, path, fb=FB):
-    """Save float as Q9.7 hex."""
+    """Save float array as Qfb hex (format determined by fb=FB)."""
     if torch.is_tensor(arr_float): arr_float = to_f32(arr_float)
     a = np.asarray(arr_float, np.float64).ravel()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -84,10 +87,13 @@ def load_hex(path):
 #  Activation LUT emulation  (matches Activation_LUT.v)
 # =====================================================================
 def _build_lut(func_name):
-    """256-entry LUT.  Index i → x_q = i*8 - 1024 (Q9.7)."""
+    """256-entry LUT covering float range [-8, +8).
+    Index i → x_q = LUT_LO + i * LUT_STEP  where LUT_STEP = SCALE // 16."""
+    LUT_STEP = SCALE // 16        # 8 for FB=7, 128 for FB=11
+    LUT_LO   = -8 * SCALE         # -1024 for FB=7, -16384 for FB=11
     table = np.zeros(256, np.int64)
     for i in range(256):
-        x_q = i * 8 - 1024
+        x_q = LUT_LO + i * LUT_STEP
         x_f = x_q / SCALE
         if func_name == 'silu':
             y_f = x_f / (1.0 + math.exp(-x_f))
@@ -105,33 +111,42 @@ _LUT_SP   = _build_lut('softplus')
 _LUT_EXP  = _build_lut('exp')
 
 # =====================================================================
-#  RMSNorm rsqrt ROM  (Q9.7 inline approach)
-#  ROM[m] = round(512 / sqrt(m)), saturated to 32767.
-#  m = Σ((x>>5)^2 >> 7) / d_out  per timestep.
-#  Scale factor: y_norm = sat16(sat16((x*gamma)>>7) * ROM[m] >> 7)
+#  RMSNorm rsqrt ROM  (v2: no pre-shift + finer ROM index, N=RMS_EXTRA_PREC bits)
+#  ROM[m] = round(K_new / sqrt(m)),  K_new = sqrt(2^(1+N)) * SCALE.
+#  For fb=11, N=6: K_new ≈ 23170, ROM[128] ≈ 2048 = rsqrt(1) Q4.11.
+#  m = sum(x^2) >> (log2(d) + 2*fb - 1 - N)  per timestep — no per-channel truncation.
+#  Scale factor: y_norm = sat16(sat16((x*gamma)>>fb) * ROM[m] >> fb)
 # =====================================================================
-def gen_rsqrt_q97_rom(size=8192):
-    rom = [np.int64(32767)]
+def gen_rsqrt_rom(size=8192):
+    """v2 ROM: K_new = sqrt(2^(1+N)) * SCALE. Calibrated so that mean_i=2^(1+N)
+    when target_rms_float=1.0 (= 128 for N=6). Old K=SCALE^1.5/32 was broken
+    because mean_i resolution was only 0.5 unit of target_rms²."""
+    K = (2.0 ** ((1 + RMS_EXTRA_PREC) / 2.0)) * float(SCALE)
+    rom = [np.int64(32767)]                         # ROM[0]: 1/sqrt(0) = inf → saturate
     for m in range(1, size):
-        val = 512.0 / math.sqrt(float(m))
-        rom.append(np.int64(min(32767, int(round(val)))))
+        val = K / math.sqrt(float(m))
+        rom.append(np.int64(min(32767, max(-32768, int(round(val))))))
     return rom
 
-_RSQRT_ROM = gen_rsqrt_q97_rom(8192)
+_RSQRT_ROM = gen_rsqrt_rom(8192)
 
 def hw_rms_norm_inline(x_q, w_norm_q, d_out, fb=FB):
-    """HW-exact RMSNorm: inline per-timestep scale, matches RTL M1a/M1b substep."""
+    """HW-exact RMSNorm v2: no >>5 pre-shift, raw x*x accumulator, single final shift.
+    Matches RTL controller's updated norm_sq40_fn + widened norm_sq_acc.
+    Fixes (1) per-channel truncation and (2) ROM resolution at small target_rms."""
     T = x_q.shape[1]
     norm_q = np.zeros_like(x_q)
     CH_OUT = d_out // 16
     log2_d = int(round(math.log2(d_out)))
+    total_shift = log2_d + 2*fb - 1 - RMS_EXTRA_PREC   # = log2_d + 15 for fb=11, N=6
     for t in range(T):
         norm_sq_acc = np.int64(0)
         for cg in range(CH_OUT):
             word = x_q[cg*16:(cg+1)*16, t].astype(np.int64)
-            x_sh = np.right_shift(word, 5)
-            norm_sq_acc += int(np.sum(np.right_shift(x_sh * x_sh, fb)))
-        mean_int = int(norm_sq_acc >> log2_d)
+            # v2: accumulate raw x*x (no >>5 pre-shift, no per-channel >>fb)
+            # Each lane: |x| ≤ 32767, x² ≤ 2^30. Sum over CH_OUT*16 ≤ 128 lanes: ≤ 2^37.
+            norm_sq_acc += int(np.sum(word * word))
+        mean_int = int(norm_sq_acc >> total_shift)
         S_t = int(_RSQRT_ROM[min(mean_int, 8191)])
         for ch in range(d_out):
             x_i  = int(x_q[ch, t])
@@ -140,13 +155,24 @@ def hw_rms_norm_inline(x_q, w_norm_q, d_out, fb=FB):
             norm_q[ch, t] = max(-32768, min(32767, (p1 * S_t) >> fb))
     return norm_q
 
+def hw_maxpool(x_q, stride=2):
+    """Integer max-pool stride=stride over T — matches nn.MaxPool1d(stride, stride)."""
+    d, T = x_q.shape
+    T_out = T // stride
+    out = np.zeros((d, T_out), np.int64)
+    for t in range(T_out):
+        out[:, t] = np.maximum(x_q[:, t*stride], x_q[:, t*stride + 1])
+    return out
+
 def _lut_apply(x_q, table, oor_lo, oor_hi_fn):
+    LUT_LO    = -8 * SCALE           # -1024 for FB=7, -16384 for FB=11
+    LUT_SHIFT = FB - 4               # 3 for FB=7, 7 for FB=11
     x = np.asarray(x_q, np.int64)
-    in_range = (x >= -1024) & (x < 1024)
-    idx = np.where(in_range, ((x + 1024) >> 3).astype(np.int64), 0)
+    in_range = (x >= LUT_LO) & (x < -LUT_LO)
+    idx = np.where(in_range, ((x - LUT_LO) >> LUT_SHIFT).astype(np.int64), 0)
     idx = np.clip(idx, 0, 255)
     lut_val = table[idx]
-    oor_val = np.where(x < -1024, oor_lo, oor_hi_fn(x))
+    oor_val = np.where(x < LUT_LO, oor_lo, oor_hi_fn(x))
     return np.where(in_range, lut_val, oor_val)
 
 def lut_silu(x_q):
@@ -236,6 +262,8 @@ def register_hooks(model):
         itm_indices.append(bk)
         hooks.append(blk.conv[0].register_forward_hook(mk(f'P1_Conv_{bk}')))
         hooks.append(blk.conv[1].register_forward_hook(mk(f'P1_BN_{bk}')))
+        hooks.append(blk.mamba_block.register_forward_hook(mk(f'MambaBlock_{bk}')))
+        hooks.append(blk.register_forward_hook(mk(f'ITMBlock_{bk}')))
     return dumps, hooks, itm_indices
 
 # =====================================================================
@@ -365,28 +393,34 @@ def extract_mamba_hwexact(mamba_block, p1_q, out_dir, fb=FB):
 # =====================================================================
 #  Per-block extraction
 # =====================================================================
-def extract_block(model, bk, out_dir, dumps):
+def extract_block(model, bk, out_dir, dumps, x_q_chain=None):
     out_dir.mkdir(parents=True, exist_ok=True)
     blk = model.layers[bk]
     print(f"\n{'='*60}\n  EXTRACT BLOCK [{bk}] → {out_dir}\n{'='*60}")
 
     d_in  = blk.conv[0].in_channels
     d_out = blk.conv[0].out_channels
-    T     = dumps[f'P1_Conv_{bk}']['in'].shape[-1]
-    print(f'  d_in={d_in}  d_out={d_out}  T={T}')
 
     # ================================================================
     # PHASE 1 — Conv1D + BN (fused)
     # ================================================================
     print('\n[1] P1: Conv1D+BN (HW-exact)')
-    p1_in_float = dumps[f'P1_Conv_{bk}']['in']
     w_fused, b_fused = fuse_conv_bn(blk.conv[0], blk.conv[1])
-
-    save_hex(p1_in_float, out_dir / 'P1_Input_X.txt')
     save_hex(w_fused, out_dir / 'P1_Weight_Fused.txt')
     save_hex(b_fused, out_dir / 'P1_Bias_Fused.txt')
 
-    x_q = q(p1_in_float)              # (d_in, T)
+    if x_q_chain is not None:
+        x_q = x_q_chain                 # integer-domain chain from previous block
+        T   = x_q.shape[1]
+        save_iq(x_q, out_dir / 'P1_Input_X.txt')
+    else:
+        p1_in_float = dumps[f'P1_Conv_{bk}']['in']
+        T   = p1_in_float.shape[-1]
+        x_q = q(p1_in_float)
+        save_hex(p1_in_float, out_dir / 'P1_Input_X.txt')
+
+    print(f'  d_in={d_in}  d_out={d_out}  T={T}')
+
     w_q = q(w_fused.reshape(d_out, d_in))
     b_q = q(b_fused)
 
@@ -416,9 +450,14 @@ def extract_block(model, bk, out_dir, dumps):
     save_iq(bot_q, out_dir / 'Out_Bot_FP.txt')
     save_iq(bot_q, out_dir / 'Out_Bot.txt')
 
-    # B1: (dim, d_out) k=1 no-bias, input = P1_out  [HW: no maxpool]
+    # B1: (dim, d_out) k=1 no-bias, input = maxpool(P1_out)
+    # MaxPool1d(kernel=3, stride=1, pad=1) — same length, different values
+    p1_mp_q = np.zeros_like(p1_q)
+    for t in range(T):
+        t0 = max(0, t - 1); t2 = min(T - 1, t + 1)
+        p1_mp_q[:, t] = np.maximum(np.maximum(p1_q[:, t0], p1_q[:, t]), p1_q[:, t2])
     w_b1_q = q(to_f32(inc.conv1.weight).reshape(dim, d_out))
-    b1_q   = pe_mac_mv(p1_q, w_b1_q)
+    b1_q   = pe_mac_mv(p1_mp_q, w_b1_q)
     save_iq(b1_q, out_dir / 'Out_B1_FP.txt')
     save_iq(b1_q, out_dir / 'Out_B1.txt')
 
@@ -447,7 +486,7 @@ def extract_block(model, bk, out_dir, dumps):
     inc_cat_q = np.concatenate([b1_q, b2_q, b3_q, b4_q], axis=0)
 
     # ================================================================
-    # PHASE 3 — Mamba (HW-exact, NO RMSNorm)
+    # PHASE 3 — Mamba (HW-exact, RMSNorm inline before M1a/M1b)
     # ================================================================
     print('\n[3] Mamba (HW-exact)')
     mixer = blk.mamba_block.mixer
@@ -481,19 +520,25 @@ def extract_block(model, bk, out_dir, dumps):
     mamba_out_q, h_q = extract_mamba_hwexact(blk.mamba_block, p1_q, out_dir)
 
     # ================================================================
-    # PHASE 4 — Final: bn_relu(inception + mamba_out)
+    # PHASE 4 — Final: relu(bn(inc_cat)) + relu(mamba_out)  (PyTorch formula)
     # ================================================================
-    print('\n[4] Final (HW-exact)')
-    # RTL FIN_WRITE: bn_relu( sat_add(incep_branch[ch,t], mamba_out[ch,t]), scale, shift )
+    print('\n[4] Final (PyTorch formula: relu(bn(inc_cat)) + relu(mamba_out))')
+    # Matches ITMN.py ITMBlock.forward exactly:
+    #   x1 = inception_block(x)              -> relu(bn(inc_cat))
+    #   x2 = relu(mamba_block(x))            -> relu(mamba_out)
+    #   out = x1 + x2
+    # The HW workaround formula bn_relu(inc+mam) loses ~0.37 AUC at FB=11 vs float;
+    # this PyTorch-faithful formula closes the gap to <0.003 AUC (test_hw fb11_py).
     scale_q = q(scale_inc)
     shift_q = q(shift_inc)
 
     final_q = np.zeros((d_out, T), np.int64)
     for ch in range(d_out):
-        raw = sat_add(inc_cat_q[ch, :], mamba_out_q[ch, :])
-        final_q[ch, :] = bn_relu_hw(raw,
-                                     np.full(T, scale_q[ch], np.int64),
-                                     np.full(T, shift_q[ch], np.int64))
+        x1 = bn_relu_hw(inc_cat_q[ch, :],
+                        np.full(T, scale_q[ch], np.int64),
+                        np.full(T, shift_q[ch], np.int64))
+        x2 = np.where(mamba_out_q[ch, :] < 0, np.int64(0), mamba_out_q[ch, :])
+        final_q[ch, :] = sat_add(x1, x2)
     save_iq(final_q, out_dir / 'Final_ITM_Full_FP.txt')
 
     # Float-reference P1 for backward compat
@@ -522,6 +567,79 @@ def save_lut_files(out_dir):
         for v in _RSQRT_ROM:
             f.write(f'{int(v) & 0xFFFF:04x}\n')
     print(f'  -> rsqrt_q97.txt                     (8192 entries)')
+
+# =====================================================================
+#  Accuracy analysis helpers
+# =====================================================================
+def block_sqnr(float_ref, int_q, scale=SCALE):
+    """SQNR (dB) between PyTorch float output and HW integer output."""
+    hw = int_q.astype(np.float64) / scale
+    sig  = np.mean(float_ref.astype(np.float64) ** 2)
+    noise = np.mean((hw - float_ref.astype(np.float64)) ** 2)
+    return 10.0 * np.log10(sig / noise) if noise > 0 and sig > 0 else (np.inf if noise == 0 else -np.inf)
+
+def analyze_accuracy(model, dumps, itm_indices, block_results, dev):
+    """
+    Per-block SQNR comparison and single-sample classifier prediction check.
+    Also prints Mamba-only SQNR to isolate integer SSM drift from formula error.
+    """
+    print(f"\n{'='*60}")
+    print('  ACCURACY ANALYSIS  (single sample)')
+    print(f"{'='*60}")
+
+    # --- Mamba-only SQNR diagnostic ---
+    print(f"\n  [Mamba SQNR — integer vs float, before final add]")
+    print(f"  {'Block':<8} {'Mamba_shape':<20} {'SQNR (dB)':<12} {'Max int16 sat%'}")
+    print(f"  {'-'*60}")
+    for idx, bk in enumerate(itm_indices):
+        mam_q   = block_results[idx]['mamba_out_q']        # (d_out, T) int64
+        # Hook captures MambaBlock output before transpose back → shape (T, d_out)
+        mam_f   = dumps[f'MambaBlock_{bk}']['out'].T      # → (d_out, T) float32
+        sqnr    = block_sqnr(mam_f, mam_q)
+        sat_pct = 100.0 * np.mean(np.abs(mam_q) >= 32767)
+        print(f"  bk={bk} (blk{idx}) {str(mam_f.shape):<20} {sqnr:<12.2f} {sat_pct:.1f}%")
+    print()
+
+    print(f"  {'Block':<8} {'PyTorch_out shape':<22} {'SQNR (dB)':<12} {'RMS err':<12} {'Max |err|'}")
+    print(f"  {'-'*70}")
+
+    last_hw_float = None
+    for idx, bk in enumerate(itm_indices):
+        final_q   = block_results[idx]['final_q']          # (d_out, T) integer
+        pt_out    = dumps[f'ITMBlock_{bk}']['out']         # (d_out, T) float32
+
+        sqnr  = block_sqnr(pt_out, final_q)
+        hw    = final_q.astype(np.float64) / SCALE
+        rms   = np.sqrt(np.mean((hw - pt_out.astype(np.float64)) ** 2))
+        mx    = np.max(np.abs(hw - pt_out.astype(np.float64)))
+
+        label = f'bk={bk} (blk{idx})'
+        print(f"  {label:<8} {str(pt_out.shape):<22} {sqnr:<12.2f} {rms:<12.5f} {mx:.5f}")
+
+        last_hw_float = torch.tensor(hw.astype(np.float32)).unsqueeze(0)  # (1,d_out,T)
+
+    # Classifier comparison (last block output → GAP → linear)
+    print(f"\n  Classifier prediction (integer chain vs float model):")
+    # Float model prediction
+    pt_last = torch.tensor(dumps[f'ITMBlock_{itm_indices[-1]}']['out']).unsqueeze(0).to(dev)
+    with torch.no_grad():
+        pt_mean   = pt_last.mean(dim=-1)
+        pt_logits = model.classifier(pt_mean)
+        pt_pred   = pt_logits.argmax(dim=-1).item()
+        pt_conf   = torch.softmax(pt_logits, dim=-1).max().item()
+
+    # HW integer chain prediction
+    hw_last = last_hw_float.to(dev)
+    with torch.no_grad():
+        hw_mean   = hw_last.mean(dim=-1)
+        hw_logits = model.classifier(hw_mean)
+        hw_pred   = hw_logits.argmax(dim=-1).item()
+        hw_conf   = torch.softmax(hw_logits, dim=-1).max().item()
+
+    match = 'MATCH' if hw_pred == pt_pred else 'MISMATCH'
+    print(f"  Float  model: class={pt_pred}  conf={pt_conf:.3f}")
+    print(f"  HW int chain: class={hw_pred}  conf={hw_conf:.3f}  [{match}]")
+    print(f"{'='*60}\n")
 
 # =====================================================================
 #  MAIN
@@ -576,10 +694,24 @@ def main():
     print(f'  Captured {len(dumps)} hook outputs')
 
     if args.all_blocks:
+        prev_final_q = None
+        prev_bk      = None
+        block_results = []
         for idx, bk in enumerate(itm_indices):
             blk_dir = out_root / f'block_{idx:02d}_layer{bk:02d}'
-            extract_block(model, bk, blk_dir, dumps)
+            x_q_for_block = None
+            if prev_final_q is not None:
+                has_maxpool = any(
+                    isinstance(model.layers[j], torch.nn.MaxPool1d)
+                    for j in range(prev_bk + 1, bk)
+                )
+                x_q_for_block = hw_maxpool(prev_final_q) if has_maxpool else prev_final_q
+            result = extract_block(model, bk, blk_dir, dumps, x_q_chain=x_q_for_block)
+            block_results.append(result)
+            prev_final_q = result['final_q']
+            prev_bk      = bk
         print(f"\n{'='*60}\n  ALL {len(itm_indices)} BLOCKS DONE → {out_root}\n{'='*60}")
+        analyze_accuracy(model, dumps, itm_indices, block_results, dev)
     else:
         bk = args.block_index
         if bk not in itm_indices:

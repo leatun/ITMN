@@ -81,20 +81,24 @@ module Const_Storage (
         .data (rsqrt_data)
     );
 
-    // ---- ram_const (64 × 256, distributed-LUT-inferred) ----
-    // Write: DMA when target==3, addr_a = dma_addr[5:0]
+    // ---- ram_const (128 × 256, distributed-LUT-inferred) ----
+    // Expanded from 64 → 128 to host D2 encoder + FC bias regions
+    // (see ITM_CONTROLLER_v3.v: C_ENC_BIAS=64, C_FC_BIAS=68).  D1 builds use
+    // only entries [0..63] so the upper half stays at 0 — backward compatible.
+    //
+    // Write: DMA when target==3, addr_a = dma_addr[6:0]
     // Read : either DMA (rtarget==3 → dma_raddr) or controller (const_read_addr),
     //        registered output via BRAM_256b (1-cycle latency).
     wire        we_const = dma_write_en && (dma_target == 2'd3);
     wire [14:0] addr_b_const = (dma_read_en && dma_rtarget == 2'd3) ? dma_raddr
                                                                     : const_read_addr;
     wire [255:0] out_ram_const;
-    BRAM_256b #(.ADDR_WIDTH(6), .RAM_STYLE("block")) ram_const (
+    BRAM_256b #(.ADDR_WIDTH(7), .RAM_STYLE("block")) ram_const (
         .clk    (clk),
         .we_a   (we_const),
-        .addr_a (dma_addr[5:0]),
+        .addr_a (dma_addr[6:0]),
         .din_a  (dma_wdata),
-        .addr_b (addr_b_const[5:0]),
+        .addr_b (addr_b_const[6:0]),
         .dout_b (out_ram_const)
     );
     assign const_read_data = out_ram_const;

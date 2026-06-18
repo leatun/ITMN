@@ -1,0 +1,261 @@
+% Fig 5 — ITMN memory organization (URAM A/B bank-swap + weight BRAM layout)
+% Compile:  pdflatex fig5_memory_layout.tex
+% Requires: tikz, xcolor
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{xcolor}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,decorations.pathreplacing}
+
+%% ── palette ──────────────────────────────────────────────────────────────────
+\definecolor{clrRTL}  {RGB}{198,232,198}   % green  – RTL / accel
+\definecolor{clrIn}   {RGB}{198,232,198}   % green  – input / output
+\definecolor{clrInc}  {RGB}{230,210,250}   % violet – inception intermediates
+\definecolor{clrMam}  {RGB}{250,215,215}   % rose   – mamba intermediates
+\definecolor{clrFin}  {RGB}{255,235,180}   % amber  – final output
+\definecolor{clrFree} {RGB}{245,245,245}   % white  – unused/free
+\definecolor{clrW1}   {RGB}{210,230,255}   % light blue – P1/inception weights
+\definecolor{clrW2}   {RGB}{185,215,250}   % mid blue   – mamba weights
+\definecolor{clrBord} {RGB}{90,90,90}
+\definecolor{clrAddr} {RGB}{110,110,110}
+
+\tikzset{
+  memreg/.style  = {rectangle, draw=clrBord, line width=0.6pt,
+                    minimum width=28mm, align=center,
+                    font=\scriptsize},
+  wtreg/.style   = {rectangle, draw=clrBord, line width=0.6pt,
+                    minimum width=22mm, align=center,
+                    font=\scriptsize},
+  addrlbl/.style = {font=\scriptsize\ttfamily, color=clrAddr, anchor=east},
+  hdrlbl/.style  = {font=\small\bfseries, color=clrBord},
+  sizelbl/.style = {font=\tiny\ttfamily, color=gray!70, anchor=west},
+  swaplbl/.style = {font=\scriptsize, color=clrBord, align=center},
+  arr/.style     = {-{Stealth[length=4pt]}, line width=0.7pt},
+  dbarr/.style   = {Stealth[length=4pt]-, -{Stealth[length=4pt]},
+                    line width=0.7pt, color=gray!70},
+}
+
+%% helper: draw a memory column region
+%% usage: \memblock{fill}{height}{label}{addrtop}{node-name}
+%% position managed via node stacking with [below=0pt of ...]
+\newcommand{\colwidth}{28mm}
+\newcommand{\wtwidth}{22mm}
+
+\begin{document}
+\begin{tikzpicture}
+
+%% ═══════════════════════════════════════════════════════════════════
+%% RAM A  (URAM, 32K × 256-bit, blocks 0-3 T=1000 CH_M=8)
+%% ═══════════════════════════════════════════════════════════════════
+\node[hdrlbl] (hdrA) at (0,0) {RAM A (URAM)};
+\node[font=\tiny, color=gray!60, below=0.5mm of hdrA] {32K$\times$256-bit};
+
+% Regions drawn top-to-bottom with proportional heights (scale: 1pt = ~100 words)
+% Total = 32768. We compress using sqrt-ish scale for readability.
+
+% Input X  0..3999  (4000 words)
+\node[memreg, fill=clrIn,   minimum height=9mm, below=3mm of hdrA] (rA0)
+  {Input X\\{\tiny CH\_IN$\times$T}};
+\node[addrlbl] at (rA0.north west) {0};
+\node[sizelbl] at (rA0.east) {4000};
+
+% BOT + B1  4000..5999  (2000 words)
+\node[memreg, fill=clrInc,  minimum height=5mm, below=0pt of rA0] (rA1)
+  {BOT\_out, B1\_out};
+\node[addrlbl] at (rA1.north west) {4000};
+\node[sizelbl] at (rA1.east) {2000};
+
+% (gap 6000..7999 = free)
+\node[memreg, fill=clrFree, minimum height=4mm, below=0pt of rA1] (rA1g) {};
+\node[addrlbl] at (rA1g.north west) {6000};
+\node[sizelbl, color=gray!40] at (rA1g.east) {free};
+
+% Final out 1..CH_M-1  8000..11999
+\node[memreg, fill=clrFin,  minimum height=8mm, below=0pt of rA1g] (rA2)
+  {Final out\\{\tiny grp 1..CH\_M$-$1}};
+\node[addrlbl] at (rA2.north west) {8000};
+\node[sizelbl] at (rA2.east) {4000};
+
+% x\_inner/u/delta  12000..19999
+\node[memreg, fill=clrMam,  minimum height=12mm, below=0pt of rA2] (rA3)
+  {x\_inner / u / $\Delta$\\{\tiny CH\_M$\times$T}};
+\node[addrlbl] at (rA3.north west) {12000};
+\node[sizelbl] at (rA3.east) {8000};
+
+% z\_gate  20000..27999
+\node[memreg, fill=clrMam!70,  minimum height=12mm, below=0pt of rA3] (rA4)
+  {z\_gate\\{\tiny CH\_M$\times$T}};
+\node[addrlbl] at (rA4.north west) {20000};
+\node[sizelbl] at (rA4.east) {8000};
+
+% h\_state 28000..28127
+\node[memreg, fill=clrMam!40,  minimum height=3mm, below=0pt of rA4] (rA5)
+  {h\_state};
+\node[addrlbl] at (rA5.north west) {28000};
+\node[sizelbl] at (rA5.east) {128};
+
+% mamba\_out 28128..32127
+\node[memreg, fill=clrIn!70,   minimum height=5mm, below=0pt of rA5] (rA6)
+  {mamba\_out\\{\tiny CH\_IN$\times$T}};
+\node[addrlbl] at (rA6.north west) {28128};
+\node[sizelbl] at (rA6.east) {4000};
+
+% bottom cap
+\node[addrlbl] at (rA6.south west) {32767};
+
+%% ═══════════════════════════════════════════════════════════════════
+%% RAM B  (URAM, 32K × 256-bit)
+%% ═══════════════════════════════════════════════════════════════════
+\node[hdrlbl, right=18mm of hdrA] (hdrB) {RAM B (URAM)};
+\node[font=\tiny, color=gray!60, below=0.5mm of hdrB] {32K$\times$256-bit};
+
+\node[memreg, fill=clrIn,   minimum height=9mm,  below=3mm of hdrB] (rB0)
+  {P1\_out\\{\tiny CH\_IN$\times$T}};
+\node[addrlbl] at (rB0.north west) {0};
+\node[sizelbl] at (rB0.east) {4000};
+
+\node[memreg, fill=clrInc,  minimum height=7mm,  below=0pt of rB0] (rB1)
+  {B2\_out, B3\_out,\\B4\_out};
+\node[addrlbl] at (rB1.north west) {4000};
+\node[sizelbl] at (rB1.east) {3000};
+
+% gap 7000..7999
+\node[memreg, fill=clrFree, minimum height=3mm,  below=0pt of rB1] (rB1g) {};
+\node[addrlbl] at (rB1g.north west) {7000};
+\node[sizelbl, color=gray!40] at (rB1g.east) {free};
+
+% Final grp 0  8000..8999
+\node[memreg, fill=clrFin,  minimum height=4mm,  below=0pt of rB1g] (rB2)
+  {Final out grp 0};
+\node[addrlbl] at (rB2.north west) {8000};
+\node[sizelbl] at (rB2.east) {1000};
+
+% gap 9000..11999
+\node[memreg, fill=clrFree, minimum height=5mm,  below=0pt of rB2] (rB2g) {};
+\node[addrlbl] at (rB2g.north west) {9000};
+\node[sizelbl, color=gray!40] at (rB2g.east) {free};
+
+% x\_conv / x\_proj  12000..14999
+\node[memreg, fill=clrMam,  minimum height=7mm,  below=0pt of rB2g] (rB3)
+  {x\_conv / x\_proj\\{\tiny CH\_M$\times$T}};
+\node[addrlbl] at (rB3.north west) {12000};
+\node[sizelbl] at (rB3.east) {8000};
+
+% u\_safe  15000..22999 (overlaps end of x\_conv zone conceptually, placed after M3)
+\node[memreg, fill=clrMam!70,  minimum height=12mm, below=0pt of rB3] (rB4)
+  {u\_safe\\{\tiny CH\_M$\times$T}};
+\node[addrlbl] at (rB4.north west) {15000};
+\node[sizelbl] at (rB4.east) {8000};
+
+% y\_ssm / y\_gated  23000..30999
+\node[memreg, fill=clrIn!70,   minimum height=12mm, below=0pt of rB4] (rB5)
+  {y\_ssm / y\_gated\\{\tiny CH\_M$\times$T}};
+\node[addrlbl] at (rB5.north west) {23000};
+\node[sizelbl] at (rB5.east) {8000};
+
+\node[addrlbl] at (rB5.south west) {31000};
+
+%% ═══════════════════════════════════════════════════════════════════
+%% Weight BRAM  (16K × 256-bit, reloaded per block)
+%% ═══════════════════════════════════════════════════════════════════
+\node[hdrlbl, right=16mm of hdrB] (hdrW) {Weight BRAM};
+\node[font=\tiny, color=gray!60, below=0.5mm of hdrW] {16K$\times$256-bit (reloaded per block)};
+
+% P1 weights  0..255
+\node[wtreg, fill=clrW1, minimum height=4mm,  below=3mm of hdrW] (wP1)
+  {P1 weights};
+\node[addrlbl] at (wP1.north west) {0};
+\node[sizelbl] at (wP1.east) {256};
+
+% BOT+B1  256..383
+\node[wtreg, fill=clrW1!80, minimum height=3mm, below=0pt of wP1] (wBOT)
+  {BOT + B1};
+\node[addrlbl] at (wBOT.north west) {256};
+\node[sizelbl] at (wBOT.east) {128};
+
+% B2  384..527
+\node[wtreg, fill=clrInc, minimum height=3mm, below=0pt of wBOT] (wB2)
+  {B2 (k=9)};
+\node[addrlbl] at (wB2.north west) {384};
+\node[sizelbl] at (wB2.east) {144};
+
+% B3  528..831
+\node[wtreg, fill=clrInc!80, minimum height=4mm, below=0pt of wB2] (wB3)
+  {B3 (k=19)};
+\node[addrlbl] at (wB3.north west) {528};
+\node[sizelbl] at (wB3.east) {304};
+
+% B4  832..1455
+\node[wtreg, fill=clrInc!60, minimum height=5mm, below=0pt of wB3] (wB4)
+  {B4 (k=39)};
+\node[addrlbl] at (wB4.north west) {832};
+\node[sizelbl] at (wB4.east) {624};
+
+% M\_X + M\_Z  1456..2479
+\node[wtreg, fill=clrW2, minimum height=8mm, below=0pt of wB4] (wMXZ)
+  {M\_X, M\_Z\\{\tiny in/z proj}};
+\node[addrlbl] at (wMXZ.north west) {1456};
+\node[sizelbl] at (wMXZ.east) {1024};
+
+% M\_DW  2480..2511
+\node[wtreg, fill=clrW2!80, minimum height=2mm, below=0pt of wMXZ] (wDW)
+  {M\_DW};
+\node[addrlbl] at (wDW.north west) {2480};
+\node[sizelbl] at (wDW.east) {32};
+
+% XPROJ  2512..2895 (blk0-3) / ..3279 (blk4)
+\node[wtreg, fill=clrW2!60, minimum height=5mm, below=0pt of wDW] (wXP)
+  {XPROJ\\{\tiny $\Delta$,B,C proj}};
+\node[addrlbl] at (wXP.north west) {2512};
+\node[sizelbl] at (wXP.east) {384/768};
+
+% DTPROJ .. OUTPROJ (variable)
+\node[wtreg, fill=clrMam!60, minimum height=10mm, below=0pt of wXP] (wVAR)
+  {DTPROJ\\A\_LOG, D\_param\\OUTPROJ};
+\node[addrlbl] at (wVAR.north west) {$\sim$2896};
+\node[sizelbl] at (wVAR.east) {$\leq$2864};
+
+% end cap
+\node[addrlbl] at (wVAR.south west) {5760};
+
+%% ═══════════════════════════════════════════════════════════════════
+%% Bank-swap diagram (below the memory columns)
+%% ═══════════════════════════════════════════════════════════════════
+\coordinate (swapbase) at ($(rA6.south)!0.5!(rB5.south)+(0,-14mm)$);
+
+\node[swaplbl, font=\small\bfseries] at ($(swapbase)+(0,4mm)$) {Bank-Swap per Block};
+
+% Block 0: read A, write B
+\node[rectangle, draw=clrBord, fill=clrIn,   minimum width=16mm, minimum height=7mm,
+      font=\scriptsize, align=center] (s0A) at ($(swapbase)+(-30mm,0)$)
+  {RAM A\\{\tiny read X}};
+\node[rectangle, draw=clrBord, fill=clrFin,  minimum width=16mm, minimum height=7mm,
+      font=\scriptsize, align=center, right=3mm of s0A] (s0B)
+  {RAM B\\{\tiny write out}};
+\node[swaplbl, above=1mm of s0A, xshift=10mm] {Block 0,2};
+
+\node[rectangle, draw=clrBord, fill=clrFin,  minimum width=16mm, minimum height=7mm,
+      font=\scriptsize, align=center, right=16mm of s0B] (s1A)
+  {RAM A\\{\tiny write out}};
+\node[rectangle, draw=clrBord, fill=clrIn,   minimum width=16mm, minimum height=7mm,
+      font=\scriptsize, align=center, right=3mm of s1A] (s1B)
+  {RAM B\\{\tiny read X}};
+\node[swaplbl, above=1mm of s1A, xshift=10mm] {Block 1,3};
+
+% ITM arrows between swap pairs
+\node[rectangle, draw=clrBord, fill=clrRTL!30, minimum width=14mm, minimum height=7mm,
+      font=\scriptsize, align=center] (itm0) at ($(s0A.east)!0.5!(s0B.west)+(0,-9mm)$)
+  {ITM\\Core};
+\draw[arr] (s0A.south) -- ++(0,-2mm) -| (itm0.north);
+\draw[arr] (itm0.north) |- ++(0,2mm) -| (s0B.south);
+
+\node[rectangle, draw=clrBord, fill=clrRTL!30, minimum width=14mm, minimum height=7mm,
+      font=\scriptsize, align=center] (itm1) at ($(s1A.east)!0.5!(s1B.west)+(0,-9mm)$)
+  {ITM\\Core};
+\draw[arr] (s1B.south) -- ++(0,-2mm) -| (itm1.north);
+\draw[arr] (itm1.north) |- ++(0,2mm) -| (s1A.south);
+
+% swap arrow between the two pairs
+\draw[dbarr, bend left=15] (s0B.east) to node[above, font=\tiny, color=gray!70]
+  {swap roles} (s1B.west);
+
+\end{tikzpicture}
+\end{document}

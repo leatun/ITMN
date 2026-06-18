@@ -1,485 +1,68 @@
 run -all
-   DMA load complete.
->> Running block 0...
-   [BLK 0] Phase1 done  :  779998 cyc
-   [BLK 0] Inc running... 1M cyc  state=5 br=2 t=813
-   [BLK 0] Inc running... 2M cyc  state=5 br=4 t=2
-   [BLK 0] Inc running... 3M cyc  state=5 br=4 t=535
-   [BLK 0] Inception done: 3871000 cyc
-   [BLK 0] Mamba running... 0M cyc  state=9 t=239 g=2 s=0
-   [BLK 0] Mamba running... 1M cyc  state=9 t=478 g=5 s=0
-   [BLK 0] Mamba running... 1M cyc  state=9 t=718 g=0 s=0
-   [BLK 0] Mamba running... 2M cyc  state=9 t=957 g=3 s=0
-   [BLK 0] Mamba running... 2M cyc  state=13 t=196 g=5 s=0
-   [BLK 0] Mamba running... 3M cyc  state=13 t=436 g=0 s=0
-   [BLK 0] Mamba running... 3M cyc  state=13 t=675 g=3 s=0
-   [BLK 0] Mamba running... 4M cyc  state=13 t=914 g=6 s=0
-   [BLK 0] Mamba running... 4M cyc  state=25 t=111 g=0 s=0
-   [BLK 0] Mamba running... 5M cyc  state=25 t=542 g=0 s=0
-   [BLK 0] Mamba running... 5M cyc  state=25 t=973 g=0 s=0
-   [BLK 0] Mamba running... 6M cyc  state=51 t=87 g=1 s=2
-   [BLK 0] Mamba running... 6M cyc  state=73 t=214 g=5 s=9
-   [BLK 0] Mamba running... 7M cyc  state=78 t=342 g=0 s=2
-   [BLK 0] Mamba running... 7M cyc  state=61 t=470 g=5 s=15
-   [BLK 0] Mamba running... 8M cyc  state=51 t=598 g=3 s=14
-   [BLK 0] Mamba running... 8M cyc  state=64 t=726 g=1 s=12
-   [BLK 0] Mamba running... 9M cyc  state=71 t=853 g=7 s=4
-   [BLK 0] Mamba running... 9M cyc  state=77 t=981 g=1 s=14
-   [BLK 0] Mamba running... 10M cyc  state=109 t=230 g=0 s=0
-   [BLK 0] Mamba running... 10M cyc  state=109 t=553 g=0 s=0
-   [BLK 0] Mamba running... 11M cyc  state=109 t=876 g=0 s=0
-   [BLK 0] Mamba done    : 11191256 cyc
-   [BLK 0] Final done    :   52000 cyc
-   [BLK 0] Total         : 15894254 cyc
->> Comparing block 0...
-[USAFE ERR] c=0 t=0 | got=96 exp=-352 diff=448
-[USAFE ERR] c=0 t=1 | got=-103 exp=-447 diff=344
-[USAFE ERR] c=0 t=2 | got=24 exp=65 diff=41
-[USAFE ERR] c=0 t=3 | got=-270 exp=-528 diff=258
-[USAFE ERR] c=0 t=4 | got=-91 exp=-419 diff=328
-[USAFE ERR] c=0 t=5 | got=-89 exp=-419 diff=330
-[USAFE ERR] c=0 t=6 | got=-107 exp=-419 diff=312
-[USAFE ERR] c=0 t=7 | got=-100 exp=-387 diff=287
-[USAFE ERR] c=0 t=8 | got=-74 exp=-419 diff=345
-[USAFE ERR] c=0 t=9 | got=-75 exp=-419 diff=344
-[USAFE ERR] c=0 t=10 | got=-101 exp=-387 diff=286
-[USAFE ERR] c=0 t=11 | got=-86 exp=-387 diff=301
-[USAFE ERR] c=0 t=12 | got=-60 exp=-419 diff=359
-[USAFE ERR] c=0 t=13 | got=-93 exp=-419 diff=326
-[USAFE ERR] c=0 t=14 | got=-87 exp=-387 diff=300
-[USAFE ERR] c=0 t=15 | got=-88 exp=-387 diff=299
-[USAFE ERR] c=0 t=16 | got=-61 exp=-419 diff=358
-[USAFE ERR] c=0 t=17 | got=-60 exp=-419 diff=359
-[USAFE ERR] c=0 t=18 | got=-54 exp=-387 diff=333
-[USAFE ERR] c=0 t=19 | got=-29 exp=-419 diff=390
-  [DBG] err per c_grp: c0=0 c1=0 c2=0 c3=0
+   Encoder + FC constants loaded.
 
-================================================================
-  BLOCK 0 REPORT   T=1000  d_in=64  d_inner=128
-  FRAC_BITS=11  TOLERANCE=2
-================================================================
-  Timing:
-    Phase 1            :   779998 cyc
-    Inception          :  3871000 cyc
-    Mamba              : 11191256 cyc
-    Final BN+ReLU      :    52000 cyc
-    Block total        : 15894254 cyc
-  ----------------------------------------------------------------
-  Stage              | size     | err     | max_d  | result
-  -------------------+----------+---------+--------+-------
-  P1 Output          |   64000  |   63874 |  16531 | FAIL
-  Inc Bot            |   16000  |   15984 |  33322 | FAIL
-  Inc B1             |   16000  |       0 |      0 | PASS
-  Inc B2             |   16000  |       0 |      0 | PASS
-  Inc B3             |   16000  |       0 |      0 | PASS
-  Inc B4             |   16000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Mam Z_Gate  (M1b)  |  128000  |  111925 |  17288 | FAIL
-  Mam U_Safe  (M3cp) |  128000  |  119367 |  28739 | FAIL
-  Mam X_Proj  (M4)   |   48000  |   11071 |  12063 | FAIL
-  Mam Delta   (M5)   |  128000  |   63936 |  12815 | FAIL
-  Mam H_State (M6a)  |    2048  |       0 |      0 | PASS
-  Mam Y_Gated (M7)   |  128000  |       0 |      0 | PASS
-  Mam OutProj (M8)   |   64000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Final Full Output  |   64000  |       0 |      0 | PASS
-================================================================
+â”€â”€[sample 0]â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        [BLK 0 sample 0] 2M cyc, state=5
+        [BLK 0 sample 0] 4M cyc, state=5
+        [BLK 0 sample 0] 6M cyc, state=9
+        [BLK 0 sample 0] 8M cyc, state=13
+        [BLK 0 sample 0] 10M cyc, state=25
+        [BLK 0 sample 0] 12M cyc, state=47
+        [BLK 0 sample 0] 14M cyc, state=47
+        [BLK 0 sample 0] 16M cyc, state=35
+        [BLK 1 sample 0] 2M cyc, state=5
+        [BLK 1 sample 0] 4M cyc, state=5
+        [BLK 1 sample 0] 6M cyc, state=9
+        [BLK 1 sample 0] 8M cyc, state=13
+        [BLK 1 sample 0] 10M cyc, state=25
+        [BLK 1 sample 0] 12M cyc, state=74
+        [BLK 1 sample 0] 14M cyc, state=51
+        [BLK 2 sample 0] 2M cyc, state=5
+        [BLK 2 sample 0] 4M cyc, state=13
+        [BLK 2 sample 0] 6M cyc, state=74
+        [BLK 3 sample 0] 2M cyc, state=5
+        [BLK 3 sample 0] 4M cyc, state=13
+        [BLK 3 sample 0] 6M cyc, state=74
+        [BLK 4 sample 0] 2M cyc, state=5
+        [BLK 4 sample 0] 4M cyc, state=5
+        [BLK 4 sample 0] 6M cyc, state=9
+        [BLK 4 sample 0] 8M cyc, state=13
+        [BLK 4 sample 0] 10M cyc, state=51
+        [BLK 4 sample 0] 12M cyc, state=109
+  HW  logits = [  2978,  -1926,  -3695,  -2539,  -2052] â†’ class 0
+  EXP logits = [  2978,  -1926,  -3695,  -2539,  -2052] â†’ class 0
+  byte-exact=PASS  max|diff|=0  pred-match=YES  [running: 1/1]
 
->> [BLOCK 1] T=1000  d_in=64  d_inner=128  dt_rank=4
->> Sanity check block 1:
-   [OK]   0 X-values in all golden arrays.
-   Sample P1[0..1]     : ffdc 0294
-   Sample ZGate[0..1]  : ef52 04d1
-   Sample USilu[0..1]  : 0000 0171
-   Sample XProj[0..1]  : ff50 0075
-   Sample Delta[0..1]  : 058b 054c
-   Sample H[0..1]      : ffc2 fff9
-   Sample YGated[0..1] : 0000 021e
-   Sample Mout[0..1]   : 00a9 0a3e
-   Sample Final[0..1]  : 0201 0ca4
->> Chaining: block 0 wrote to A_INPUT_BASE via S_CASCADE (copy mode).
->> DMA loading block 1 weights...
-   DMA load complete.
->> Running block 1...
-   [BLK 1] Phase1 done  :  779998 cyc
-   [BLK 1] Inc running... 1M cyc  state=5 br=2 t=813
-   [BLK 1] Inc running... 2M cyc  state=5 br=4 t=2
-   [BLK 1] Inc running... 3M cyc  state=5 br=4 t=535
-   [BLK 1] Inception done: 3871000 cyc
-   [BLK 1] Mamba running... 0M cyc  state=9 t=239 g=2 s=0
-   [BLK 1] Mamba running... 1M cyc  state=9 t=478 g=5 s=0
-   [BLK 1] Mamba running... 1M cyc  state=9 t=718 g=0 s=0
-   [BLK 1] Mamba running... 2M cyc  state=9 t=957 g=3 s=0
-   [BLK 1] Mamba running... 2M cyc  state=13 t=196 g=5 s=0
-   [BLK 1] Mamba running... 3M cyc  state=13 t=436 g=0 s=0
-   [BLK 1] Mamba running... 3M cyc  state=13 t=675 g=3 s=0
-   [BLK 1] Mamba running... 4M cyc  state=13 t=914 g=6 s=0
-   [BLK 1] Mamba running... 4M cyc  state=25 t=111 g=0 s=0
-   [BLK 1] Mamba running... 5M cyc  state=25 t=542 g=0 s=0
-   [BLK 1] Mamba running... 5M cyc  state=25 t=973 g=0 s=0
-   [BLK 1] Mamba running... 6M cyc  state=51 t=87 g=1 s=2
-   [BLK 1] Mamba running... 6M cyc  state=73 t=214 g=5 s=9
-   [BLK 1] Mamba running... 7M cyc  state=78 t=342 g=0 s=2
-   [BLK 1] Mamba running... 7M cyc  state=61 t=470 g=5 s=15
-   [BLK 1] Mamba running... 8M cyc  state=51 t=598 g=3 s=14
-   [BLK 1] Mamba running... 8M cyc  state=64 t=726 g=1 s=12
-   [BLK 1] Mamba running... 9M cyc  state=71 t=853 g=7 s=4
-   [BLK 1] Mamba running... 9M cyc  state=77 t=981 g=1 s=14
-   [BLK 1] Mamba running... 10M cyc  state=109 t=230 g=0 s=0
-   [BLK 1] Mamba running... 10M cyc  state=109 t=553 g=0 s=0
-   [BLK 1] Mamba running... 11M cyc  state=109 t=876 g=0 s=0
-   [BLK 1] Mamba done    : 11191256 cyc
-   [BLK 1] Final done    :   42000 cyc
-   [BLK 1] Total         : 15884254 cyc
->> Comparing block 1...
-[USAFE ERR] c=0 t=1 | got=542 exp=369 diff=173
-[USAFE ERR] c=0 t=2 | got=767 exp=369 diff=398
-[USAFE ERR] c=0 t=3 | got=-179 exp=-121 diff=58
-[USAFE ERR] c=0 t=4 | got=0 exp=-271 diff=271
-[USAFE ERR] c=0 t=5 | got=10 exp=-63 diff=73
-[USAFE ERR] c=0 t=6 | got=-17 exp=65 diff=82
-[USAFE ERR] c=0 t=8 | got=45 exp=-175 diff=220
-[USAFE ERR] c=0 t=9 | got=79 exp=-225 diff=304
-[USAFE ERR] c=0 t=10 | got=85 exp=-225 diff=310
-[USAFE ERR] c=0 t=11 | got=73 exp=-175 diff=248
-[USAFE ERR] c=0 t=12 | got=65 exp=-121 diff=186
-[USAFE ERR] c=0 t=13 | got=43 exp=-63 diff=106
-[USAFE ERR] c=0 t=14 | got=45 exp=-63 diff=108
-[USAFE ERR] c=0 t=15 | got=49 exp=-63 diff=112
-[USAFE ERR] c=0 t=16 | got=55 exp=-63 diff=118
-[USAFE ERR] c=0 t=18 | got=-51 exp=65 diff=116
-[USAFE ERR] c=0 t=19 | got=-106 exp=135 diff=241
-[USAFE ERR] c=0 t=20 | got=-98 exp=135 diff=233
-[USAFE ERR] c=0 t=21 | got=-89 exp=135 diff=224
-[USAFE ERR] c=0 t=22 | got=-42 exp=65 diff=107
-  [DBG] err per c_grp: c0=0 c1=0 c2=0 c3=0
+â”€â”€[sample 1]â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        [BLK 0 sample 1] 2M cyc, state=5
+        [BLK 0 sample 1] 4M cyc, state=5
+        [BLK 0 sample 1] 6M cyc, state=9
+        [BLK 0 sample 1] 8M cyc, state=13
+        [BLK 0 sample 1] 10M cyc, state=25
+        [BLK 0 sample 1] 12M cyc, state=47
+        [BLK 0 sample 1] 14M cyc, state=47
+        [BLK 0 sample 1] 16M cyc, state=35
+        [BLK 1 sample 1] 2M cyc, state=5
+        [BLK 1 sample 1] 4M cyc, state=5
+        [BLK 1 sample 1] 6M cyc, state=9
+        [BLK 1 sample 1] 8M cyc, state=13
+        [BLK 1 sample 1] 10M cyc, state=25
+        [BLK 1 sample 1] 12M cyc, state=74
+        [BLK 1 sample 1] 14M cyc, state=51
+        [BLK 2 sample 1] 2M cyc, state=5
+        [BLK 2 sample 1] 4M cyc, state=13
+        [BLK 2 sample 1] 6M cyc, state=74
+        [BLK 3 sample 1] 2M cyc, state=5
+        [BLK 3 sample 1] 4M cyc, state=13
+        [BLK 3 sample 1] 6M cyc, state=74
+        [BLK 4 sample 1] 2M cyc, state=5
+        [BLK 4 sample 1] 4M cyc, state=5
+        [BLK 4 sample 1] 6M cyc, state=9
+        [BLK 4 sample 1] 8M cyc, state=13
+        [BLK 4 sample 1] 10M cyc, state=51
+        [BLK 4 sample 1] 12M cyc, state=109
+  HW  logits = [  1885,   -320,  -2858,  -2255,  -2328] â†’ class 0
+  EXP logits = [  1885,   -320,  -2858,  -2255,  -2328] â†’ class 0
+  byte-exact=PASS  max|diff|=0  pred-match=YES  [running: 2/2]
 
-================================================================
-  BLOCK 1 REPORT   T=1000  d_in=64  d_inner=128
-  FRAC_BITS=11  TOLERANCE=2
-================================================================
-  Timing:
-    Phase 1            :   779998 cyc
-    Inception          :  3871000 cyc
-    Mamba              : 11191256 cyc
-    Final BN+ReLU      :    42000 cyc
-    Block total        : 15884254 cyc
-  ----------------------------------------------------------------
-  Stage              | size     | err     | max_d  | result
-  -------------------+----------+---------+--------+-------
-  P1 Output          |   64000  |   63925 |  17001 | FAIL
-  Inc Bot            |   16000  |   15992 |  24436 | FAIL
-  Inc B1             |   16000  |       0 |      0 | PASS
-  Inc B2             |   16000  |       0 |      0 | PASS
-  Inc B3             |   16000  |       0 |      0 | PASS
-  Inc B4             |   16000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Mam Z_Gate  (M1b)  |  128000  |  111907 |  18053 | FAIL
-  Mam U_Safe  (M3cp) |  128000  |  121994 |  24416 | FAIL
-  Mam X_Proj  (M4)   |   48000  |   11070 |  10442 | FAIL
-  Mam Delta   (M5)   |  128000  |   31950 |  11999 | FAIL
-  Mam H_State (M6a)  |    2048  |       0 |      0 | PASS
-  Mam Y_Gated (M7)   |  128000  |       0 |      0 | PASS
-  Mam OutProj (M8)   |   64000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Final Full Output  |   64000  |       0 |      0 | PASS
-================================================================
-
->> Block 1 finished with cascade-pool (T 1000 â†’ 500).
-
->> [BLOCK 2] T=500  d_in=64  d_inner=128  dt_rank=4
->> Sanity check block 2:
-   [OK]   0 X-values in all golden arrays.
-   Sample P1[0..1]     : f9fa 0650
-   Sample ZGate[0..1]  : fcea 0035
-   Sample USilu[0..1]  : 011f 011f
-   Sample XProj[0..1]  : 01e5 000b
-   Sample Delta[0..1]  : 054c 058b
-   Sample H[0..1]      : ffff ffd7
-   Sample YGated[0..1] : ffb5 0000
-   Sample Mout[0..1]   : 0254 fb71
-   Sample Final[0..1]  : 0254 0000
->> DMA loading block 2 weights (input from MaxPool of block 1)...
-   DMA load complete.
->> Running block 2...
-   [BLK 2] Phase1 done  :  389998 cyc
-   [BLK 2] Inc running... 1M cyc  state=5 br=4 t=1
-   [BLK 2] Inception done: 1935500 cyc
-   [BLK 2] Mamba running... 0M cyc  state=9 t=239 g=2 s=0
-   [BLK 2] Mamba running... 1M cyc  state=9 t=478 g=5 s=0
-   [BLK 2] Mamba running... 1M cyc  state=13 t=218 g=0 s=0
-   [BLK 2] Mamba running... 2M cyc  state=13 t=457 g=3 s=0
-   [BLK 2] Mamba running... 2M cyc  state=25 t=271 g=0 s=0
-   [BLK 2] Mamba running... 3M cyc  state=51 t=43 g=5 s=12
-   [BLK 2] Mamba running... 3M cyc  state=64 t=171 g=3 s=10
-   [BLK 2] Mamba running... 4M cyc  state=53 t=299 g=1 s=9
-   [BLK 2] Mamba running... 4M cyc  state=76 t=426 g=6 s=11
-   [BLK 2] Mamba running... 5M cyc  state=109 t=115 g=0 s=0
-   [BLK 2] Mamba running... 5M cyc  state=109 t=438 g=0 s=0
-   [BLK 2] Mamba done    : 5595756 cyc
-   [BLK 2] Final done    :   26000 cyc
-   [BLK 2] Total         : 7947254 cyc
->> Comparing block 2...
-[USAFE ERR] c=0 t=0 | got=-75 exp=287 diff=362
-[USAFE ERR] c=0 t=1 | got=0 exp=287 diff=287
-[USAFE ERR] c=0 t=2 | got=1810 exp=455 diff=1355
-[USAFE ERR] c=0 t=3 | got=2300 exp=637 diff=1663
-[USAFE ERR] c=0 t=4 | got=1132 exp=637 diff=495
-[USAFE ERR] c=0 t=5 | got=499 exp=369 diff=130
-[USAFE ERR] c=0 t=7 | got=21 exp=-121 diff=142
-[USAFE ERR] c=0 t=8 | got=24 exp=-121 diff=145
-[USAFE ERR] c=0 t=9 | got=-14 exp=209 diff=223
-[USAFE ERR] c=0 t=10 | got=71 exp=637 diff=566
-[USAFE ERR] c=0 t=11 | got=205 exp=833 diff=628
-[USAFE ERR] c=0 t=12 | got=194 exp=733 diff=539
-[USAFE ERR] c=0 t=13 | got=377 exp=544 diff=167
-[USAFE ERR] c=0 t=14 | got=332 exp=369 diff=37
-[USAFE ERR] c=0 t=15 | got=132 exp=135 diff=3
-[USAFE ERR] c=0 t=17 | got=121 exp=135 diff=14
-[USAFE ERR] c=0 t=18 | got=268 exp=209 diff=59
-[USAFE ERR] c=0 t=19 | got=336 exp=209 diff=127
-[USAFE ERR] c=0 t=20 | got=452 exp=209 diff=243
-[USAFE ERR] c=0 t=21 | got=-216 exp=-175 diff=41
-  [DBG] err per c_grp: c0=0 c1=0 c2=0 c3=0
-
-================================================================
-  BLOCK 2 REPORT   T=500  d_in=64  d_inner=128
-  FRAC_BITS=11  TOLERANCE=2
-================================================================
-  Timing:
-    Phase 1            :   389998 cyc
-    Inception          :  1935500 cyc
-    Mamba              :  5595756 cyc
-    Final BN+ReLU      :    26000 cyc
-    Block total        :  7947254 cyc
-  ----------------------------------------------------------------
-  Stage              | size     | err     | max_d  | result
-  -------------------+----------+---------+--------+-------
-  P1 Output          |   32000  |   31953 |  15394 | FAIL
-  Inc Bot            |    8000  |    7993 |  21463 | FAIL
-  Inc B1             |    8000  |       0 |      0 | PASS
-  Inc B2             |    8000  |       0 |      0 | PASS
-  Inc B3             |    8000  |       0 |      0 | PASS
-  Inc B4             |    8000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Mam Z_Gate  (M1b)  |   64000  |   31967 |  10104 | FAIL
-  Mam U_Safe  (M3cp) |   64000  |   60674 |   6596 | FAIL
-  Mam X_Proj  (M4)   |   24000  |    5535 |   8128 | FAIL
-  Mam Delta   (M5)   |   64000  |   31975 |   6970 | FAIL
-  Mam H_State (M6a)  |    2048  |       0 |      0 | PASS
-  Mam Y_Gated (M7)   |   64000  |       0 |      0 | PASS
-  Mam OutProj (M8)   |   32000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Final Full Output  |   32000  |       0 |      0 | PASS
-================================================================
-
->> [BLOCK 3] T=500  d_in=64  d_inner=128  dt_rank=4
->> Sanity check block 3:
-   [OK]   0 X-values in all golden arrays.
-   Sample P1[0..1]     : ffc1 fe34
-   Sample ZGate[0..1]  : ee77 edab
-   Sample USilu[0..1]  : 00d1 0041
-   Sample XProj[0..1]  : 004a 00ab
-   Sample Delta[0..1]  : 058b 054c
-   Sample H[0..1]      : 000f 001a
-   Sample YGated[0..1] : ff83 ffca
-   Sample Mout[0..1]   : fec1 f4f1
-   Sample Final[0..1]  : 0000 0000
->> Chaining: block 2 wrote to A_INPUT_BASE via S_CASCADE (copy mode).
->> DMA loading block 3 weights...
-   DMA load complete.
->> Running block 3...
-   [BLK 3] Phase1 done  :  389998 cyc
-   [BLK 3] Inc running... 1M cyc  state=5 br=4 t=1
-   [BLK 3] Inception done: 1935500 cyc
-   [BLK 3] Mamba running... 0M cyc  state=9 t=239 g=2 s=0
-   [BLK 3] Mamba running... 1M cyc  state=9 t=478 g=5 s=0
-   [BLK 3] Mamba running... 1M cyc  state=13 t=218 g=0 s=0
-   [BLK 3] Mamba running... 2M cyc  state=13 t=457 g=3 s=0
-   [BLK 3] Mamba running... 2M cyc  state=25 t=271 g=0 s=0
-   [BLK 3] Mamba running... 3M cyc  state=51 t=43 g=5 s=12
-   [BLK 3] Mamba running... 3M cyc  state=64 t=171 g=3 s=10
-   [BLK 3] Mamba running... 4M cyc  state=53 t=299 g=1 s=9
-   [BLK 3] Mamba running... 4M cyc  state=76 t=426 g=6 s=11
-   [BLK 3] Mamba running... 5M cyc  state=109 t=115 g=0 s=0
-   [BLK 3] Mamba running... 5M cyc  state=109 t=438 g=0 s=0
-   [BLK 3] Mamba done    : 5595756 cyc
-   [BLK 3] Final done    :   21000 cyc
-   [BLK 3] Total         : 7942254 cyc
->> Comparing block 3...
-[USAFE ERR] c=0 t=0 | got=-125 exp=209 diff=334
-[USAFE ERR] c=0 t=1 | got=-54 exp=65 diff=119
-[USAFE ERR] c=0 t=2 | got=-46 exp=65 diff=111
-[USAFE ERR] c=0 t=3 | got=-33 exp=209 diff=242
-[USAFE ERR] c=0 t=4 | got=195 exp=-419 diff=614
-[USAFE ERR] c=0 t=5 | got=188 exp=-512 diff=700
-[USAFE ERR] c=0 t=6 | got=173 exp=-419 diff=592
-[USAFE ERR] c=0 t=7 | got=206 exp=-472 diff=678
-[USAFE ERR] c=0 t=8 | got=159 exp=-419 diff=578
-[USAFE ERR] c=0 t=9 | got=48 exp=-175 diff=223
-[USAFE ERR] c=0 t=10 | got=-3 exp=0 diff=3
-[USAFE ERR] c=0 t=11 | got=-24 exp=135 diff=159
-[USAFE ERR] c=0 t=12 | got=26 exp=209 diff=183
-[USAFE ERR] c=0 t=13 | got=177 exp=369 diff=192
-[USAFE ERR] c=0 t=14 | got=167 exp=455 diff=288
-[USAFE ERR] c=0 t=15 | got=213 exp=455 diff=242
-[USAFE ERR] c=0 t=16 | got=617 exp=455 diff=162
-[USAFE ERR] c=0 t=17 | got=840 exp=544 diff=296
-[USAFE ERR] c=0 t=18 | got=526 exp=369 diff=157
-[USAFE ERR] c=0 t=19 | got=155 exp=135 diff=20
-  [DBG] err per c_grp: c0=0 c1=0 c2=0 c3=0
-
-================================================================
-  BLOCK 3 REPORT   T=500  d_in=64  d_inner=128
-  FRAC_BITS=11  TOLERANCE=2
-================================================================
-  Timing:
-    Phase 1            :   389998 cyc
-    Inception          :  1935500 cyc
-    Mamba              :  5595756 cyc
-    Final BN+ReLU      :    21000 cyc
-    Block total        :  7942254 cyc
-  ----------------------------------------------------------------
-  Stage              | size     | err     | max_d  | result
-  -------------------+----------+---------+--------+-------
-  P1 Output          |   32000  |   31970 |  11407 | FAIL
-  Inc Bot            |    8000  |    7996 |  15477 | FAIL
-  Inc B1             |    8000  |       0 |      0 | PASS
-  Inc B2             |    8000  |       0 |      0 | PASS
-  Inc B3             |    8000  |       0 |      0 | PASS
-  Inc B4             |    8000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Mam Z_Gate  (M1b)  |   64000  |   31963 |  14095 | FAIL
-  Mam U_Safe  (M3cp) |   64000  |   60818 |  23970 | FAIL
-  Mam X_Proj  (M4)   |   24000  |    5565 |   8958 | FAIL
-  Mam Delta   (M5)   |   64000  |   15981 |   8908 | FAIL
-  Mam H_State (M6a)  |    2048  |       0 |      0 | PASS
-  Mam Y_Gated (M7)   |   64000  |       0 |      0 | PASS
-  Mam OutProj (M8)   |   32000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Final Full Output  |   32000  |       0 |      0 | PASS
-================================================================
-
->> Block 3 finished with cascade-pool (T 500 â†’ 250).
-
->> [BLOCK 4] T=250  d_in=64  d_inner=256  dt_rank=8
->> Sanity check block 4:
-   [OK]   0 X-values in all golden arrays.
-   Sample P1[0..1]     : 0753 0915
-   Sample ZGate[0..1]  : fea2 074c
-   Sample USilu[0..1]  : ffc1 ff87
-   Sample XProj[0..1]  : f6bf f5af
-   Sample Delta[0..1]  : 0464 0464
-   Sample H[0..1]      : ffe9 0011
-   Sample YGated[0..1] : 0008 ff86
-   Sample Mout[0..1]   : 00d8 fdc6
-   Sample Final[0..1]  : 027c 00b0
->> DMA loading block 4 weights (input from MaxPool of block 3)...
-   DMA load complete.
->> Running block 4...
-   [BLK 4] Phase1 done  :  389998 cyc
-   [BLK 4] Inc running... 1M cyc  state=5 br=2 t=161
-   [BLK 4] Inc running... 2M cyc  state=5 br=4 t=2
-   [BLK 4] Inc running... 3M cyc  state=5 br=4 t=19
-   [BLK 4] Inception done: 3863500 cyc
-   [BLK 4] Mamba running... 0M cyc  state=9 t=60 g=6 s=0
-   [BLK 4] Mamba running... 1M cyc  state=10 t=120 g=13 s=0
-   [BLK 4] Mamba running... 1M cyc  state=9 t=181 g=4 s=0
-   [BLK 4] Mamba running... 2M cyc  state=9 t=241 g=11 s=0
-   [BLK 4] Mamba running... 2M cyc  state=13 t=52 g=2 s=0
-   [BLK 4] Mamba running... 3M cyc  state=13 t=112 g=9 s=0
-   [BLK 4] Mamba running... 3M cyc  state=13 t=173 g=0 s=0
-   [BLK 4] Mamba running... 4M cyc  state=13 t=233 g=7 s=0
-   [BLK 4] Mamba running... 4M cyc  state=25 t=115 g=0 s=0
-   [BLK 4] Mamba running... 5M cyc  state=75 t=9 g=5 s=0
-   [BLK 4] Mamba running... 5M cyc  state=68 t=73 g=15 s=13
-   [BLK 4] Mamba running... 6M cyc  state=57 t=137 g=13 s=12
-   [BLK 4] Mamba running... 6M cyc  state=47 t=201 g=11 s=11
-   [BLK 4] Mamba running... 7M cyc  state=109 t=13 g=0 s=0
-   [BLK 4] Mamba running... 7M cyc  state=109 t=94 g=0 s=0
-   [BLK 4] Mamba running... 8M cyc  state=109 t=175 g=0 s=0
-   [BLK 4] Mamba done    : 8457262 cyc
-   [BLK 4] Final done    :   16000 cyc
-   [BLK 4] Total         : 12726760 cyc
->> Comparing block 4...
-[USAFE ERR] c=0 t=0 | got=8 exp=-63 diff=71
-[USAFE ERR] c=0 t=2 | got=100 exp=-225 diff=325
-[USAFE ERR] c=0 t=3 | got=51 exp=-121 diff=172
-[USAFE ERR] c=0 t=4 | got=-22 exp=65 diff=87
-[USAFE ERR] c=0 t=5 | got=-37 exp=135 diff=172
-[USAFE ERR] c=0 t=6 | got=-63 exp=209 diff=272
-[USAFE ERR] c=0 t=7 | got=-66 exp=209 diff=275
-[USAFE ERR] c=0 t=8 | got=-12 exp=135 diff=147
-[USAFE ERR] c=0 t=10 | got=-20 exp=-121 diff=101
-[USAFE ERR] c=0 t=11 | got=27 exp=-175 diff=202
-[USAFE ERR] c=0 t=13 | got=-32 exp=287 diff=319
-[USAFE ERR] c=0 t=14 | got=452 exp=455 diff=3
-[USAFE ERR] c=0 t=15 | got=3 exp=135 diff=132
-[USAFE ERR] c=0 t=16 | got=-220 exp=-63 diff=157
-[USAFE ERR] c=0 t=17 | got=38 exp=-63 diff=101
-[USAFE ERR] c=0 t=18 | got=-42 exp=65 diff=107
-[USAFE ERR] c=0 t=19 | got=94 exp=135 diff=41
-[USAFE ERR] c=0 t=20 | got=-206 exp=-121 diff=85
-[USAFE ERR] c=0 t=21 | got=-3824 exp=-419 diff=3405
-[USAFE ERR] c=0 t=22 | got=-4014 exp=-447 diff=3567
-  [DBG] err per c_grp: c0=0 c1=0 c2=0 c3=0
-
-================================================================
-  BLOCK 4 REPORT   T=250  d_in=128  d_inner=256
-  FRAC_BITS=11  TOLERANCE=2
-================================================================
-  Timing:
-    Phase 1            :   389998 cyc
-    Inception          :  3863500 cyc
-    Mamba              :  8457262 cyc
-    Final BN+ReLU      :    16000 cyc
-    Block total        : 12726760 cyc
-  ----------------------------------------------------------------
-  Stage              | size     | err     | max_d  | result
-  -------------------+----------+---------+--------+-------
-  P1 Output          |   32000  |   31965 |  11741 | FAIL
-  Inc Bot            |    8000  |    7992 |  29766 | FAIL
-  Inc B1             |    8000  |       0 |      0 | PASS
-  Inc B2             |    8000  |       0 |      0 | PASS
-  Inc B3             |    8000  |       0 |      0 | PASS
-  Inc B4             |    8000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Mam Z_Gate  (M1b)  |   64000  |   31967 |  16400 | FAIL
-  Mam U_Safe  (M3cp) |   64000  |   60861 |  30650 | FAIL
-  Mam X_Proj  (M4)   |   12000  |    1411 |  10750 | FAIL
-  Mam Delta   (M5)   |   64000  |       0 |      0 | PASS
-  Mam H_State (M6a)  |    4096  |       0 |      0 | PASS
-  Mam Y_Gated (M7)   |   64000  |       0 |      0 | PASS
-  Mam OutProj (M8)   |   32000  |       0 |      0 | PASS
-  -------------------+----------+---------+--------+-------
-  Final Full Output  |   32000  |       0 |      0 | PASS
-================================================================
-
-
-################################################################
-#                                                              #
-#   ITMN V9 - FINAL SUMMARY  (5 blocks)                       #
-#                                                              #
-################################################################
-  FRAC_BITS=11   TOLERANCE=2
-  Total simulation cycles  : 60394776
-  Estimated @ 100 MHz      : 603.948 ms
-  ??????????????????????????????????????????????????????????
-  Stage (5-block total)   | TotalErr | WorstMax | Overall
-  ??????????????????????? +??????????+??????????+?????????
-  P1 Output               |   223687 |    17001  | FAIL
-  Mam Z_Gate  (M1b)       |   319729 |    (N/A) | FAIL
-  Mam U_Safe  (M3_COPY)   |   423714 |    (N/A) | FAIL
-  Mam X_Proj  (M4)        |    34652 |    (N/A) | FAIL
-  Mam Delta   (M5)        |   143842 |    (N/A) | FAIL
-  Mam H_State (M6a)       |        0 |        0  | PASS
-  Mam Y_Gated (M7)        |        0 |    (N/A) | PASS
-  Mam OutProj (M8)        |        0 |        0  | PASS
-  ??????????????????????? +??????????+??????????+?????????
-  Final Full Output       |        0 |        0  | PASS
-################################################################
-
-  *** ERRORS DETECTED - see per-block reports above ***
-
-  GOAL: all err=0, max_d=0 across all 5 blocks.
-################################################################
+â”€â”€[sample 2]â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

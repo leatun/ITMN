@@ -1,0 +1,9 @@
+Resource,Mamba_Top,Inception_Top,Full_ITM,Mamba+Inception,Saved_by_fusion,Saved_pct
+LUT,7513,5346,10491,12859,2368,18%
+REG,3945,2103,4504,6048,1544,26%
+CARRY,420,379,0,799,799,100%
+BRAM,118,118,118,236,118,50%
+URAM,40,40,40,80,40,50%
+DSP,39,37,59,76,17,22%
+WNS_ns,0.710,1.973,0.646,—,—,—
+WHS_ns,0.095,0.096,0.089,—,—,—

@@ -47,7 +47,7 @@ module ITMN_TB;
     // Instantiate the parameterized ITM_Top directly (V9 style)
     // DMA read interface tied off (not exercised by this TB — sim reads via hierarchy).
     wire [255:0] dma_rdata_unused;
-    ITM_Top uut (
+    ITM_Top_v3 uut (
         .clk(clk), .rst(rst), .start(start),
         .done_phase1(done_phase1), .done_inception(done_inception),
         .done_mamba(done_mamba), .done_all(done_all),

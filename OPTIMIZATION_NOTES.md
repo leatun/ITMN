@@ -305,4 +305,116 @@ Tổng kết hành trình tối ưu từ baseline → final state:
 
 **Scope cần chốt với user trước khi triển khai**: xem AskUserQuestion.
 
-*Last updated: 2026-06-03 — RTL optimization phase closed, transition to paper-prep (D1 separation).*
+### 2026-06-07 — D1 done (OOC standalone synth + compare)
+
+Mechanism: 1 file controller (`ITM_CONTROLLER_v2.v`) với 2 wrapper module (`Mamba_Top.v`, `Inception_Top.v`) compile với `+define+MAMBA_ONLY` / `+define+INCEPTION_ONLY` qua 3 TCL OOC:
+- `Mamba_OOC.tcl` → `reports/mamba/` (utilization + timing + routed checkpoint)
+- `Inception_OOC.tcl` → `reports/inception/`
+- `D1_Compare.tcl` → `reports/d1_compare/` (hierarchical util + critical-path text + summary CSV)
+
+Define cắt code:
+- `MAMBA_ONLY`: strip P1+BR+FIN+CASCADE state arms (lines 591–785, 1492–1632 trong v2). S_IDLE nhảy thẳng vào S_NORM_M1A_SQ_READ; M8 done = block done (skip FIN).
+- `INCEPTION_ONLY`: strip M*/NORM Mamba state arms (lines 787–1490). S_BR_NEXT sau nhánh cuối nhảy thẳng vào S_FIN_READ; FIN đọc A_MAMBA_OUT (URAM init 0 → relu(0) = 0 → final = relu(bn(inc))).
+- Memory_System + Const_Storage + PE_Array instantiate vô điều kiện cả 3 build → BRAM/URAM/DSP/LUT memory-related giữ nguyên; DCE chỉ cắt phần FSM + datapath không dùng.
+
+Kết quả (KV260 xck26-sfvc784-2LV-c, OOC clk=10ns):
+
+| Resource | Mamba_Top | Inception_Top | Full ITM | Sum vs Full (logic only) |
+|---|---|---|---|---|
+| LUT | 7513 | 5346 | 10491 | sum=12859, saved 2368 (18%) |
+| REG | 3945 | 2103 | 4504 | saved 1544 (26%) |
+| DSP | 39 | 37 | 59 | saved 17 (22%) |
+| BRAM | 118 | 118 | 118 | shared 100% (1 ram_weight) |
+| URAM | 40 | 40 | 40 | shared 100% (1 Memory_System) |
+| WNS | 0.710 ns | 1.973 ns | 0.646 ns | — |
+
+Critical path:
+- Mamba: ram_a URAM-cascade ×4 (2.83 ns) → bank_sel LUT mux → 1 DSP48E2 (`u_rmsnorm_mul/p1_wide`) → sat16 CARRY8 → `p1_reg_reg[5]` FDSE. Logic levels = 17. Slack +0.710 ns.
+- Inception: ram_b URAM-cascade ×4 → BR data capture LUT3 → `max_buf` 16-bit CARRY8 compare → `pe_A` mux chain (LUT5+LUT6+LUT6) → `pe_A_reg[13]` FDCE. Logic levels = 10. Slack +1.973 ns.
+
+PDF schematic export trong `D1_Compare.tcl` (write_schematic) chưa generated — đã extract `_critical_path.rpt` thành block diagram tay cho báo cáo.
+
+---
+
+## 9. End-to-end FPGA — encoder + GAP + classifier (2026-06-14)
+
+**Quyết định**: scope paper chuyển từ "ITM-block kernel" sang **end-to-end ECG classifier**. Phải implement nốt 3 phần hiện đang chạy ở host Python:
+
+1. **Encoder**: input projection 12-lead ECG → d_model channels (Conv1D đầu vào).
+2. **GAP**: Global Average Pooling sau block 4 (256 channels × 250 T → 256 scalar).
+3. **Linear classifier**: FC layer d_out → num_classes.
+
+**Hệ quả**:
+- O2 chuyển từ "open question" sang **chốt end-to-end**. Cập nhật bảng Q1-Q4 section 4.
+- Cycle/latency tổng phải re-measure (bao gồm encoder + GAP + FC trên FPGA).
+- Resource estimate phải update: encoder Conv1D ~vài chục param → có thể fit vào PE_Array hiện tại bằng FSM extension. FC layer phụ thuộc num_classes (ECG multi-label thường 5–10 class) → tiny MAC.
+- Verify chain phải extend: golden cho encoder/GAP/FC output (hiện `extract_itm_full.py` chỉ dump 5 block). Cần thêm extractor cho 3 stage này.
+
+**Ưu tiên implementation**:
+1. Encoder Conv1D: tái sử dụng FSM P1-like (Conv+BN+ReLU). Add input phase trước S_P1_READ của block 0.
+2. GAP: thêm state sau block 4 FIN — đọc final output, accumulate sum, divide by T (shift nếu T = power-of-2; else fixed-point divide).
+3. FC: 1 MAC reduction giống M7 out_proj nhưng dimension nhỏ hơn → reuse PE_Array.
+
+**Risk**: encoder và FC dùng weight + bias mới → ram_weight cần thêm region. Phải re-plan memory map (hiện 118 BRAM = 81.94%, còn 26 BRAM free → OK).
+
+---
+
+## 10. Advisor feedback (2026-06-14) — Fmax surprise
+
+Giáo viên đánh giá Fmax 100 MHz (slack +0.646 ns @ 10 ns) **cao bất ngờ** so với các paper Mamba/SSM HW đã công bố trước, đặc biệt là output sinh viên. Cần chuẩn bị giải trình.
+
+**Hypothesis đã thống nhất với giáo viên (sinh viên trình bày)**:
+
+Kiến trúc cố ý **đơn giản, đánh đổi rõ ràng cycle vs Fmax**:
+- Datapath không có function chain phức tạp giữa các register. Mỗi cycle chỉ làm 1 trong 4 việc:
+  1. Đọc 1 word từ Memory_System hoặc Const_Storage hoặc weight RAM (1 cycle BRAM/URAM read).
+  2. Compute qua PE_Array (DSP MAC, 1 cycle).
+  3. Đi qua 1 LUT activation hoặc Writeback Transform (sat / bn_relu / relu / max).
+  4. Register vào capture reg hoặc m_wr_data → ghi RAM.
+- Không có wide combinational reduction giữa nhiều DSP. RMSNorm sum-of-squares (`norm_sq16_fn`) là chỗ duy nhất có 16-way adder tree, đã được pipeline qua CP-1.
+- Không dùng SBA central mux → loại được fanin large-mux delay.
+- Trade-off: cycle count rất cao (block 4 ≈ 11.7M cycle / inference, total ~250–400 ms @ 100 MHz cho 5 block). Lý do chấp nhận được: ECG classification không yêu cầu real-time sub-millisecond.
+
+**Validation từ critical-path report**:
+- Logic levels Mamba = 17 (đa số là DSP internal stages, không phải LUT depth).
+- Logic levels Inception = 10 (URAM cascade dominate; LUT chỉ 4 cấp).
+- Cả 2 đều có slack dương > 0.5 ns → confirm Fmax 100 MHz có thực, không phải hold violation hidden.
+
+**Cần làm trước báo cáo**:
+- Soạn slide so sánh Fmax/throughput/resource với 2–3 paper Mamba HW gần nhất (Vivado-based, FPGA target). Highlight trade-off cycle-cao-Fmax-cao có chủ ý.
+- Nhấn mạnh: **byte-exact verification** (verify_byte_exact.py 5/5 block PASS) — không phải chỉ là dạng PoC.
+
+---
+
+## 11. Báo cáo + PPT (deadline tuần sau, 2026-06-14)
+
+**Trạng thái giáo viên**: chưa nắm rõ thiết kế. Buổi báo cáo cần diagram chi tiết để giáo viên hình dung được flow.
+
+**Diagram cần có** (priority high — điểm số phụ thuộc lớn vào việc giáo viên hiểu thiết kế):
+
+1. **System-level**: Encoder → 5× ITM block (với cascade pool giữa B1-B2 và B3-B4) → GAP → FC → output. Show kích thước (T, d_in, d_out, d_inner) từng block.
+2. **ITM block per-block**: P1 (Conv+BN) → split path → (Inception 4 branches + bottleneck max-pool) || (RMSNorm → M1A x_inner + M1B z_gate → M2..M8 Mamba) → FIN combine (bn_relu(inc) + relu(mam)). Đã có ở DESIGN_REPORT.md section 1.
+3. **MAMBA-only + INCEPTION-only build diagrams** (D1): đã có 2 hình tay, cần fix 4 chỗ sai đã trace (xem chat 2026-06-14):
+   - Mamba: thêm output arrow cho Exp LUT feedback, sửa vị trí RMSNorm_Mul (peer của Const_Storage/MemSys, không phải tầng filter), bỏ đường silu/sp/exp ảo vào RMSNorm_Mul.
+   - Inception: thêm output arrow cho Capture Regs (max_buf → OPERAND MUX + Writeback; incep_reg → Writeback bn_relu).
+4. **PE_Array internal** (peer-level + per-lane):
+   - Top: 16-lane mux network (a_is_vector chọn giữa scalar broadcast pe_A vs vector pe_A_vec), pe_B vector luôn lane-wise.
+   - Per-lane: Unified_PE = 1 DSP48E2 multiplier + 40-bit acc + sat16 → out_val 16-bit.
+5. **Critical path block diagram** (2 hình tay đã có): Mamba (URAM×4 + DSP + sat) và Inception (URAM×4 + max_buf CARRY8 + pe_A mux). Highlight chỗ tại sao Fmax đạt 100 MHz.
+6. **Writeback MUX + Transforms**: nhiều combinational datapath song song (silu_lut, exp_lut, sat_add16+bn_relu+relu16, max_buf, pe_out, norm_sq) → 1 wide MUX state-driven → m_wr_data register → MemSys din_a port. Trả lời câu hỏi "function chọn thế nào".
+7. **Memory hierarchy** (giải thích Const_Storage vs ram_const):
+   - ram_const (writable BRAM "block" → Vivado override sang LUT-distributed, 64×256 nông): per-channel parameter (γ, BN scale/shift, P1_BIAS, M_DW_BIAS, M_DT_BIAS) — load DMA từng block.
+   - Function ROM bank: 16-lane × {Silu_LUT, Softplus_LUT, Exp_LUT} + 1× RSqrt_ROM — fixed function approximation, $readmemh init, bake vào bitstream.
+   - Memory_System: 2 URAM bank (ram_a/ram_b, 20K×256 mỗi cái = 20 URAM/bank) + ram_weight BRAM (16K×256 = 114 BRAM).
+8. **Cycle/throughput breakdown table**: Phase 1 / Inception / Mamba (M1-M8) / Final per block (đã có ở DESIGN_REPORT section 7). Tổng cycle 5 block + sắp tới + encoder + GAP + FC.
+9. **Optimization journey**: bar chart LUT/URAM/WNS before/after CP-1 + D3.A + RAM-2/3/4.
+10. **Comparison table với paper khác**: column = Fmax, throughput (inf/s), LUT, DSP, BRAM, URAM, AUC; row = ITMN (ours) + 2–3 paper Mamba/SSM HW + 2–3 paper CNN/Inception HW. Chốt fair-compare bằng D1 standalone numbers.
+
+**Format báo cáo**:
+- PPT: 15–20 slide. Mở đầu (problem + dataset ECG) → ITMN architecture (model side) → RTL design choices → D1 fair compare → Optimization journey → End-to-end plan (encoder/GAP/FC) → Future work.
+- Report (text): detail-level expansion của từng slide, có hình + bảng + critical-path text trích `.rpt`. Có thể base trên DESIGN_REPORT.md hiện tại, expand thêm phần D1, encoder plan.
+
+**Risk**:
+- Giáo viên có thể hỏi sâu vào: (a) số liệu vs paper khác (cần chuẩn bị bảng), (b) tại sao Fmax cao (xem section 10), (c) byte-exact verify methodology (extract_itm_full.py + verify_byte_exact.py), (d) khi nào encoder/GAP/FC xong (timeline).
+
+*Last updated: 2026-06-14 — End-to-end scope confirmed, D1 OOC standalone done, advisor presentation prep.*

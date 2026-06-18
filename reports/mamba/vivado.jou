@@ -1,0 +1,16 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Sat Jun 13 12:09:14 2026
+# Process ID: 24132
+# Current directory: C:/Users/ADMIN/Downloads/ITMN_MASTER/reports/mamba
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent27700 C:\Users\ADMIN\Downloads\ITMN_MASTER\reports\mamba\mamba_top_routed.dcp
+# Log file: C:/Users/ADMIN/Downloads/ITMN_MASTER/reports/mamba/vivado.log
+# Journal file: C:/Users/ADMIN/Downloads/ITMN_MASTER/reports/mamba\vivado.jou
+# Running On: letun, OS: Windows, CPU Frequency: 3110 MHz, CPU Physical cores: 12, Host memory: 16782 MB
+#-----------------------------------------------------------
+start_gui
+open_checkpoint C:/Users/ADMIN/Downloads/ITMN_MASTER/reports/mamba/mamba_top_routed.dcp
+report_timing_summary -delay_type min_max -report_unconstrained -check_timing_verbose -max_paths 10 -input_pins -routable_nets -name timing_1
+report_utilization -name utilization_1
