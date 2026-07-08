@@ -1,0 +1,134 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Linear_Real;
+
+    // --- Signals ---
+    reg clk, reset, start;
+    reg [15:0] len;
+    reg signed [`DATA_WIDTH-1:0] x_val;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] W_row_vals;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] bias_vals;
+    wire signed [16 * `DATA_WIDTH - 1 : 0] y_out;
+    wire done;
+
+    // --- Memories ð? ch?a d? li?u ð?c t? file ---
+    // x: 1000 token * 64 dim
+    reg signed [`DATA_WIDTH-1:0] mem_x [0 : `SEQ_LEN * `D_MODEL - 1];
+    // W: 64 c?t * 16 hàng
+    reg signed [`DATA_WIDTH-1:0] mem_W [0 : `D_MODEL * 16 - 1];
+    // b: 16 ph?n t?
+    reg signed [`DATA_WIDTH-1:0] mem_b [0 : 15];
+    // y_golden: 1000 token * 16 dim
+    reg signed [`DATA_WIDTH-1:0] mem_y_exp [0 : `SEQ_LEN * 16 - 1];
+
+    // Variables
+    integer t, i, p; // t: token index, i: input dim index, p: pe index
+    integer errors;
+
+    // --- DUT ---
+    Linear_Layer_16PE dut (
+        .clk(clk), .reset(reset), .start(start), .len(len), .done(done),
+        .x_val(x_val), .W_row_vals(W_row_vals), .bias_vals(bias_vals), .y_out(y_out)
+    );
+
+    // --- Clock ---
+    initial begin
+        clk = 0; forever #5 clk = ~clk;
+    end
+
+    // --- Main Process ---
+    initial begin
+        // 1. Ð?c files
+        $readmemh("x_input.txt", mem_x);
+        $readmemh("W_input.txt", mem_W);
+        $readmemh("b_input.txt", mem_b);
+        $readmemh("y_golden.txt", mem_y_exp);
+
+        // 2. Chu?n b? Bias Vals (Gán 1 l?n dùng m?i)
+        for (p = 0; p < 16; p = p + 1) begin
+            bias_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_b[p];
+        end
+
+        // 3. Reset
+        reset = 1; start = 0; len = `D_MODEL; x_val = 0; W_row_vals = 0; errors = 0;
+        #20; reset = 0; #10;
+
+        $display("=================================================");
+        $display("   STARTING REAL SIMULATION (SEQ_LEN=%0d)", `SEQ_LEN);
+        $display("=================================================");
+
+        // 4. V?ng l?p x? l? t?ng Token (1000 l?n)
+        for (t = 0; t < `SEQ_LEN; t = t + 1) begin
+            
+            // --- G?i l?nh Start ---
+            #1;
+            start = 1;
+            @(posedge clk);
+            #1;
+            start = 0; // Pulse start 1 chu k?
+
+            // --- Streaming d? li?u (64 chu k?) ---
+            for (i = 0; i < `D_MODEL; i = i + 1) begin
+                // C?p x
+                x_val = mem_x[t * `D_MODEL + i];
+
+                // C?p W (16 giá tr? cho 16 PE cùng lúc)
+                // Lýu ?: File W_input ð? ðý?c s?p x?p theo c?t i
+                for (p = 0; p < 16; p = p + 1) begin
+                    W_row_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_W[i * 16 + p];
+                end
+                
+                @(posedge clk); // Ð?i clock ð? DUT ð?c
+            end
+
+            // Reset input v? 0 cho s?ch (không b?t bu?c nhýng t?t cho debug)
+            x_val = 0; W_row_vals = 0;
+
+            // --- Ch? tính xong ---
+            wait(done == 1);
+            @(posedge clk); // Ð?i 1 nh?p ð? l?y k?t qu? ?n ð?nh
+
+            // --- Ki?m tra k?t qu? ---
+            check_token_result(t);
+            
+            // In ti?n ð? m?i 100 token
+            if (t % 100 == 0) $display("Processed %0d/%0d tokens...", t, `SEQ_LEN);
+        end
+
+        // 5. K?t thúc
+        $display("=================================================");
+        if (errors == 0) 
+            $display("   ALL %0d TOKENS PASSED PERFECTLY!  SUCCESS!", `SEQ_LEN);
+        else 
+            $display("   FOUND %0d ERRORS!", errors);
+        $display("=================================================");
+        $stop;
+    end
+
+    // --- Task ki?m tra ---
+    task check_token_result;
+        input integer token_idx;
+        reg signed [15:0] actual;
+        reg signed [15:0] expected;
+        integer k;
+        begin
+            for (k = 0; k < 16; k = k + 1) begin
+                actual = y_out[k*`DATA_WIDTH +: `DATA_WIDTH];
+                expected = mem_y_exp[token_idx * 16 + k];
+                
+                if (actual !== expected) begin
+                    $display("[ERROR] Token %0d, PE %0d: Out=%d, Exp=%d", 
+                             token_idx, k, actual, expected);
+                    errors = errors + 1;
+                end 
+                
+                if (actual == expected) begin
+                    $display("[PASS] Token %0d, PE %0d: Out=%d, Exp=%d", 
+                             token_idx, k, actual, expected);
+                end
+            end
+        end
+    endtask
+
+endmodule

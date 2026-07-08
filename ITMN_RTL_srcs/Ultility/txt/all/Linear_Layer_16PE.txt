@@ -1,0 +1,156 @@
+`include "_parameter.v"
+
+module Linear_Layer_16PE
+(
+    input clk,
+    input reset,
+
+    // --- Tin hieu dieu khien ---
+    input start,
+    input [15:0] len, // Do dai cua vector input x (vi du: 64)
+    output reg done,
+
+    // --- Du lieu dau vao ---
+    // x_val: Gia tri x[j] tai chu ky hien tai
+    // Neu dang o chu ky cong Bias, gia tri nay se bi bo qua va thay bang 1.0
+    input signed [`DATA_WIDTH-1:0] x_val,
+
+    // W_row_vals: 16 trong so tuong ung cho 16 PE (W[0][j]...W[15][j])
+    // Day la mang phang (flattened array)
+    input signed [16 * `DATA_WIDTH - 1 : 0] W_row_vals,
+
+    // bias_vals: 16 gia tri bias tuong ung cho 16 PE
+    // Chi duoc dung o chu ky cuoi cung
+    input signed [16 * `DATA_WIDTH - 1 : 0] bias_vals,
+
+    // --- Du lieu dau ra ---
+    // Ket qua y[0]...y[15]
+    output [16 * `DATA_WIDTH - 1 : 0] y_out
+);
+
+    // --- Tin hieu noi bo ---
+    reg [15:0] counter;      // Dem so luong phan tu da tinh
+    
+    // Tin hieu dieu khien PE
+    reg [1:0] pe_op_mode;
+    reg pe_clear_acc;
+    
+    // Tin hieu input thuc su dua vao PE (sau khi qua MUX chon Bias hoac W)
+    wire signed [`DATA_WIDTH-1:0] pe_in_A;       // Se la x_val hoac 1.0
+    wire signed [`DATA_WIDTH-1:0] pe_in_B [15:0]; // Se la W hoac Bias
+
+    // Tin hieu output tu PE
+    wire signed [`DATA_WIDTH-1:0] pe_result [15:0];
+
+    // Mang giai nen du lieu tu input bus
+    wire signed [`DATA_WIDTH-1:0] W_unpacked [15:0];
+    wire signed [`DATA_WIDTH-1:0] bias_unpacked [15:0];
+
+    // FSM states
+    localparam S_IDLE      = 0;
+    localparam S_CALC      = 1; // Tinh W * x
+    localparam S_ADD_BIAS  = 2; // Cong bias * 1
+    localparam S_DONE      = 3;
+    
+    reg [1:0] state;
+
+    // --- 1. UNPACK DATA (Giai nen du lieu tu bus lon ra mang) ---
+    genvar i;
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : wiring
+            // Cat bus input thanh cac day rieng
+            assign W_unpacked[i]   = W_row_vals[i*`DATA_WIDTH +: `DATA_WIDTH];
+            assign bias_unpacked[i]= bias_vals[i*`DATA_WIDTH +: `DATA_WIDTH];
+            
+            // Dong goi output tu PE ra bus output
+            assign y_out[i*`DATA_WIDTH +: `DATA_WIDTH] = pe_result[i];
+            
+            // MUX chon Input B cho tung PE
+            // Neu dang o trang thai ADD_BIAS thi lay Bias, nguoc lai lay W
+            assign pe_in_B[i] = (state == S_ADD_BIAS) ? bias_unpacked[i] : W_unpacked[i];
+        end
+    endgenerate
+
+    // MUX chon Input A (chung cho ca 16 PE)
+    // Neu dang ADD_BIAS thi nap 1.0 (4096), nguoc lai lay x_val
+    // 4096 la gia tri 1.0 trong Q3.12
+    assign pe_in_A = (state == S_ADD_BIAS) ? 16'd4096 : x_val;
+
+
+    // --- 2. INSTANTIATE 16 PE ---
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : pe_array
+            Unified_PE u_pe (
+                .clk(clk),
+                .reset(reset),
+                .op_mode(pe_op_mode),
+                .clear_acc(pe_clear_acc),
+                .in_A(pe_in_A),       // Chung
+                .in_B(pe_in_B[i]),    // Rieng
+                .out_val(pe_result[i])
+            );
+        end
+    endgenerate
+
+
+    // --- 3. CONTROLLER (FSM) ---
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            state <= S_IDLE;
+            counter <= 0;
+            pe_clear_acc <= 1;
+            pe_op_mode <= `MODE_MAC;
+            done <= 0;
+        end else begin
+            case (state)
+                S_IDLE: begin
+                    done <= 0;
+                    if (start) begin
+                        // Chuan bi bat dau: reset accumulator cua PE
+                        // Ha clear xuong 0 ngay lap tuc de don du lieu dau tien
+                        pe_clear_acc <= 0; 
+                        pe_op_mode <= `MODE_MAC;
+                        counter <= 0;
+                        state <= S_CALC;
+                    end else begin
+                        pe_clear_acc <= 1;
+                    end
+                end
+
+                S_CALC: begin
+                    pe_clear_acc <= 0; // Tat lenh clear de bat dau tich luy
+                    
+                    // O trang thai nay, ben ngoai phai cap x_val va W lien tuc
+                    // moi chu ky clock
+                    
+                    if (counter == len - 1) begin
+                        // Da nhan het chuoi x
+                        state <= S_ADD_BIAS;
+                    end else begin
+                        counter <= counter + 1;
+                    end
+                end
+
+                S_ADD_BIAS: begin
+                    // O trang thai nay, MUX o tren se tu dong chuyen:
+                    // in_A -> 1.0
+                    // in_B -> Bias
+                    // PE van o mode MAC -> Acc = Acc + Bias * 1
+                    
+                    // Chi can 1 chu ky de cong bias
+                    state <= S_DONE;
+                end
+
+                S_DONE: begin
+                    done <= 1;
+                    pe_clear_acc <= 1; // Bat buoc xoa tich luy ngay khi xong
+                    // Cho tin hieu start ha xuong de quay ve IDLE
+                    if (!start) begin
+                        state <= S_IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+endmodule

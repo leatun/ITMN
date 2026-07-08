@@ -1,0 +1,81 @@
+#include "Layers.h"
+#include <cmath>
+
+void linear(const model_dtype x[], model_dtype y[], 
+            const model_dtype* W, const model_dtype b[],
+            int in_dim, int out_dim) {
+    
+    for (int i = 0; i < out_dim; ++i) {
+        model_dtype sum = 0.0f;
+        for (int j = 0; j < in_dim; ++j) {
+            sum += x[j] * W[i * in_dim + j];
+        }
+        y[i] = sum + (b ? b[i] : 0.0f); 
+    }
+}
+
+void causal_conv1d(const model_dtype x[][SEQ_LEN], model_dtype out[][SEQ_LEN],
+                   const model_dtype weight[][D_CONV], const model_dtype bias[]) {
+    
+    const int PADDED_LEN = SEQ_LEN + D_CONV - 1;
+    for (int d = 0; d < D_INNER; ++d) {
+        model_dtype x_padded[PADDED_LEN] = {0.0f};
+        for (int i = 0; i < SEQ_LEN; ++i) {
+            x_padded[i + D_CONV - 1] = x[d][i];
+        }
+
+        for (int l = 0; l < SEQ_LEN; ++l) {
+            model_dtype sum = 0.0f;
+            for (int k = 0; k < D_CONV; ++k) {
+                sum +=  [l + k] * weight[d][k];
+            }
+            out[d][l] = sum + (bias ? bias[d] : 0.0f);
+        }
+    }
+}
+
+model_dtype silu(model_dtype x) {
+    return x / (1.0f + std::exp(-x));
+}
+
+model_dtype softplus(model_dtype x) {
+    return std::log(1.0f + std::exp(x));
+}
+
+void scan_core(
+    const model_dtype discrete_A[][SEQ_LEN][D_STATE],
+    const model_dtype deltaB_u[][SEQ_LEN][D_STATE],
+    const model_dtype C_raw[][D_STATE],
+    model_dtype scan_output_raw[][SEQ_LEN]
+) {
+
+    for (int d = 0; d < D_INNER; ++d) {
+        model_dtype h[D_STATE] = {0.0f};
+
+        for (int l = 0; l < SEQ_LEN; ++l) {
+            // h_t = discrete_A_t * h_{t-1} + deltaB_u_t
+            for (int n = 0; n < D_STATE; ++n) {
+                h[n] = discrete_A[d][l][n] * h[n] + deltaB_u[d][l][n];
+            }
+
+            // y_t = C_t * h_t
+            model_dtype y_scan = 0.0f;
+            for (int n = 0; n < D_STATE; ++n) {
+                y_scan += C_raw[l][n] * h[n];
+            }
+            scan_output_raw[d][l] = y_scan;
+        }
+    }
+}
+
+void RMSNorm(const model_dtype in[], model_dtype out[], const model_dtype weight[], int size) {
+    float variance = 0.0f;
+    for (int i = 0; i < size; ++i) {
+        variance += in[i] * in[i];
+    }
+    variance /= size;
+    float rsqrt_var = 1.0f / std::sqrt(variance + 1e-5f); // 1e-5 là epsilon
+    for (int i = 0; i < size; ++i) {
+        out[i] = in[i] * rsqrt_var * weight[i];
+    }
+}

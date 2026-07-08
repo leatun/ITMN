@@ -1,0 +1,126 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Scan_Core_Engine;
+
+    // --- Signals ---
+    reg clk, reset;
+    
+    // Top Control
+    reg [2:0] mode_select;
+    
+    // Scan Signals
+    reg scan_start;
+    wire scan_done;
+    reg signed [`DATA_WIDTH-1:0] scan_delta_val, scan_x_val, scan_D_val, scan_gate_val;
+    reg signed [16*16-1:0] scan_A_vec, scan_B_vec, scan_C_vec;
+    wire signed [`DATA_WIDTH-1:0] scan_y_out;
+
+    // Unused Linear Signals (Tie to 0)
+    reg lin_start = 0;
+    reg [15:0] lin_len = 0;
+    reg signed [`DATA_WIDTH-1:0] lin_x_val = 0;
+    reg signed [255:0] lin_W_vals = 0;
+    reg signed [255:0] lin_bias_vals = 0;
+    wire lin_done;
+    wire [255:0] lin_y_out;
+
+    // --- Memories ---
+    reg signed [15:0] mem_A [0:15];
+    reg signed [15:0] mem_D [0:0];
+    reg signed [15:0] mem_delta [0:`SEQ_LEN-1];
+    reg signed [15:0] mem_x [0:`SEQ_LEN-1];
+    reg signed [15:0] mem_gate [0:`SEQ_LEN-1];
+    reg signed [15:0] mem_B_full [0:`SEQ_LEN*16-1];
+    reg signed [15:0] mem_C_full [0:`SEQ_LEN*16-1];
+    reg signed [15:0] mem_y_exp [0:`SEQ_LEN-1];
+
+    integer i, t, k, errors;
+    reg signed [15:0] diff;
+
+    // --- DUT: MAMBA TOP ---
+    Mamba_Top dut (
+        .clk(clk), .reset(reset), .mode_select(mode_select),
+        
+        // Linear Ports (Unused here)
+        .lin_start(lin_start), .lin_len(lin_len), .lin_done(lin_done),
+        .lin_x_val(lin_x_val), .lin_W_vals(lin_W_vals), .lin_bias_vals(lin_bias_vals), .lin_y_out(lin_y_out),
+        
+        // Scan Ports (TESTING THIS)
+        .scan_start(scan_start), .scan_done(scan_done),
+        .scan_delta_val(scan_delta_val), .scan_x_val(scan_x_val), 
+        .scan_D_val(scan_D_val), .scan_gate_val(scan_gate_val),
+        .scan_A_vec(scan_A_vec), .scan_B_vec(scan_B_vec), .scan_C_vec(scan_C_vec),
+        .scan_y_out(scan_y_out)
+    );
+
+    initial begin clk=0; forever #5 clk=~clk; end
+
+    initial begin
+        // 1. Load files (file _full chua du lieu cho ca chuoi)
+        $readmemh("scan_A.txt", mem_A);
+        $readmemh("scan_D.txt", mem_D);
+        
+        $readmemh("scan_delta.txt", mem_delta);
+        $readmemh("scan_x.txt", mem_x);
+        $readmemh("scan_gate.txt", mem_gate);
+        
+        // FILE QUAN TRONG: phai chua 16000 dong (1000 buoc * 16 state)
+        $readmemh("scan_B_full.txt", mem_B_full); 
+        $readmemh("scan_C_full.txt", mem_C_full);
+        
+        $readmemh("scan_y_golden.txt", mem_y_exp);
+
+        // Setup
+        for (i=0; i<16; i=i+1) scan_A_vec[i*16 +: 16] = mem_A[i];
+        scan_D_val = mem_D[0];
+
+        // Init
+        reset = 1; mode_select = 0; scan_start = 0; errors = 0;
+        #20; reset = 0; #10;
+
+        // --- ACTIVATE SCAN MODE ---
+        mode_select = 3; 
+        $display("=== TESTING MAMBA TOP: MODE SCAN (3) ===");
+
+        // Run Loop
+        for (t = 0; t < `SEQ_LEN; t = t + 1) begin
+            // 1. Prepare Inputs
+            scan_delta_val = mem_delta[t];
+            scan_x_val     = mem_x[t];
+            scan_gate_val  = mem_gate[t];
+            for (k = 0; k < 16; k = k + 1) begin
+                scan_B_vec[k*16 +: 16] = mem_B_full[t*16 + k];
+                scan_C_vec[k*16 +: 16] = mem_C_full[t*16 + k];
+            end
+            
+            #1;
+            // 2. Start
+            #1
+            scan_start = 1; 
+            @(posedge clk); 
+            #1
+            scan_start = 0;
+
+            // 3. Wait
+            wait(scan_done == 1);
+            
+            // 4. Check
+            diff = scan_y_out - mem_y_exp[t];
+            if (diff < 0) diff = -diff;
+            
+            if (diff > 6) begin
+                $display("[ERR] T=%0d | Exp=%h Got=%h | Diff=%d", t, mem_y_exp[t], scan_y_out, diff);
+                errors = errors + 1;
+                if (errors > 10) $stop;
+            end
+            
+            @(posedge clk);
+        end
+
+        if (errors == 0) $display(">>> ALL PASS! Mamba_Top runs Scan Core perfectly. <<<");
+        else $display(">>> FAILED %0d <<<", errors);
+        $stop;
+    end
+
+endmodule

@@ -1,0 +1,442 @@
+`include "_parameter.v"
+
+module Global_Controller
+(
+    input clk,
+    input reset,
+
+    // --- Dieu khien he thong ---
+    input  start_system,
+    output reg done_system,
+
+    // --- Giao dien bo nho (Master) ---
+    // Cong doc A/B (du lieu dau vao)
+    output reg [12:0] core_read_addr,
+    input  [255:0] core_read_data, 
+
+    // Cong doc Weight
+    output reg [12:0] weight_read_addr,
+    input  [255:0] weight_read_data,
+
+    // Cong doc Const (A, D, Bias)
+    output reg [12:0] const_read_addr,
+    input  [255:0] const_read_data,
+
+    // Cong ghi (du lieu dau ra)
+    output reg core_write_en,
+    output reg [12:0] core_write_addr,
+    output reg [255:0] core_write_data,
+    
+    // Chon bank (ping-pong)
+    output reg bank_sel,
+
+    // --- Giao dien Mamba Top ---
+    output reg [2:0] mode_select,
+    
+    // Dieu khien Linear
+    output reg lin_start,
+    output reg [15:0] lin_len,
+    input  lin_done,
+    output reg signed [`DATA_WIDTH-1:0] lin_x_val,
+    output reg signed [255:0] lin_W_vals,
+    output reg [16 * `DATA_WIDTH - 1 : 0] lin_bias_vals,
+    
+    // Enable cho Linear (quan trong de tranh truot nhip)
+    output reg lin_en,
+    
+    // Nhan ket qua tu Linear de ghi vao RAM
+    input signed [255:0] lin_y_out_in, 
+    
+    
+    // Interface cho Conv1D
+    output reg conv_start, 
+    output reg conv_valid_in,
+    input      conv_ready_in, 
+    input      conv_valid_out,
+    
+    // Data cho Conv
+    output reg signed [255:0] conv_x_vec,      // 16 Input
+    output reg signed [1023:0] conv_w_vec,     // 16 kenh * 4 tap * 16 bit = 1024 bit
+    output reg signed [255:0] conv_b_vec,      // 16 Bias
+    
+    // Ket qua tra ve
+    input signed [255:0] conv_y_vec
+);
+
+    // --- Trang thai FSM ---
+    localparam S_IDLE         = 0;
+    localparam S_LIN_SETUP    = 1; 
+    localparam S_LIN_READ_XW  = 2; 
+    localparam S_LIN_RAM_WAIT = 3; // Cho RAM phan hoi
+    localparam S_LIN_PRE_FEED = 4; // Latch du lieu vao cache
+    localparam S_LIN_FEED_X   = 5; // Feed du lieu
+    localparam S_LIN_WAIT     = 6; // Cho tinh xong
+    localparam S_LIN_WRITE    = 7; // Ghi ket qua
+    
+    // --- Conv Parameter State ---
+    localparam S_CONV_SETUP           = 10;
+    localparam S_CONV_LOAD_WEIGHT     = 11;
+    localparam S_CONV_WAIT_WEIGHT     = 12;
+    localparam S_CONV_LATCH_WEIGHT    = 13;
+    localparam S_CONV_READ_X          = 14;
+    localparam S_CONV_WAIT_X          = 15;
+    localparam S_CONV_FEED            = 16;
+    localparam S_CONV_EXEC_WAIT       = 17;
+    localparam S_CONV_WRITE_MEM       = 18;
+    
+    localparam S_DONE         = 99;
+
+    reg [6:0] state;
+    
+    // --- Bo dem noi bo ---
+    reg [3:0]  chunk_cnt;        
+    reg [15:0] feed_x_idx;       
+    reg [12:0] base_weight_addr;  
+    reg [12:0] base_x_addr;       
+    reg [12:0] base_output_addr;  
+
+    reg [16 * `DATA_WIDTH - 1 : 0] x_cache; 
+    reg [3:0] x_cache_idx;
+    
+    // --- Bien dem conv ---
+    reg [7:0] conv_ch_cnt; // Dem kenh (0..127) -> Conv xu ly 16 kenh/lan -> 8 Groups
+    // D_INNER = 128 -> 8 lan chay (Groups).
+    // Giong Linear!
+    
+    // Co giu done (tranh bi troi xung)
+    reg lin_done_flag;
+    
+    // --- TOKEN ---
+    reg [15:0] token_cnt; 
+    
+    reg [2:0] w_load_cnt; // Dem 0..3 de load 4 taps weight
+    reg [1023:0] w_conv_cache; // Thanh ghi weight cho Group hien tai
+    reg [255:0]  b_conv_cache; // Thanh ghi bias
+
+    // ============================================================
+    // MAIN FSM LOGIC
+    // ============================================================
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            state <= S_IDLE;
+            done_system <= 0;
+            bank_sel <= 0;
+            
+            // Reset output
+            core_read_addr <= 0; weight_read_addr <= 0; const_read_addr <= 0;
+            core_write_en <= 0; core_write_addr <= 0; core_write_data <= 0;
+            
+            mode_select <= 0;
+            lin_start <= 0; lin_len <= 0; lin_bias_vals <= 0;
+            
+            // Reset counter
+            chunk_cnt <= 0; feed_x_idx <= 0;
+            base_weight_addr <= 0; base_x_addr <= 0; base_output_addr <= 0;
+            x_cache <= 0; x_cache_idx <= 0;
+            
+            lin_done_flag <= 0;
+            
+            token_cnt <= 0;
+
+        end else begin
+            
+            // --- Logic bat co done ---
+            if (lin_done) lin_done_flag <= 1;
+            else if (state == S_LIN_WRITE || state == S_IDLE) lin_done_flag <= 0;
+
+            case (state)
+                S_IDLE: begin
+                    done_system <= 0;
+                    if (start_system) begin
+                        //state <= S_LIN_SETUP; //Khong xoa, cmt de test conv  
+                        state <= S_CONV_SETUP;    // test
+                        chunk_cnt <= 0;
+                        token_cnt <= 0; // Reset Token Counter
+                        
+                        base_x_addr <= 0; 
+                        base_output_addr <= 0; 
+                        base_weight_addr <= 0; // Reset Weight Base
+                        
+                        // Phase 1: Linear input -> doc RAM A, ghi RAM B
+                        bank_sel <= 0; 
+                    end
+                end
+
+                // ------------------------------------------------------------
+                // PHASE 1: LINEAR INPUT PROJECTION
+                // ------------------------------------------------------------
+                S_LIN_SETUP: begin
+                    mode_select <= 3'd1; 
+                    lin_len <= 64;       
+                    lin_start <= 1; 
+                    
+                    feed_x_idx <= 0; 
+                    x_cache_idx <= 0;
+                    
+                    // Setup dia chi 0 (cho nhap dau tien)
+                    weight_read_addr <= (chunk_cnt * 64); 
+                    core_read_addr <= base_x_addr; 
+                    
+                    lin_en <= 0; // Reset
+                    
+                    state <= S_LIN_READ_XW;
+                end
+                
+                S_LIN_READ_XW: begin
+                    lin_start <= 0; 
+                    state <= S_LIN_RAM_WAIT;
+                end
+                
+                S_LIN_RAM_WAIT: begin
+                    state <= S_LIN_PRE_FEED;
+                end
+                
+                S_LIN_PRE_FEED: begin
+                    x_cache <= core_read_data; 
+                    
+                    lin_en <= 1; 
+                   
+                    weight_read_addr <= (chunk_cnt * 64) + feed_x_idx + 1;
+                    
+                    state <= S_LIN_FEED_X;
+                end
+
+                S_LIN_FEED_X: begin                  
+                    x_cache_idx <= x_cache_idx + 1; 
+                    
+                    // --- FIX LOGIC TANG DIA CHI ---
+                    
+                    if (x_cache_idx == 15) begin 
+                        
+                        lin_en <= 0;
+                        core_read_addr <= core_read_addr + 1; 
+                        x_cache_idx <= 0; 
+                        state <= S_LIN_READ_XW; 
+                        
+                    end else if (feed_x_idx == 64) begin
+                        // Het 64 nhip -> DUNG
+                        lin_en <= 0; 
+                        state <= S_LIN_WAIT;
+                        feed_x_idx <= 0;
+                        x_cache_idx <= 0;
+                        
+                    end else begin
+                        // Dang feed binh thuong -> Tang Weight cho nhip sau
+                        weight_read_addr <= weight_read_addr + 1;
+                    end
+                    
+                    // Chi tang feed_cnt neu chua doi state
+                    if (state == S_LIN_FEED_X) feed_x_idx <= feed_x_idx + 1; 
+                end
+
+                // 5. Cho module Linear tinh xong
+                S_LIN_WAIT: begin
+                    if (lin_done || lin_done_flag) begin
+                        // Module bao xong -> ghi ket qua vao RAM output
+                        core_write_en <= 1; 
+                        core_write_addr <= base_output_addr + chunk_cnt; 
+                        core_write_data <= lin_y_out_in; 
+                        
+                        state <= S_LIN_WRITE;
+                    end
+                end
+               
+
+                S_LIN_WRITE: begin
+                    core_write_en <= 0; 
+                    
+                    chunk_cnt <= chunk_cnt + 1; 
+                    
+                    // Kiem tra xem da xong 1 Token (8 Chunks) chua?
+                    if (chunk_cnt == 7) begin 
+                        
+                        // Da xong 1 Token. Kiem tra xem da xong 1000 Token chua?
+                        if (token_cnt == 999) begin // 0..999 = 1000
+                            state <= S_DONE; 
+                        end else begin
+                            // CHUA XONG -> CHUYEN SANG TOKEN TIEP THEO
+                            state <= S_LIN_SETUP;
+                            
+                            token_cnt <= token_cnt + 1;
+                            chunk_cnt <= 0; // Reset Chunk cho Token moi
+                            
+                            // 1. Weight: Quay lai tu dau (Dung chung cho moi token)
+                            base_weight_addr <= 0; 
+                            
+                            // 2. Input X: Nhay den vi tri cua Token tiep theo trong RAM
+                            // 1 Token = 64 so = 4 dong RAM (256-bit)
+                            base_x_addr <= base_x_addr + 4;
+                            
+                            // 3. Output Y: Nhay den vi tri tiep theo trong RAM
+                            // 1 Token Output = 128 so = 8 dong RAM
+                            base_output_addr <= base_output_addr + 8;
+                        end
+                        
+                    end else begin
+                        // Chua xong Token nay -> Chuyen sang Chunk tiep theo
+                        state <= S_LIN_SETUP; 
+                        
+                        // Weight tang tiep (64 dong cho moi chunk)
+                        base_weight_addr <= base_weight_addr + 64; 
+                        
+                        // Input X va Output Y giu nguyen Base (vi van dang xu ly cung 1 token)
+                    end
+                end
+                
+            
+                        // ------------------------------------------------------------
+            // PHASE 2: CONV1D
+            // ------------------------------------------------------------
+            
+            S_CONV_SETUP: begin
+                conv_start <= 1;
+                mode_select <= 3'd2; // Mode Conv
+                chunk_cnt <= 0;      // Group 0 (0-15)
+                token_cnt <= 0;
+                
+                // Reset dia chi cho Group dau tien
+                // Gia su Weight Conv nam tiep sau Weight Linear trong RAM
+                // Linear dung 512 dong. Conv bat dau tu 512.
+                base_weight_addr <= 512; 
+                
+                // Input Conv lay tu RAM B (Output cua Linear)
+                base_x_addr <= 0; 
+                base_output_addr <= 0;
+                
+                const_read_addr <= 0; 
+                
+                bank_sel <= 1; // Doc B (Input), Ghi A (Output)
+                
+                state <= S_CONV_LOAD_WEIGHT;
+                w_load_cnt <= 0;
+            end
+
+            // --- BUOC 1: LOAD TRONG SO VAO THANH GHI NOI BO (Weight Stationarity) ---
+            S_CONV_LOAD_WEIGHT: begin
+                // Doc Weight tu RAM
+                conv_start <= 0;
+                weight_read_addr <= base_weight_addr + w_load_cnt; 
+                state <= S_CONV_WAIT_WEIGHT;
+            end
+            
+            S_CONV_WAIT_WEIGHT: begin
+                // Cho RAM 1 nhip
+                state <= S_CONV_LATCH_WEIGHT;
+            end
+            
+            S_CONV_LATCH_WEIGHT: begin
+                w_conv_cache[w_load_cnt*256 +: 256] <= weight_read_data;
+                           
+                if (w_load_cnt == 3) begin
+                    w_load_cnt <= 0;
+                    
+                    // Lúc này const_read_data ð? ?n ð?nh (v? addr set t? Setup)
+                    conv_b_vec <= const_read_data; 
+                    
+                    state <= S_CONV_READ_X;
+                end else begin
+                    w_load_cnt <= w_load_cnt + 1;
+                    // Quay lai de load tap tiep theo
+                    state <= S_CONV_LOAD_WEIGHT; 
+                end
+            end
+            
+            // --- BUOC 2: CHAY TUNG TOKEN ---
+            S_CONV_READ_X: begin
+                // Output weight cache ra ngoai
+                conv_w_vec <= w_conv_cache; // Giu gia tri nay suot qua trinh chay Group
+                
+                // Doc Input X tu RAM B
+                core_read_addr <= (token_cnt * 8) + chunk_cnt; // Logic dia chi y het Linear
+                state <= S_CONV_WAIT_X;
+            end
+            
+            S_CONV_WAIT_X: state <= S_CONV_FEED;
+            
+            S_CONV_FEED: begin
+                // Bon du lieu cho Conv Module
+                conv_x_vec <= core_read_data;
+                conv_valid_in <= 1;
+                
+                // Kich hoat Conv Start (chi can 1 lan dau hoac moi token tuy thiet ke Conv)
+                // Voi Conv1D co Shift Register, ta chi can valid_in la no tu day vao
+                
+                if (conv_ready_in) state <= S_CONV_EXEC_WAIT;
+            end
+            
+            S_CONV_EXEC_WAIT: begin
+                conv_valid_in <= 0;
+                
+                if (conv_valid_out) begin
+                    // Co ket qua -> Ghi vao RAM A
+                    core_write_en <= 1;
+                    core_write_addr <= (token_cnt * 8) + chunk_cnt;
+                    core_write_data <= conv_y_vec; // Lay output tu Conv
+                    state <= S_CONV_WRITE_MEM;
+                end
+            end
+            
+            S_CONV_WRITE_MEM: begin
+                core_write_en <= 0;
+                
+                // Next Token logic... (Giong Linear: Tang token_cnt, neu het thi tang chunk_cnt)
+                token_cnt <= token_cnt + 1;
+                if (token_cnt == 999) begin
+                    token_cnt <= 0;
+                    chunk_cnt <= chunk_cnt + 1;
+                    
+                    if (chunk_cnt == 7) state <= S_DONE; // Xong het
+                    else begin
+                         // Sang Group moi -> Phai load Weight moi!
+                         base_weight_addr <= base_weight_addr + 4; // 4 dong weight cho moi group
+                         const_read_addr <= chunk_cnt + 1;
+                         state <= S_CONV_LOAD_WEIGHT;
+                    end
+                end else begin
+                    state <= S_CONV_READ_X; // Token tiep theo
+                end
+            end
+
+
+                // --- DONE ---
+                S_DONE: begin
+                    done_system <= 1;
+                    if (!start_system) state <= S_IDLE;
+                end
+            endcase
+        end
+    end
+
+    // ============================================================
+    // COMBINATIONAL OUTPUT LOGIC (chong truot nhip)
+    // ============================================================
+    always @(*) begin
+        // Mac dinh
+        lin_x_val  = 0;
+        lin_W_vals = 0;
+
+        if (state == S_LIN_FEED_X) begin
+            
+            // Boc tach X tu cache
+            lin_x_val = x_cache[x_cache_idx * 16 +: 16];
+            
+            lin_W_vals = weight_read_data;
+        end
+        
+        conv_w_vec = w_conv_cache;
+    end
+    
+    always @(negedge clk) begin
+    
+    end
+    
+    // ============================================================
+    // DEBUG MONITOR (tuy chon)
+    // ============================================================
+    // always @(posedge clk) begin
+    //     if (state == S_LIN_FEED_X) begin
+    //         $display("[CTRL] Feed=%d | X=%h | W[0]=%h", feed_x_idx, lin_x_val, lin_W_vals[15:0]);
+    //     end
+    // end
+
+endmodule

@@ -1,0 +1,4 @@
+T=250
+INV_T_Q15=131
+FB=11
+formula: gap_q = sat16((sum_q * INV_T_Q15) >> 15)

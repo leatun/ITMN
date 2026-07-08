@@ -1,0 +1,191 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Linear_Real;
+
+    // --- Tin hieu ---
+    reg clk, reset, start;
+    reg [15:0] len;
+    reg signed [`DATA_WIDTH-1:0] x_val;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] W_row_vals;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] bias_vals;
+    wire signed [16 * `DATA_WIDTH - 1 : 0] y_out;
+    wire done;
+
+    // --- Memories de chua du lieu doc tu file (FULL MODEL) ---
+    // x: 1000 token * 64 dim
+    reg signed [`DATA_WIDTH-1:0] mem_x [0 : `SEQ_LEN * `D_MODEL - 1];
+    
+    // W: 128 hang (output) * 64 cot (input)
+    // Luu y kich thuoc mang W bay gio la lon (8192 phan tu)
+    reg signed [`DATA_WIDTH-1:0] mem_W [0 : `D_INNER * `D_MODEL - 1];
+    
+    // b: 128 phan tu
+    reg signed [`DATA_WIDTH-1:0] mem_b [0 : `D_INNER - 1];
+    
+    // y_golden: 1000 token * 128 dim
+    reg signed [`DATA_WIDTH-1:0] mem_y_exp [0 : `SEQ_LEN * `D_INNER - 1];
+
+    // Bien
+    integer t, i, p; 
+    integer errors;
+    
+    // Bien de quan ly viec test tung nhom kenh (folding)
+    integer group_idx;      // Index cua nhom (0..7)
+    integer CHANNEL_OFFSET; // Offset kenh (0, 16, 32...)
+
+//    // --- DUT ---
+//    Linear_Layer_16PE dut (
+//        .clk(clk), .reset(reset), .start(start), .len(len), .done(done),
+//        .x_val(x_val), .W_row_vals(W_row_vals), .bias_vals(bias_vals), .y_out(y_out)
+//    );
+
+    // --- DUT ---
+    Linear_Layer_16PE dut (
+        .clk(clk), .reset(reset), .start(start), .len(len), .done(done),
+        .x_val(x_val), .W_row_vals(W_row_vals), .bias_vals(bias_vals), .y_out(y_out)
+    );
+
+    // --- Clock ---
+    initial begin
+        clk = 0; forever #5 clk = ~clk;
+    end
+
+    // --- Main process ---
+    initial begin
+        // 1) Doc files (du lieu day du 128 kenh)
+        // $readmemh("x_linear_input.txt", mem_x);
+        // $readmemh("w_linear_input.txt", mem_W);
+        // $readmemh("b_linear_input.txt", mem_b);
+        // $readmemh("y_linear_golden.txt", mem_y_exp);
+
+//        $readmemh("input_linear_q3_12.txt", mem_x);
+//        $readmemh("weight_proj1_q3_12.txt", mem_W);
+//        $readmemh("linear1_golden.txt", mem_y_exp);
+
+        $readmemh("linear_x_input.txt", mem_x);
+        $readmemh("linear_weight_proj2.txt", mem_W);
+        $readmemh("linear2_golden.txt", mem_y_exp);
+
+        errors = 0;
+        len = `D_MODEL; // Chieu dai vector input luon la 64
+
+        $display("=================================================");
+        $display("   STARTING LINEAR REAL SIMULATION (FULL MODEL)");
+        $display("   SEQ_LEN=%0d, D_MODEL=%0d, D_INNER=%0d", `SEQ_LEN, `D_MODEL, `D_INNER);
+        $display("=================================================");
+
+        // --- Vong lap quet qua cac nhom kenh (folding) ---
+        // Test lan luot: 16 kenh dau, 16 kenh tiep theo...
+        // Tong cong 8 nhom (128 / 16 = 8)
+        for (group_idx = 0; group_idx < (`D_INNER/16); group_idx = group_idx + 1) begin
+            
+            CHANNEL_OFFSET = group_idx * 16;
+            $display("\n--- Testing Group %0d (Output Channels %0d - %0d) ---", group_idx, CHANNEL_OFFSET, CHANNEL_OFFSET+15);
+
+            // 2) Chuan bi bias_vals cho nhom hien tai
+            for (p = 0; p < 16; p = p + 1) begin
+                bias_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_b[CHANNEL_OFFSET + p];
+            end
+            
+            // Bias = 0 (neu muon bo bias trong test)
+            bias_vals = 0;
+
+            // 3) Reset DUT truoc moi nhom (de xoa sach trang thai cu)
+            reset = 1; start = 0; x_val = 0; W_row_vals = 0;
+            #20; reset = 0; #10;
+
+            // 4) Vong lap xu ly tung token (1000 lan)
+            for (t = 0; t < `SEQ_LEN; t = t + 1) begin
+                
+                // --- Gui lenh start ---
+                #1;
+                start = 1;
+                @(posedge clk);
+                #1;
+                start = 0;
+
+                // --- Cap du lieu theo tung cot i ---
+                for (i = 0; i < `D_MODEL; i = i + 1) begin // i chay 0..63 (cot)
+                    // Cap x
+                    x_val = mem_x[t * `D_MODEL + i];
+                
+                    // Cap W
+                    // Lay trong so tai cot i, cua hang (CHANNEL_OFFSET + p)
+                    // File weight luu theo hang -> Row_Index * So_Cot + Col_Index
+                    for (p = 0; p < 16; p = p + 1) begin
+                        // OLD (sai): mem_W[i * `D_INNER + (CHANNEL_OFFSET + p)];
+                        
+                        // NEW (dung):
+                        W_row_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_W[(CHANNEL_OFFSET + p) * `D_MODEL + i];
+                    end
+                    
+                    @(posedge clk); 
+                end
+
+                x_val = 0; W_row_vals = 0;
+
+                // --- Cho tinh xong ---
+                wait(done == 1);
+                @(posedge clk);
+
+                // --- Kiem tra ket qua ---
+                check_token_result(t);
+                
+                // Log tien do (chi in cho nhom dau tien de do roi man)
+                if (group_idx == 0 && t % 100 == 0) $display("   Processed %0d/%0d tokens...", t, `SEQ_LEN);
+            end
+            
+            $display("-> Group %0d Completed.", group_idx);
+        end
+
+        // 5) Ket thuc
+        $display("=================================================");
+        if (errors == 0) 
+            $display("   ALL TESTS PASSED!");
+        else 
+            $display("   FOUND %0d ERRORS!", errors);
+        $display("=================================================");
+        $stop;
+    end
+
+    // --- Task kiem tra (chap nhan sai so tich luy) ---
+    task check_token_result;
+        input integer token_idx;
+        reg signed [15:0] actual;
+        reg signed [15:0] expected;
+        reg signed [15:0] diff;     // Do lech
+        reg signed [15:0] abs_diff; // Tri tuyet doi do lech
+        integer k;
+        
+        // --- Cau hinh nguong sai so ---
+        // Ly do chon 64: cong don 64 phep nhan
+        // Moi phep nhan fixed-point co the lech 0.5-1 don vi do lam tron/cat bit
+        // 64 * 1 = 64 -> sai so vat ly chap nhan duoc
+        localparam TOLERANCE = 64; 
+
+        begin
+            for (k = 0; k < 16; k = k + 1) begin
+                actual = y_out[k*`DATA_WIDTH +: `DATA_WIDTH];
+                // Lay golden cua dung kenh trong nhom hien tai
+                expected = mem_y_exp[token_idx * `D_INNER + (CHANNEL_OFFSET + k)];
+                
+                // Tinh do lech
+                diff = actual - expected;
+                abs_diff = (diff < 0) ? -diff : diff; // Tri tuyet doi
+
+                // So sanh voi nguong cho phep
+                if (abs_diff > TOLERANCE) begin
+                    $display("[ERROR] Group %0d, Token %0d, PE %0d: Out=%d, Exp=%d | Diff=%d (Max allowed: %d)", 
+                             group_idx, token_idx, k, actual, expected, diff, TOLERANCE);
+                    errors = errors + 1;
+                end 
+//                 else begin
+//                    // Bo comment de xem sai so
+//                     $display("[PASS] Diff=%d", diff); 
+//                 end
+            end
+        end
+    endtask
+
+endmodule

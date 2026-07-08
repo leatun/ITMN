@@ -1,0 +1,180 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Unified_PE;
+
+    // --- Tin hieu ---
+    reg clk, reset, clear_acc;
+    reg [1:0] op_mode;
+    reg signed [15:0] in_A, in_B;
+    wire signed [15:0] out_val;
+    
+    // Hang so hien thi
+    real SCALE = 4096.0;
+    
+    // Bien phu tro de in log dep hon
+    integer test_case_count = 0;
+
+    // --- DUT ---
+    Unified_PE dut (
+        .clk(clk), .reset(reset), .clear_acc(clear_acc),
+        .op_mode(op_mode),
+        .in_A(in_A), .in_B(in_B),
+        .out_val(out_val)
+    );
+
+    // --- Clock ---
+    initial begin
+        clk = 0; forever #5 clk = ~clk;
+    end
+
+    // --- Kich ban Test ---
+    initial begin
+        $display("===================================================================");
+        $display("   TESTBENCH UNIFIED PE (Q3.12) - RANGE [-8.0, +7.999]");
+        $display("   Scale = 4096 | Max Int = 32767 | Min Int = -32768");
+        $display("===================================================================");
+
+        // 1. Reset
+        reset = 1; clear_acc = 0; op_mode = 0; in_A = 0; in_B = 0;
+        #20; reset = 0; #10;
+
+        // ==========================================
+        // PHAN 1: KIEM TRA PHEP NHAN (MUL)
+        // ==========================================
+        $display("\n--- [PART 1] MODE: MUL (A * B) ---");
+        op_mode = `MODE_MUL;
+
+        // Case 1.1: Nhan so duong binh thuong
+        // 2.0 * 1.5 = 3.0
+        run_test_case(16'd8192, 16'd6144, 3.0, "2.0 * 1.5");
+
+        // Case 1.2: Nhan so am
+        // -2.0 * 1.5 = -3.0
+        run_test_case(-16'd8192, 16'd6144, -3.0, "-2.0 * 1.5");
+
+        // Case 1.3: Nhan hai so am
+        // -2.5 * -2.0 = 5.0
+        run_test_case(-16'd10240, -16'd8192, 5.0, "-2.5 * -2.0");
+
+        // Case 1.4: So rat nho (kiem tra mat mat do chinh xac)
+        // 0.1 * 0.1 = 0.01
+        // 0.1 * 4096 = 410
+        // Expected: 0.01 * 4096 = 41
+        run_test_case(16'd410, 16'd410, 0.01, "0.1 * 0.1 (Small numbers)");
+
+        // Case 1.5: TRAN SO DUONG (Saturation Max)
+        // 3.0 * 3.0 = 9.0 (vuot qua 7.99) -> phai bi kep ve 7.999 (32767)
+        // Mong doi: 32767 / 4096 = 7.9997...
+        run_test_case(16'd12288, 16'd12288, 7.99975, "3.0 * 3.0 = 9.0 -> CLAMP MAX");
+
+        // Case 1.6: TRAN SO AM (Saturation Min)
+        // -3.0 * 3.0 = -9.0 (vuot qua -8.0) -> phai bi kep ve -8.0 (-32768)
+        run_test_case(-16'd12288, 16'd12288, -8.0, "-3.0 * 3.0 = -9.0 -> CLAMP MIN");
+
+
+        // ==========================================
+        // PHAN 2: KIEM TRA PHEP CONG (ADD)
+        // ==========================================
+        $display("\n--- [PART 2] MODE: ADD (A + B) ---");
+        op_mode = `MODE_ADD;
+
+        // Case 2.1: Cong binh thuong
+        // 1.5 + 2.5 = 4.0
+        run_test_case(16'd6144, 16'd10240, 4.0, "1.5 + 2.5");
+
+        // Case 2.2: Cong so am
+        // 1.0 + (-3.0) = -2.0
+        run_test_case(16'd4096, -16'd12288, -2.0, "1.0 + (-3.0)");
+
+        // Case 2.3: TRAN SO DUONG (Saturation Max)
+        // 5.0 + 4.0 = 9.0 -> Clamp ve 7.999
+        // 5.0 = 20480, 4.0 = 16384
+        run_test_case(16'd20480, 16'd16384, 7.99975, "5.0 + 4.0 = 9.0 -> CLAMP MAX");
+
+        // Case 2.4: TRAN SO AM (Saturation Min)
+        // -5.0 + (-4.0) = -9.0 -> Clamp ve -8.0
+        run_test_case(-16'd20480, -16'd16384, -8.0, "-5.0 + (-4.0) = -9.0 -> CLAMP MIN");
+
+
+        // ==========================================
+        // PHAN 3: KIEM TRA MAC (Nhan - Tich luy)
+        // ==========================================
+        $display("\n--- [PART 3] MODE: MAC (Acc + A*B) ---");
+        op_mode = `MODE_MAC;
+
+        // Buoc 3.1: Reset Acc
+        clear_acc = 1; 
+        @(posedge clk); 
+        #1;
+        clear_acc = 0; 
+        #1;
+        $display("   [INFO] Cleared Accumulator.");
+
+        // Buoc 3.2: Tich luy lan 1
+        // Acc = 0 + (2.0 * 1.5) = 3.0
+        run_test_case(16'd8192, 16'd6144, 3.0, "MAC Step 1: 0 + (2.0 * 1.5)");
+
+        // Buoc 3.3: Tich luy lan 2 (tiep tuc tu ket qua truoc la 3.0)
+        // Acc = 3.0 + (1.0 * 2.0) = 5.0
+        run_test_case(16'd4096, 16'd8192, 5.0, "MAC Step 2: 3.0 + (1.0 * 2.0)");
+
+        // Buoc 3.4: Tich luy gay tran (kiem tra saturation)
+        // Acc = 5.0 + (2.0 * 2.0) = 9.0 -> Clamp ve 7.999
+        run_test_case(16'd8192, 16'd8192, 7.99975, "MAC Step 3: 5.0 + 4.0 = 9.0 -> CLAMP");
+
+        // Buoc 3.5: Cong so am de quay ve vung an toan
+        // Acc = 7.999 + (-4.0 * 1.0) = 3.999
+        run_test_case(-16'd16384, 16'd4096, 3.99975, "MAC Step 4: 7.99 + (-4.0)");
+
+
+        $display("\n===================================================================");
+        $display("   TEST HOAN TAT - KIEM TRA LOG DE XAC NHAN PASS/FAIL");
+        $display("===================================================================");
+        $stop;
+    end
+
+    // --- TASK TU DONG CHAY VA KIEM TRA ---
+    task run_test_case;
+        input signed [15:0] val_A;
+        input signed [15:0] val_B;
+        input real expected_float;
+        input [8*50:1] description; // Chuoi mo ta
+        
+        reg signed [15:0] expected_int;
+        real actual_float;
+        real diff;
+        begin
+            test_case_count = test_case_count + 1;
+            
+            // 1. Gan input
+            in_A = val_A;
+            in_B = val_B;
+            
+            // 2. Cho tinh toan (1 clock)
+            @(posedge clk); 
+            #1; // Delay nho de lay gia tri on dinh
+            
+            // 3. Tinh toan gia tri thuc te
+            actual_float = out_val / SCALE;
+            
+            // 4. Tinh toan gia tri mong doi (Int)
+            // Logic lam tron don gian cho testbench
+            if (expected_float >= 7.9997) expected_int = 32767;
+            else if (expected_float <= -8.0) expected_int = -32768;
+            else expected_int = $rtoi(expected_float * SCALE); // Real to Int
+
+            // 5. So sanh (chap nhan sai so nho +/- 1 don vi int)
+            if (out_val >= expected_int - 1 && out_val <= expected_int + 1) begin
+                $display("TC%0d [%s]: PASS", test_case_count, description);
+                $display("      InA=%d, InB=%d -> Out=%d (Exp: %d) | Float: %.4f", 
+                         val_A, val_B, out_val, expected_int, actual_float);
+            end else begin
+                 $display("TC%0d [%s]: FAIL !!!", test_case_count, description);
+                 $display("      InA=%d, InB=%d -> Out=%d (Exp: %d) | Float: %.4f (Exp: %.4f)", 
+                         val_A, val_B, out_val, expected_int, actual_float, expected_float);
+            end
+        end
+    endtask
+
+endmodule

@@ -1,0 +1,154 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Linear_Real;
+
+    // --- Signals ---
+    reg clk, reset, start;
+    reg [15:0] len;
+    reg signed [`DATA_WIDTH-1:0] x_val;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] W_row_vals;
+    reg signed [16 * `DATA_WIDTH - 1 : 0] bias_vals;
+    wire signed [16 * `DATA_WIDTH - 1 : 0] y_out;
+    wire done;
+
+    // --- Memories ð? ch?a d? li?u ð?c t? file (FULL MODEL) ---
+    // x: 1000 token * 64 dim
+    reg signed [`DATA_WIDTH-1:0] mem_x [0 : `SEQ_LEN * `D_MODEL - 1];
+    
+    // W: 128 hàng (output) * 64 c?t (input)
+    // Lýu ? kích thý?c m?ng W bây gi? là l?n (8192 ph?n t?)
+    reg signed [`DATA_WIDTH-1:0] mem_W [0 : `D_INNER * `D_MODEL - 1];
+    
+    // b: 128 ph?n t?
+    reg signed [`DATA_WIDTH-1:0] mem_b [0 : `D_INNER - 1];
+    
+    // y_golden: 1000 token * 128 dim
+    reg signed [`DATA_WIDTH-1:0] mem_y_exp [0 : `SEQ_LEN * `D_INNER - 1];
+
+    // Variables
+    integer t, i, p; 
+    integer errors;
+    
+    // Bi?n ð? qu?n l? vi?c test t?ng nhóm kênh (Folding)
+    integer group_idx;      // Index c?a nhóm (0..7)
+    integer CHANNEL_OFFSET; // Offset kênh (0, 16, 32...)
+
+    // --- DUT ---
+    Linear_Layer_16PE dut (
+        .clk(clk), .reset(reset), .start(start), .len(len), .done(done),
+        .x_val(x_val), .W_row_vals(W_row_vals), .bias_vals(bias_vals), .y_out(y_out)
+    );
+
+    // --- Clock ---
+    initial begin
+        clk = 0; forever #5 clk = ~clk;
+    end
+
+    // --- Main Process ---
+    initial begin
+        // 1. Ð?c files (D? li?u ð?y ð? 128 kênh)
+        $readmemh("x_linear_input.txt", mem_x);
+        $readmemh("w_linear_input.txt", mem_W);
+        $readmemh("b_linear_input.txt", mem_b);
+        $readmemh("y_linear_golden.txt", mem_y_exp);
+
+        errors = 0;
+        len = `D_MODEL; // Chi?u dài vector input luôn là 64
+
+        $display("=================================================");
+        $display("   STARTING LINEAR REAL SIMULATION (FULL MODEL)");
+        $display("   SEQ_LEN=%0d, D_MODEL=%0d, D_INNER=%0d", `SEQ_LEN, `D_MODEL, `D_INNER);
+        $display("=================================================");
+
+        // --- V?NG L?P QUÉT QUA CÁC NHÓM KÊNH (FOLDING) ---
+        // Chúng ta s? test l?n lý?t: 16 kênh ð?u, 16 kênh ti?p theo...
+        // T?ng c?ng 8 nhóm (128 / 16 = 8)
+        for (group_idx = 0; group_idx < (`D_INNER/16); group_idx = group_idx + 1) begin
+            
+            CHANNEL_OFFSET = group_idx * 16;
+            $display("\n--- Testing Group %0d (Output Channels %0d - %0d) ---", group_idx, CHANNEL_OFFSET, CHANNEL_OFFSET+15);
+
+            // 2. Chu?n b? Bias Vals cho nhóm hi?n t?i
+            for (p = 0; p < 16; p = p + 1) begin
+                bias_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_b[CHANNEL_OFFSET + p];
+            end
+
+            // 3. Reset DUT trý?c m?i nhóm (ð? xóa s?ch tr?ng thái c?)
+            reset = 1; start = 0; x_val = 0; W_row_vals = 0;
+            #20; reset = 0; #10;
+
+            // 4. V?ng l?p x? l? t?ng Token (1000 l?n)
+            for (t = 0; t < `SEQ_LEN; t = t + 1) begin
+                
+                // --- G?i l?nh Start ---
+                #1;
+                start = 1;
+                @(posedge clk);
+                #1;
+                start = 0;
+
+                // --- Streaming d? li?u (64 chu k?) ---
+                for (i = 0; i < `D_MODEL; i = i + 1) begin
+                    // C?p x (Gi?ng nhau cho m?i nhóm kênh)
+                    x_val = mem_x[t * `D_MODEL + i];
+
+                    // C?p W (16 giá tr? cho 16 PE cùng lúc)
+                    // File W_input ðý?c s?p x?p theo: [C?t 0 (128 hàng)], [C?t 1 (128 hàng)]...
+                    // Index = (C?t hi?n t?i i * T?ng s? hàng 128) + (Hàng b?t ð?u CHANNEL_OFFSET + p)
+                    for (p = 0; p < 16; p = p + 1) begin
+                        W_row_vals[p*`DATA_WIDTH +: `DATA_WIDTH] = mem_W[i * `D_INNER + (CHANNEL_OFFSET + p)];
+                    end
+                    
+                    @(posedge clk); 
+                end
+
+                x_val = 0; W_row_vals = 0;
+
+                // --- Ch? tính xong ---
+                wait(done == 1);
+                @(posedge clk);
+
+                // --- Ki?m tra k?t qu? ---
+                check_token_result(t);
+                
+                // Log ti?n ð? (ch? in cho nhóm ð?u tiên ð? ð? r?i)
+                if (group_idx == 0 && t % 100 == 0) $display("   Processed %0d/%0d tokens...", t, `SEQ_LEN);
+            end
+            
+            $display("-> Group %0d Completed.", group_idx);
+        end
+
+        // 5. K?t thúc
+        $display("=================================================");
+        if (errors == 0) 
+            $display("   ALL TESTS PASSED!");
+        else 
+            $display("   FOUND %0d ERRORS!", errors);
+        $display("=================================================");
+        $stop;
+    end
+
+    // --- Task ki?m tra ---
+    task check_token_result;
+        input integer token_idx;
+        reg signed [15:0] actual;
+        reg signed [15:0] expected;
+        integer k;
+        begin
+            for (k = 0; k < 16; k = k + 1) begin
+                actual = y_out[k*`DATA_WIDTH +: `DATA_WIDTH];
+                // L?y Golden c?a ðúng kênh trong nhóm hi?n t?i
+                expected = mem_y_exp[token_idx * `D_INNER + (CHANNEL_OFFSET + k)];
+                
+                if (actual !== expected) begin
+                    $display("[ERROR] Group %0d, Token %0d, PE %0d: Out=%d, Exp=%d", 
+                             group_idx, token_idx, k, actual, expected);
+                    errors = errors + 1;
+                    // $stop; // B? comment n?u mu?n d?ng ngay khi l?i
+                end 
+            end
+        end
+    endtask
+
+endmodule

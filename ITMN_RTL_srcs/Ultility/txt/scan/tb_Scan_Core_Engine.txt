@@ -1,0 +1,151 @@
+`timescale 1ns / 1ps
+`include "_parameter.v"
+
+module tb_Scan_Core_Engine;
+
+    // --- Signals ---
+    reg clk, reset, start;
+    wire done;
+    
+    // Inputs (Time-Varying)
+    reg signed [`DATA_WIDTH-1:0] delta_val;
+    reg signed [`DATA_WIDTH-1:0] x_val;
+    reg signed [`DATA_WIDTH-1:0] gate_val; 
+    
+    // Inputs vectors (S thay ði theo t)
+    reg signed [16 * `DATA_WIDTH - 1 : 0] A_vec; // A thýng là hng s (Parameter)
+    reg signed [16 * `DATA_WIDTH - 1 : 0] B_vec; // B thay ði theo t
+    reg signed [16 * `DATA_WIDTH - 1 : 0] C_vec; // C thay ði theo t
+    reg signed [`DATA_WIDTH-1:0] D_val;          // D là hng s
+
+    // Output
+    wire signed [`DATA_WIDTH-1:0] y_out;
+
+    // --- MEMORIES (D liu toàn cc) ---
+    // A: Parameter tnh (16 phn t)
+    reg signed [`DATA_WIDTH-1:0] mem_A [0:15];
+    
+    // D: Parameter tnh (1 phn t cho kênh này)
+    reg signed [`DATA_WIDTH-1:0] mem_D [0:0];
+
+    // --- TIME-VARYING DATA (Size = SEQ_LEN * D_STATE) ---
+    // Gi s SEQ_LEN = 1000, D_STATE = 16 -> 16000 dng
+    reg signed [`DATA_WIDTH-1:0] mem_B_full [0 : `SEQ_LEN * 16 - 1];
+    reg signed [`DATA_WIDTH-1:0] mem_C_full [0 : `SEQ_LEN * 16 - 1];
+    
+    // Scalar Time-Varying
+    reg signed [`DATA_WIDTH-1:0] mem_delta [0:`SEQ_LEN-1];
+    reg signed [`DATA_WIDTH-1:0] mem_x     [0:`SEQ_LEN-1];
+    reg signed [`DATA_WIDTH-1:0] mem_gate  [0:`SEQ_LEN-1];
+    
+    // Golden Output
+    reg signed [`DATA_WIDTH-1:0] mem_y_exp [0:`SEQ_LEN-1];
+
+    integer i, t, k;
+    integer errors;
+    reg signed [15:0] diff;
+
+    // --- DUT ---
+    Scan_Core_Engine dut (
+        .clk(clk), .reset(reset), .start(start), .done(done),
+        .delta_val(delta_val), .x_val(x_val), 
+        .D_val(D_val), .gate_val(gate_val),
+        .A_vec(A_vec), .B_vec(B_vec), .C_vec(C_vec),
+        .y_out(y_out)
+    );
+
+    // --- Clock ---
+    initial begin clk = 0; forever #5 clk = ~clk; end
+
+    // --- DATA DRIVER (Quan trng) ---
+    // Logic cp nht B và C theo thi gian t
+    // Lýu : t là bin integer trong testbench, không phi tín hiu phn cng
+    // Nên ta s cp nht trc tip trong vng lp main.
+
+    // --- Main Process ---
+    initial begin
+        // 1. Load Files (File _full cha d liu cho c chui)
+        $readmemh("scan_A.txt", mem_A);
+        $readmemh("scan_D.txt", mem_D);
+        
+        $readmemh("scan_delta.txt", mem_delta);
+        $readmemh("scan_x.txt", mem_x);
+        $readmemh("scan_gate.txt", mem_gate);
+        
+        // FILE QUAN TRNG: Phi cha 16000 dng (1000 býc * 16 state)
+        $readmemh("scan_B_full.txt", mem_B_full); 
+        $readmemh("scan_C_full.txt", mem_C_full);
+        
+        $readmemh("scan_y_golden.txt", mem_y_exp);
+
+        // 2. Setup Static Parameters (A và D không ði)
+        for (i=0; i<16; i=i+1) begin
+            A_vec[i*`DATA_WIDTH +: `DATA_WIDTH] = mem_A[i];
+        end
+        D_val = mem_D[0];
+
+        // 3. Reset
+        reset = 1; start = 0; errors = 0; 
+        B_vec = 0; C_vec = 0;
+        #20; reset = 0; #10;
+
+        $display("==========================================================");
+        $display("   STARTING MAMBA SCAN (SELECTIVE SSM) SIMULATION");
+        $display("==========================================================");
+
+        // 4. Vng lp thi gian (Selective Scan)
+        for (t = 0; t < `SEQ_LEN; t = t + 1) begin
+            
+            // --- CP NHT INPUTS CHO BÝC t ---
+            
+            // 4.1. Scalar inputs
+            delta_val = mem_delta[t];
+            x_val     = mem_x[t];
+            gate_val  = mem_gate[t];
+            
+            // 4.2. Vector inputs (B và C thay ði theo t)
+            // Ly 16 phn t t mng ln týõng ng vi thi ðim t
+            for (k = 0; k < 16; k = k + 1) begin
+                B_vec[k*16 +: 16] = mem_B_full[t*16 + k];
+                C_vec[k*16 +: 16] = mem_C_full[t*16 + k];
+            end
+            
+            // Ch xíu cho tín hiu n ðnh (trong thc t là setup time)
+            #1;
+            
+            // 4.3. Kích hot tính toán
+            start = 1;
+            @(posedge clk);
+            #1; // Ðm bo start gi ð 1 chu k hoc tt ngay sau cnh lên
+            start = 0;
+
+            // 4.4. Ch kt qu
+            wait(done == 1);
+            
+            // 4.5. Kim tra
+            // Mamba tính toán qua nhiu býc (Exp, Mult, Add) nên sai s tích ly
+            // Ta cho phép sai s khong +/- 15 LSB
+            diff = y_out - mem_y_exp[t];
+            if (diff < 0) diff = -diff;
+            
+            if ( diff > 15 ) begin
+                 $display("[FAIL] T=%0d | Exp=%h, Got=%h | Diff=%d", t, mem_y_exp[t], y_out, diff);
+                 errors = errors + 1;
+                 if (errors > 10) $stop; // Dng nu sai nhiu quá
+            end 
+            
+            if (t % 100 == 0) $display("   Processing step %0d...", t);
+
+            // Ngh 1 nhp trýc khi sang token mi
+            @(posedge clk); 
+        end
+
+        if (errors == 0) 
+            $display("\n   >>> PASS: MAMBA SCAN LOGIC VERIFIED! <<<");
+        else 
+            $display("\n   >>> FAIL: Found %0d errors <<<", errors);
+            
+        $stop;
+    end
+
+endmodule

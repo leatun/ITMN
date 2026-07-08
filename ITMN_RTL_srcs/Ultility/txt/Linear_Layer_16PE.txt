@@ -1,0 +1,156 @@
+`include "_parameter.v"
+
+module Linear_Layer_16PE
+(
+    input clk,
+    input reset,
+
+    // --- Control Signals ---
+    input start,
+    input [15:0] len, // Ð? dài c?a vector input x (Ví d?: 64)
+    output reg done,
+
+    // --- Data Stream Inputs ---
+    // x_val: Giá tr? x[j] t?i th?i ði?m hi?n t?i.
+    // N?u ðang ? chu k? c?ng Bias, cái này s? b? l? ði ð? thay b?ng 1.0
+    input signed [`DATA_WIDTH-1:0] x_val,
+
+    // W_row_vals: 16 tr?ng s? týõng ?ng cho 16 PE (W[0][j]...W[15][j])
+    // Ðây là m?ng ph?ng (flattened array)
+    input signed [16 * `DATA_WIDTH - 1 : 0] W_row_vals,
+
+    // bias_vals: 16 bias týõng ?ng cho 16 PE.
+    // Ch? ðý?c dùng ? chu k? cu?i cùng.
+    input signed [16 * `DATA_WIDTH - 1 : 0] bias_vals,
+
+    // --- Data Outputs ---
+    // K?t qu? y[0]...y[15]
+    output [16 * `DATA_WIDTH - 1 : 0] y_out
+);
+
+    // --- Internal Signals ---
+    reg [15:0] counter;      // Ð?m s? lý?ng ph?n t? ð? tính
+    
+    // Tín hi?u ði?u khi?n PE
+    reg [1:0] pe_op_mode;
+    reg pe_clear_acc;
+    
+    // Tín hi?u Input th?c s? ðýa vào PE (sau khi qua MUX ch?n Bias ho?c W)
+    wire signed [`DATA_WIDTH-1:0] pe_in_A; // S? là x_val ho?c 1.0
+    wire signed [`DATA_WIDTH-1:0] pe_in_B [15:0]; // S? là W ho?c Bias
+
+    // Tín hi?u Output t? PE
+    wire signed [`DATA_WIDTH-1:0] pe_result [15:0];
+
+    // Các m?ng ð? gi?i nén (Unpacked) t? input bus
+    wire signed [`DATA_WIDTH-1:0] W_unpacked [15:0];
+    wire signed [`DATA_WIDTH-1:0] bias_unpacked [15:0];
+
+    // FSM States
+    localparam S_IDLE = 0;
+    localparam S_CALC = 1;     // Tính W * x
+    localparam S_ADD_BIAS = 2; // Tính + Bias * 1
+    localparam S_DONE = 3;
+    
+    reg [1:0] state;
+
+    // --- 1. UNPACK DATA (Gi?i nén d? li?u t? bus l?n ra m?ng) ---
+    genvar i;
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : wiring
+            // C?t bus input thành các dây l?
+            assign W_unpacked[i] = W_row_vals[i*`DATA_WIDTH +: `DATA_WIDTH];
+            assign bias_unpacked[i] = bias_vals[i*`DATA_WIDTH +: `DATA_WIDTH];
+            
+            // Ðóng gói output t? PE ra bus output
+            assign y_out[i*`DATA_WIDTH +: `DATA_WIDTH] = pe_result[i];
+            
+            // MUX ch?n Input B cho t?ng PE:
+            // N?u ðang ? tr?ng thái ADD_BIAS th? l?y Bias, ngý?c l?i l?y W
+            assign pe_in_B[i] = (state == S_ADD_BIAS) ? bias_unpacked[i] : W_unpacked[i];
+        end
+    endgenerate
+
+    // MUX ch?n Input A (Chung cho c? 16 PE):
+    // N?u ðang ADD_BIAS th? n?p 1.0 (4096), ngý?c l?i l?y x_val
+    // 4096 là 1.0 trong Q3.12
+    assign pe_in_A = (state == S_ADD_BIAS) ? 16'd4096 : x_val;
+
+
+    // --- 2. INSTANTIATE 16 PEs ---
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : pe_array
+            Unified_PE u_pe (
+                .clk(clk),
+                .reset(reset),
+                .op_mode(pe_op_mode),
+                .clear_acc(pe_clear_acc),
+                .in_A(pe_in_A),       // Chung
+                .in_B(pe_in_B[i]),    // Riêng
+                .out_val(pe_result[i])
+            );
+        end
+    endgenerate
+
+
+    // --- 3. CONTROLLER (FSM) ---
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            state <= S_IDLE;
+            counter <= 0;
+            pe_clear_acc <= 1;
+            pe_op_mode <= `MODE_MAC;
+            done <= 0;
+        end else begin
+            case (state)
+                S_IDLE: begin
+                    done <= 0;
+                    if (start) begin
+                        // Chu?n b? b?t ð?u: Reset Accumulator c?a PE
+                        // H? c? clear xu?ng 0 NGAY L?P T?C ð? ðón d? li?u ð?u tiên
+                        pe_clear_acc <= 0; 
+                        pe_op_mode <= `MODE_MAC;
+                        counter <= 0;
+                        state <= S_CALC;
+                    end else begin
+                        pe_clear_acc <= 1;
+                    end
+                end
+
+                S_CALC: begin
+                    pe_clear_acc <= 0; // T?t l?nh clear ð? b?t ð?u tích l?y
+                    
+                    // ? tr?ng thái này, bên ngoài ph?i c?p x_val và W liên t?c
+                    // m?i chu k? clock.
+                    
+                    if (counter == len - 1) begin
+                        // Ð? nhân h?t chu?i x
+                        state <= S_ADD_BIAS;
+                    end else begin
+                        counter <= counter + 1;
+                    end
+                end
+
+                S_ADD_BIAS: begin
+                    // ? tr?ng thái này, MUX ? trên s? t? ð?ng chuy?n:
+                    // in_A -> 1.0
+                    // in_B -> Bias
+                    // PE v?n ? mode MAC -> Acc = Acc + Bias * 1
+                    
+                    // Ch? c?n 1 chu k? ð? c?ng bias
+                    state <= S_DONE;
+                end
+
+                S_DONE: begin
+                    done <= 1;
+                    pe_clear_acc <= 1; // B?t bu?c xóa tích l?y ngay khi xong vi?c
+                    // Ch? tín hi?u start h? xu?ng ð? v? IDLE
+                    if (!start) begin
+                        state <= S_IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+endmodule

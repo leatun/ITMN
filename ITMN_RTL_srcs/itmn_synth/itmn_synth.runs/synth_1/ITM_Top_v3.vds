@@ -1,0 +1,1139 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Thu Jun 18 09:03:23 2026
+# Process ID: 27616
+# Current directory: C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.runs/synth_1
+# Command line: vivado.exe -log ITM_Top_v3.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source ITM_Top_v3.tcl
+# Log file: C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.runs/synth_1/ITM_Top_v3.vds
+# Journal file: C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.runs/synth_1\vivado.jou
+# Running On: letun, OS: Windows, CPU Frequency: 3110 MHz, CPU Physical cores: 12, Host memory: 16782 MB
+#-----------------------------------------------------------
+source ITM_Top_v3.tcl -notrace
+Command: read_checkpoint -auto_incremental -incremental C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.srcs/utils_1/imports/synth_1/ITM_Top.dcp
+INFO: [Vivado 12-5825] Read reference checkpoint from C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.srcs/utils_1/imports/synth_1/ITM_Top.dcp for incremental synthesis
+INFO: [Vivado 12-7989] Please ensure there are no constraint changes
+read_checkpoint: Time (s): cpu = 00:00:01 ; elapsed = 00:00:05 . Memory (MB): peak = 1314.898 ; gain = 0.000
+Command: synth_design -top ITM_Top_v3 -part xck26-sfvc784-2LV-c -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xck26'
+INFO: [Device 21-403] Loading part xck26-sfvc784-2LV-c
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 29204
+WARNING: [Synth 8-6901] identifier 'm_we' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:92]
+WARNING: [Synth 8-6901] identifier 'W_M_DW_BASE' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:108]
+WARNING: [Synth 8-6901] identifier 'br_dim_groups' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:175]
+WARNING: [Synth 8-6901] identifier 'br_dim_groups' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:179]
+WARNING: [Synth 8-6901] identifier 'br_dim_groups' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:181]
+WARNING: [Synth 8-6901] identifier 'br_dim_groups' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:183]
+WARNING: [Synth 8-6901] identifier 'mac_idx' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:299]
+WARNING: [Synth 8-6901] identifier 'mac_idx' is used before its declaration [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:300]
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1705.336 ; gain = 318.430
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'ITM_Top_v3' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:37]
+INFO: [Synth 8-6157] synthesizing module 'Memory_System' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Memory_System.v:24]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+	Parameter ADDR_WIDTH bound to: 15 - type: integer 
+	Parameter RAM_STYLE bound to: ultra - type: string 
+	Parameter DEPTH bound to: 20480 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized0' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+	Parameter ADDR_WIDTH bound to: 14 - type: integer 
+	Parameter RAM_STYLE bound to: block - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized0' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+INFO: [Synth 8-6155] done synthesizing module 'Memory_System' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Memory_System.v:24]
+INFO: [Synth 8-6157] synthesizing module 'PE_Array' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/PE_BLOCK.v:14]
+INFO: [Synth 8-6157] synthesizing module 'Unified_PE' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Unified_PE.v:14]
+INFO: [Synth 8-6155] done synthesizing module 'Unified_PE' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Unified_PE.v:14]
+INFO: [Synth 8-6155] done synthesizing module 'PE_Array' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/PE_BLOCK.v:14]
+INFO: [Synth 8-6157] synthesizing module 'RMSNorm_Mul' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/RMSNorm_Mul.v:17]
+INFO: [Synth 8-6155] done synthesizing module 'RMSNorm_Mul' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/RMSNorm_Mul.v:17]
+INFO: [Synth 8-6157] synthesizing module 'Const_Storage' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Const_Storage.v:29]
+INFO: [Synth 8-6157] synthesizing module 'Silu_LUT' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:17]
+CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/silu_lut.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:31]
+INFO: [Synth 8-6155] done synthesizing module 'Silu_LUT' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:17]
+INFO: [Synth 8-6157] synthesizing module 'Softplus_LUT' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Softplus_LUT.v:13]
+CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/softplus_lut.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Softplus_LUT.v:27]
+INFO: [Synth 8-6155] done synthesizing module 'Softplus_LUT' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Softplus_LUT.v:13]
+INFO: [Synth 8-6157] synthesizing module 'Exp_LUT' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Exp_LUT.v:17]
+CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/exp_lut.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Exp_LUT.v:31]
+INFO: [Synth 8-6155] done synthesizing module 'Exp_LUT' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Exp_LUT.v:17]
+INFO: [Synth 8-6157] synthesizing module 'RSqrt_ROM' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/RSqrt_ROM.v:19]
+CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/rsqrt_q97.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/RSqrt_ROM.v:25]
+INFO: [Synth 8-6155] done synthesizing module 'RSqrt_ROM' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/RSqrt_ROM.v:19]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized1' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+	Parameter ADDR_WIDTH bound to: 7 - type: integer 
+	Parameter RAM_STYLE bound to: block - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized1' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v:20]
+INFO: [Synth 8-6155] done synthesizing module 'Const_Storage' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Const_Storage.v:29]
+INFO: [Synth 8-6155] done synthesizing module 'ITM_Top_v3' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:37]
+WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+	1: Unable to determine number of words or word size in RAM. 
+	2: No valid read/write found for RAM. 
+RAM dissolved into registers
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+WARNING: [Synth 8-3848] Net silu_table in module/entity Silu_LUT does not have driver. [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v:30]
+INFO: [Common 17-14] Message 'Synth 8-3848' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+	1: Unable to determine number of words or word size in RAM. 
+	2: No valid read/write found for RAM. 
+RAM dissolved into registers
+WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+	1: Unable to determine number of words or word size in RAM. 
+	2: No valid read/write found for RAM. 
+RAM dissolved into registers
+WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
+	1: Unable to determine number of words or word size in RAM. 
+	2: No valid read/write found for RAM. 
+RAM dissolved into registers
+WARNING: [Synth 8-5856] 3D RAM gap_sum_reg  for this pattern/configuration is not supported. This will most likely be implemented in registers
+WARNING: [Synth 8-10225] Potential Runtime issue for 3D-RAM or RAM from Record/Structs for RAM  gap_sum_reg 
+WARNING: [Synth 8-6014] Unused sequential element B_scalar_reg_reg was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:660]
+WARNING: [Synth 8-6014] Unused sequential element C_scalar_reg_reg was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:660]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[0] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[1] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[2] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[3] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[4] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[5] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[6] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[7] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[8] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[9] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[10] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[11] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[12] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[13] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[14] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element u_scalar_reg_reg[15] was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:664]
+WARNING: [Synth 8-6014] Unused sequential element enc_phase_reg was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:674]
+WARNING: [Synth 8-6014] Unused sequential element enc_mode_reg_reg was removed.  [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:674]
+WARNING: [Synth 8-7129] Port dma_addr[14] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[13] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[12] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[11] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[10] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[9] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[8] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_addr[7] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[14] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[13] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[12] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[11] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[10] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[9] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[8] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[7] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[14] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[13] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[12] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[11] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[10] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[9] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[8] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port dma_raddr[7] in module Const_Storage is either unconnected or has no load
+WARNING: [Synth 8-7129] Port reset in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port weight_read_addr[14] in module Memory_System is either unconnected or has no load
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:16 ; elapsed = 00:00:17 . Memory (MB): peak = 2161.141 ; gain = 774.234
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:16 ; elapsed = 00:00:18 . Memory (MB): peak = 2161.141 ; gain = 774.234
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:16 ; elapsed = 00:00:18 . Memory (MB): peak = 2161.141 ; gain = 774.234
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.952 . Memory (MB): peak = 2161.141 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/constrs_1/new/itmn.xdc]
+create_clock: Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2447.641 ; gain = 30.152
+Finished Parsing XDC File [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/constrs_1/new/itmn.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 2447.641 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.303 . Memory (MB): peak = 2449.570 ; gain = 1.930
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:41 ; elapsed = 00:00:43 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xck26-sfvc784-2LV-c
+INFO: [Synth 8-6742] Reading net delay rules and data
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:41 ; elapsed = 00:00:43 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:41 ; elapsed = 00:00:43 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Preparing Guide Design
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-6702] IncrSynth : Design change found in an area of the design that prevents previous synthesis information being used, Reverting to default synthesis
+---------------------------------------------------------------------------------
+Finished Doing Graph Differ : Time (s): cpu = 00:00:45 ; elapsed = 00:00:49 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Preparing Guide Design : Time (s): cpu = 00:00:45 ; elapsed = 00:00:49 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+DSP Debug: swapped A/B pins for adder 0000024F00A79050
+DSP Debug: swapped A/B pins for adder 0000024F00A77D90
+DSP Debug: swapped A/B pins for adder 0000024F00A76590
+DSP Debug: swapped A/B pins for adder 0000024F00A75450
+INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"BRAM_256b:/ram_reg"'.
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 2 and width 4 for RAM "BRAM_256b__parameterized0:/ram_reg"
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:01:03 ; elapsed = 00:01:07 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+
+
+Incremental Synthesis Report Summary:
+
+1. Incremental synthesis run: no
+
+   Reason for not running incremental synthesis : Design change found in an area of the design that prevents previous synthesis information being used
+
+
+INFO: [Synth 8-7130] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	  17 Input   40 Bit       Adders := 1     
+	   2 Input   40 Bit       Adders := 16    
+	   2 Input   24 Bit       Adders := 16    
+	   2 Input   17 Bit       Adders := 85    
+	   2 Input   16 Bit       Adders := 48    
+	   2 Input   15 Bit       Adders := 8     
+	   3 Input   15 Bit       Adders := 6     
+	   3 Input   12 Bit       Adders := 1     
+	   2 Input   12 Bit       Adders := 1     
+	   2 Input   11 Bit       Adders := 1     
+	   2 Input   10 Bit       Adders := 8     
+	   2 Input    8 Bit       Adders := 5     
+	   2 Input    7 Bit       Adders := 2     
+	   2 Input    6 Bit       Adders := 3     
+	   3 Input    6 Bit       Adders := 1     
+	   2 Input    5 Bit       Adders := 1     
+	   2 Input    4 Bit       Adders := 7     
+	   2 Input    3 Bit       Adders := 4     
+	   2 Input    2 Bit       Adders := 1     
+	   2 Input    1 Bit       Adders := 1     
++---Registers : 
+	              256 Bit    Registers := 20    
+	               40 Bit    Registers := 18    
+	               24 Bit    Registers := 128   
+	               16 Bit    Registers := 142   
+	               15 Bit    Registers := 8     
+	               10 Bit    Registers := 3     
+	                8 Bit    Registers := 1     
+	                6 Bit    Registers := 1     
+	                4 Bit    Registers := 4     
+	                3 Bit    Registers := 5     
+	                2 Bit    Registers := 1     
+	                1 Bit    Registers := 15    
++---RAMs : 
+	            5120K Bit	(20480 X 256 bit)          RAMs := 2     
+	            4096K Bit	(16384 X 256 bit)          RAMs := 1     
+	              32K Bit	(128 X 256 bit)          RAMs := 1     
++---Muxes : 
+	   7 Input  256 Bit        Muxes := 1     
+	 136 Input  256 Bit        Muxes := 9     
+	   2 Input  256 Bit        Muxes := 7     
+	   4 Input  256 Bit        Muxes := 2     
+	   8 Input  256 Bit        Muxes := 1     
+	   2 Input   40 Bit        Muxes := 17    
+	   3 Input   40 Bit        Muxes := 1     
+	   4 Input   40 Bit        Muxes := 16    
+	   2 Input   16 Bit        Muxes := 473   
+	   3 Input   16 Bit        Muxes := 16    
+	 136 Input   16 Bit        Muxes := 1     
+	   4 Input   16 Bit        Muxes := 18    
+	   8 Input   16 Bit        Muxes := 1     
+	   2 Input   15 Bit        Muxes := 11    
+	   3 Input   15 Bit        Muxes := 4     
+	   4 Input   15 Bit        Muxes := 3     
+	 136 Input   15 Bit        Muxes := 5     
+	   8 Input   15 Bit        Muxes := 2     
+	   2 Input   14 Bit        Muxes := 4     
+	   8 Input   14 Bit        Muxes := 1     
+	   2 Input   13 Bit        Muxes := 1     
+	   2 Input   10 Bit        Muxes := 6     
+	 136 Input   10 Bit        Muxes := 1     
+	   2 Input    8 Bit        Muxes := 55    
+	   3 Input    8 Bit        Muxes := 1     
+	   5 Input    8 Bit        Muxes := 1     
+	 136 Input    8 Bit        Muxes := 1     
+	   2 Input    7 Bit        Muxes := 8     
+	   3 Input    7 Bit        Muxes := 6     
+	   6 Input    7 Bit        Muxes := 1     
+	   2 Input    6 Bit        Muxes := 5     
+	   3 Input    6 Bit        Muxes := 3     
+	 136 Input    6 Bit        Muxes := 1     
+	   2 Input    5 Bit        Muxes := 6     
+	   3 Input    5 Bit        Muxes := 1     
+	 136 Input    4 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 6     
+	   4 Input    4 Bit        Muxes := 1     
+	 136 Input    3 Bit        Muxes := 10    
+	   2 Input    3 Bit        Muxes := 3     
+	   3 Input    3 Bit        Muxes := 1     
+	   8 Input    3 Bit        Muxes := 1     
+	   6 Input    3 Bit        Muxes := 1     
+	 136 Input    2 Bit        Muxes := 6     
+	   2 Input    2 Bit        Muxes := 4     
+	   4 Input    2 Bit        Muxes := 2     
+	 136 Input    1 Bit        Muxes := 53    
+	   2 Input    1 Bit        Muxes := 80    
+	   4 Input    1 Bit        Muxes := 35    
+	   6 Input    1 Bit        Muxes := 11    
+	   8 Input    1 Bit        Muxes := 11    
+	   5 Input    1 Bit        Muxes := 2     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 1248 (col length:96)
+BRAMs: 288 (col length: RAMB18 96 RAMB36 48)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+DSP Report: Generating DSP p1_wide, operation Mode is: A*B.
+DSP Report: operator p1_wide is absorbed into DSP p1_wide.
+DSP Report: Generating DSP o_wide, operation Mode is: A*B2.
+DSP Report: register S_reg_reg is absorbed into DSP o_wide.
+DSP Report: operator o_wide is absorbed into DSP o_wide.
+DSP Report: Generating DSP norm_sq16_fn_return14, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return14 is absorbed into DSP norm_sq16_fn_return14.
+DSP Report: Generating DSP norm_sq16_fn_return13, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return13 is absorbed into DSP norm_sq16_fn_return13.
+DSP Report: Generating DSP norm_sq16_fn_return12, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return12 is absorbed into DSP norm_sq16_fn_return12.
+DSP Report: Generating DSP norm_sq16_fn_return11, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return11 is absorbed into DSP norm_sq16_fn_return11.
+DSP Report: Generating DSP norm_sq16_fn_return10, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return10 is absorbed into DSP norm_sq16_fn_return10.
+DSP Report: Generating DSP norm_sq16_fn_return9, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return9 is absorbed into DSP norm_sq16_fn_return9.
+DSP Report: Generating DSP norm_sq16_fn_return8, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return8 is absorbed into DSP norm_sq16_fn_return8.
+DSP Report: Generating DSP norm_sq16_fn_return7, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return7 is absorbed into DSP norm_sq16_fn_return7.
+DSP Report: Generating DSP norm_sq16_fn_return6, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return6 is absorbed into DSP norm_sq16_fn_return6.
+DSP Report: Generating DSP norm_sq16_fn_return5, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return5 is absorbed into DSP norm_sq16_fn_return5.
+DSP Report: Generating DSP norm_sq16_fn_return4, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return4 is absorbed into DSP norm_sq16_fn_return4.
+DSP Report: Generating DSP norm_sq16_fn_return3, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return3 is absorbed into DSP norm_sq16_fn_return3.
+DSP Report: Generating DSP norm_sq16_fn_return2, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return2 is absorbed into DSP norm_sq16_fn_return2.
+DSP Report: Generating DSP norm_sq16_fn_return1, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return1 is absorbed into DSP norm_sq16_fn_return1.
+DSP Report: Generating DSP norm_sq16_fn_return0, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return0 is absorbed into DSP norm_sq16_fn_return0.
+DSP Report: Generating DSP norm_sq16_fn_return14, operation Mode is: A*B.
+DSP Report: operator norm_sq16_fn_return14 is absorbed into DSP norm_sq16_fn_return14.
+DSP Report: Generating DSP fc_acc0, operation Mode is: C+A*B.
+DSP Report: operator fc_acc0 is absorbed into DSP fc_acc0.
+DSP Report: operator fc_acc1 is absorbed into DSP fc_acc0.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+WARNING: [Synth 8-7129] Port reset in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port weight_read_addr[14] in module Memory_System is either unconnected or has no load
+INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"mem_sys/ram_a/ram_reg"'.
+INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"mem_sys/ram_b/ram_reg"'.
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 2 and width 4 for RAM "mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"mem_sys/ram_a/ram_reg"'.
+INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"mem_sys/ram_b/ram_reg"'.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP mult, operation Mode is: A*B.
+DSP Report: operator mult is absorbed into DSP mult.
+DSP Report: Generating DSP acc_new0, operation Mode is: C+A*B.
+DSP Report: operator acc_new0 is absorbed into DSP acc_new0.
+DSP Report: operator mult is absorbed into DSP acc_new0.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+DSP Report: Generating DSP p_0_in, operation Mode is: A*(B:0x83).
+DSP Report: operator p_0_in is absorbed into DSP p_0_in.
+INFO: [Synth 8-5544] ROM "p_0_out" won't be mapped to Block RAM because address size (2) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_1_out0" won't be mapped to Block RAM because address size (2) smaller than threshold (5)
+INFO: [Synth 8-5546] ROM "dt_lane" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m_wr_data" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "term2_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "term1_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m_we" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "du_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "y_acc_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "incep_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "fc_bias_lane" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "dA_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "dB_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "h_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "y_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "norm_S_reg" won't be mapped to RAM because it is too sparse
+DSP Report: Generating DSP m_rd_addr0, operation Mode is: C+A*B.
+DSP Report: operator m_rd_addr0 is absorbed into DSP m_rd_addr0.
+DSP Report: operator m_rd_addr1 is absorbed into DSP m_rd_addr0.
+DSP Report: Generating DSP p_0_out, operation Mode is: A*B.
+DSP Report: operator p_0_out is absorbed into DSP p_0_out.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP bn_out3, operation Mode is: A*B.
+DSP Report: operator bn_out3 is absorbed into DSP bn_out3.
+DSP Report: Generating DSP w_bot_size, operation Mode is: A*B.
+DSP Report: operator w_bot_size is absorbed into DSP w_bot_size.
+DSP Report: Generating DSP W_B1_BASE, operation Mode is: PCIN+A*B.
+DSP Report: operator W_B1_BASE is absorbed into DSP W_B1_BASE.
+DSP Report: operator w_p1_size is absorbed into DSP W_B1_BASE.
+DSP Report: Generating DSP W_B2_BASE, operation Mode is: PCIN+A*B.
+DSP Report: operator W_B2_BASE is absorbed into DSP W_B2_BASE.
+DSP Report: operator w_bot_size is absorbed into DSP W_B2_BASE.
+DSP Report: Generating DSP W_B3_BASE, operation Mode is: PCIN+A*B.
+DSP Report: operator W_B3_BASE is absorbed into DSP W_B3_BASE.
+DSP Report: operator w_b2_size is absorbed into DSP W_B3_BASE.
+DSP Report: Generating DSP W_B4_BASE, operation Mode is: PCIN+A*B.
+DSP Report: operator W_B4_BASE is absorbed into DSP W_B4_BASE.
+DSP Report: operator w_b3_size is absorbed into DSP W_B4_BASE.
+DSP Report: Generating DSP p_10_in, operation Mode is: A*B.
+DSP Report: operator p_10_in is absorbed into DSP p_10_in.
+DSP Report: Generating DSP p_12_out, operation Mode is: PCIN+(A:0x0):B+C.
+DSP Report: operator p_12_out is absorbed into DSP p_12_out.
+DSP Report: Generating DSP W_M_X_BASE, operation Mode is: PCIN+A*B.
+DSP Report: operator W_M_X_BASE is absorbed into DSP W_M_X_BASE.
+DSP Report: operator w_b4_size is absorbed into DSP W_M_X_BASE.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\pe_op_mode_reg[1] )
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[7]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[8]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[9]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[10]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[11]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[12]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3886] merging instance 'c_rd_addr_reg[13]' (FDCE) to 'c_rd_addr_reg[14]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\c_rd_addr_reg[14] )
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:02:05 ; elapsed = 00:02:14 . Memory (MB): peak = 2449.570 ; gain = 1062.664
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-6057] Memory: "ram_a/ram_reg" defined in module: "mem_sys" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
+WARNING: [Synth 8-6057] Memory: "ram_b/ram_reg" defined in module: "mem_sys" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Ultra RAM: Preliminary Mapping Report (see note below)
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+|Module Name | RTL Object    | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | URAM288 | Matrix Shape | FF provided for Pipeline | FF absorbed | 
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+|mem_sys     | ram_a/ram_reg | 20 K x 256             |   | R | 20 K x 256             | W |   | Port A and B     | 20      | 5x1          | 0                        | 0           | 
+|mem_sys     | ram_b/ram_reg | 20 K x 256             |   | R | 20 K x 256             | W |   | Port A and B     | 20      | 5x1          | 0                        | 0           | 
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+
+Note: The table above is a preliminary report that shows the Ultra RAMs at the current stage of the synthesis flow. Some Ultra RAMs may be reimplemented as non Ultra RAM primitives later in the synthesis flow. Multiple instantiated Ultra RAMs are reported only once. Fields "FF provided for Pipeline" and "FF absorbed" respectively indicate number of registers available for pipelining and number of registers absorbed in the URAM matrix for pipelining. 
+
+Block RAM: Preliminary Mapping Report (see note below)
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+|Module Name | RTL Object         | PORT A (Depth x Width) | W | R | PORT B (Depth x Width)  | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights               | 
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+|ITM_Top_v3  | ram_const/ram_reg  | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST)  |   | R | Port A and B     | 0      | 4      |                               | 
+|mem_sys     | ram_weight/ram_reg | 16 K x 256(READ_FIRST) | W |   | 16 K x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 114    | 8,8,8,8,8,8,8,8,8,8,8,8,8,8,2 | 
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+
+DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
++-----------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name      | DSP Mapping      | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++-----------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|RMSNorm_Mul      | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|RMSNorm_Mul      | A*B2             | 16     | 16     | -      | -      | 32     | 0    | 1    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | C+A*B            | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*(B:0x83)       | 24     | 9      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | C+A*B            | 10     | 5      | 4      | -      | 15     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 15     | 15     | -      | -      | 30     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 8      | 2      | -      | -      | 10     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B         | 8      | 4      | -      | -      | 13     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B         | 8      | 2      | -      | -      | 14     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B         | 15     | 6      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B         | 15     | 7      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B              | 15     | 9      | -      | -      | 24     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3__GCB5 | PCIN+(A:0x0):B+C | 30     | 15     | 8      | -      | -1     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B         | 15     | 8      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
++-----------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:02:22 ; elapsed = 00:02:33 . Memory (MB): peak = 2807.461 ; gain = 1420.555
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-5556] The block RAM "i_0/mem_sys/ram_weight/ram_reg" may be mapped as a cascade chain, because it is not timing critical.
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 2 and width 4 for RAM "i_0/mem_sys/ram_weight/ram_reg"
+info: optimization accepted worst group hill climbing move (-4050.0/oG. 71.0ps)
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:03:49 ; elapsed = 00:04:03 . Memory (MB): peak = 3352.699 ; gain = 1965.793
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-6057] Memory: "ram_a/ram_reg" defined in module: "mem_sys" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
+WARNING: [Synth 8-6057] Memory: "ram_b/ram_reg" defined in module: "mem_sys" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Ultra RAM: Final Mapping Report (see note below)
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+|Module Name | RTL Object    | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | URAM288 | Matrix Shape | FF provided for Pipeline | FF absorbed | 
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+|mem_sys     | ram_a/ram_reg | 20 K x 256             |   | R | 20 K x 256             | W |   | Port A and B     | 20      | 5x1          | 0                        | 0           | 
+|mem_sys     | ram_b/ram_reg | 20 K x 256             |   | R | 20 K x 256             | W |   | Port A and B     | 20      | 5x1          | 0                        | 0           | 
++------------+---------------+------------------------+---+---+------------------------+---+---+------------------+---------+--------------+--------------------------+-------------+
+
+
+Block RAM: Final Mapping Report
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+|Module Name | RTL Object         | PORT A (Depth x Width) | W | R | PORT B (Depth x Width)  | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights               | 
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+|ITM_Top_v3  | ram_const/ram_reg  | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST)  |   | R | Port A and B     | 0      | 4      |                               | 
+|i_0/mem_sys | ram_weight/ram_reg | 16 K x 256(READ_FIRST) | W |   | 16 K x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 114    | 8,8,8,8,8,8,8,8,8,8,8,8,8,8,2 | 
++------------+--------------------+------------------------+---+---+-------------------------+---+---+------------------+--------+--------+-------------------------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_consti_12/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_consti_12/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_consti_12/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_consti_12/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:652]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:677]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:666]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v:239]
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_63 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_71 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_79 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_87 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_95 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_103 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_111 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/mem_sys/ram_weight/ram_reg_bram_113 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:04:10 ; elapsed = 00:04:44 . Memory (MB): peak = 3352.699 ; gain = 1965.793
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_63 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_71 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_79 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_87 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_95 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_103 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_111 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance mem_sys/ram_weight/ram_reg_bram_113 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:04:20 ; elapsed = 00:04:54 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:04:20 ; elapsed = 00:04:55 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:04:25 ; elapsed = 00:05:00 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:04:26 ; elapsed = 00:05:01 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:04:26 ; elapsed = 00:05:01 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:04:26 ; elapsed = 00:05:02 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++-----------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name      | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++-----------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 8      | -      | -      | 33     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | C+A*B       | 10     | 5      | 4      | -      | 15     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 4      | 10     | -      | -      | 30     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 8      | 2      | -      | -      | 10     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B    | 8      | 4      | -      | -      | 13     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B    | 8      | 2      | -      | -      | 14     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B    | 6      | 5      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B    | 6      | 6      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 6      | 9      | -      | -      | 24     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3__GCB5 | PCIN+A:B+C  | 0      | 15     | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | PCIN+A*B    | 6      | 7      | -      | -      | 15     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | C+A*B       | 30     | 18     | 48     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|ITM_Top_v3       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Unified_PE       | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
+|RMSNorm_Mul      | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|RMSNorm_Mul      | A*B'        | 30     | 0      | -      | -      | 32     | 0    | 1    | -    | -    | -     | 0    | 0    | 
++-----------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+----------------+------+
+|      |Cell            |Count |
++------+----------------+------+
+|1     |CARRY8          |   762|
+|2     |DSP_ALU         |    77|
+|3     |DSP_A_B_DATA    |    77|
+|5     |DSP_C_DATA      |    77|
+|7     |DSP_MULTIPLIER  |    77|
+|9     |DSP_M_DATA      |    77|
+|10    |DSP_OUTPUT      |    77|
+|11    |DSP_PREADD      |    77|
+|12    |DSP_PREADD_DATA |    77|
+|14    |LUT1            |  1244|
+|15    |LUT2            |  2671|
+|16    |LUT3            |  3352|
+|17    |LUT4            |  1546|
+|18    |LUT5            |  2261|
+|19    |LUT6            |  5897|
+|20    |MUXF7           |  1050|
+|21    |MUXF8           |    32|
+|22    |RAMB36E2        |   118|
+|28    |URAM288         |    40|
+|31    |FDCE            | 10126|
+|32    |FDPE            |     1|
+|33    |FDRE            |     5|
+|34    |FDSE            |    15|
++------+----------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:04:26 ; elapsed = 00:05:02 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 7 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:03:54 ; elapsed = 00:04:48 . Memory (MB): peak = 3364.285 ; gain = 1688.949
+Synthesis Optimization Complete : Time (s): cpu = 00:04:27 ; elapsed = 00:05:05 . Memory (MB): peak = 3364.285 ; gain = 1977.379
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.395 . Memory (MB): peak = 3364.285 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1921 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.006 . Memory (MB): peak = 3381.512 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 77 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 77 instances
+
+Synth Design complete, checksum: a3407cb2
+INFO: [Common 17-83] Releasing license: Synthesis
+179 Infos, 167 Warnings, 4 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:04:41 ; elapsed = 00:05:23 . Memory (MB): peak = 3381.512 ; gain = 2066.613
+INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
+INFO: [Common 17-1381] The checkpoint 'C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.runs/synth_1/ITM_Top_v3.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:10 ; elapsed = 00:00:09 . Memory (MB): peak = 3381.512 ; gain = 0.000
+INFO: [runtcl-4] Executing : report_utilization -file ITM_Top_v3_utilization_synth.rpt -pb ITM_Top_v3_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Thu Jun 18 09:09:07 2026...

@@ -1,0 +1,65 @@
+`include "_parameter.v"
+
+module Adder_Array
+(
+    input clk,
+    input reset,
+    input start,
+
+    input signed [`D_STATE * `DATA_WIDTH - 1 : 0] operand_1,
+    
+    input signed [`D_STATE * `DATA_WIDTH - 1 : 0] operand_2,
+
+    output [`D_STATE * `DATA_WIDTH - 1 : 0] result_out,
+    output reg done
+);
+
+    reg signed [`DATA_WIDTH-1:0] op1_reg[`D_STATE-1:0];
+    reg signed [`DATA_WIDTH-1:0] op2_reg[`D_STATE-1:0];
+    
+    wire signed [`DATA_WIDTH-1:0] sum_wires[`D_STATE-1:0];
+    
+    reg busy;
+    integer i;
+
+    genvar p;
+    generate
+        for (p = 0; p < `D_STATE; p = p + 1) begin : add_pe_inst
+            adder_pe pe (
+                .clk(clk),
+                .in1(op1_reg[p]),
+                .in2(op2_reg[p]),
+                .out(sum_wires[p])
+            );
+        end
+    endgenerate
+
+    generate
+        for (p = 0; p < `D_STATE; p = p + 1) begin : out_assign
+            assign result_out[p*`DATA_WIDTH +: `DATA_WIDTH] = sum_wires[p];
+        end
+    endgenerate
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            busy <= 1'b0;
+            done <= 1'b0;
+        end else begin
+            if (done) done <= 1'b0;
+
+            if (start && !busy) begin
+                for (i = 0; i < `D_STATE; i = i + 1) begin
+                    op1_reg[i] <= operand_1[i*`DATA_WIDTH +: `DATA_WIDTH];
+                    op2_reg[i] <= operand_2[i*`DATA_WIDTH +: `DATA_WIDTH];
+                end
+                busy <= 1'b1;
+            end
+            
+            if (busy) begin
+                done <= 1'b1;
+                busy <= 1'b0;
+            end
+        end
+    end
+
+endmodule

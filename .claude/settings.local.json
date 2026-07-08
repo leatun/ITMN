@@ -46,7 +46,28 @@
       "Bash(grep -B 1 -A 10 'CLB Logic$\\\\|BLOCKRAM$\\\\|ARITHMETIC$' C:/Users/ADMIN/Downloads/DoAn1/DoAn1/itmn_synth/itmn_synth.runs/impl_1/ITM_Top_utilization_placed.rpt)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(unzip -o DA2.docx -d DA2_extracted)",
+      "Bash(python -c ' *)",
+      "Bash(python estimate_cycles.py)",
+      "Bash(python -c \"import estimate_cycles\")",
+      "Bash(python parse_reports.py)",
+      "Bash(python gen_fsm_waveform.py)",
+      "Bash(python compute_metrics.py)",
+      "Bash(python draw_pe_diagram.py)",
+      "Bash(python draw_pe_schematic.py)",
+      "Bash(pip list *)",
+      "Bash(mkdir -p \"C:/Users/ADMIN/Downloads/paper/txt\")",
+      "Bash(cp /tmp/papers/*.txt \"C:/Users/ADMIN/Downloads/paper/txt/\")",
+      "Bash(xvlog --version)",
+      "Bash(awk '{print $2}')",
+      "Bash(mkdir -p C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all)",
+      "Bash(cp \"C:/Users/ADMIN/Downloads/ITMN_Pytorch/golden_all/silu_lut.txt\" C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/)",
+      "Bash(cp \"C:/Users/ADMIN/Downloads/ITMN_Pytorch/golden_all/softplus_lut.txt\" C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/)",
+      "Bash(cp \"C:/Users/ADMIN/Downloads/ITMN_Pytorch/golden_all/exp_lut.txt\" C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/)",
+      "Bash(cp \"C:/Users/ADMIN/Downloads/New folder/golden_all/rsqrt_q97.txt\" C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/)",
+      "Bash(mkdir -p C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/ITMN_re.runs/synth_1/golden_all)",
+      "Bash(cp C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/*.txt C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/ITMN_re.runs/synth_1/golden_all/)"
     ]
   }
 }

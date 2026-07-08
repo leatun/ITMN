@@ -1,0 +1,24 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  -i "../../../../ITMN_NEWEST.srcs/sources_1/new" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Memory_System.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Unified_PE.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/BRAM_256b.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/PE_BLOCK.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/_block_params.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/_parameter.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/RMSNorm_Mul.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Const_Storage.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Softplus_LUT.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Exp_LUT.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/Silu_LUT.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/RSqrt_ROM.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER_v3.v" \
+"../../../../ITMN_NEWEST.srcs/sources_1/new/ITM_CONTROLLER.v" \
+"../../../../ITMN_NEWEST.srcs/sim_1/new/ITM_CTRL_TB.v" \
+"../../../../ITMN_NEWEST.srcs/sim_1/new/ITM_CTRL_TB_v2.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

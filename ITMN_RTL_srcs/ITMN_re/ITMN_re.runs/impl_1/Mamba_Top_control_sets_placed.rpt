@@ -1,0 +1,128 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
+| Date         : Sun Jul  5 23:27:34 2026
+| Host         : letun running 64-bit major release  (build 9200)
+| Command      : report_control_sets -verbose -file Mamba_Top_control_sets_placed.rpt
+| Design       : Mamba_Top
+| Device       : xck26
+--------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    50 |
+|    Minimum number of control sets                        |    50 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    31 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    50 |
+| >= 0 to < 4        |     1 |
+| >= 4 to < 6        |     3 |
+| >= 6 to < 8        |     1 |
+| >= 8 to < 10       |     4 |
+| >= 10 to < 12      |     2 |
+| >= 12 to < 14      |     4 |
+| >= 14 to < 16      |     0 |
+| >= 16              |    35 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |               0 |            0 |
+| No           | No                    | Yes                    |            1220 |          519 |
+| No           | Yes                   | No                     |               0 |            0 |
+| Yes          | No                    | No                     |               0 |            0 |
+| Yes          | No                    | Yes                    |            4609 |         1434 |
+| Yes          | Yes                   | No                     |               0 |            0 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------+-------------------------------+------------------+------------------+----------------+--------------+
+| Clock Signal |         Enable Signal         | Set/Reset Signal | Slice Load Count | Bel Load Count | Bels / Slice |
++--------------+-------------------------------+------------------+------------------+----------------+--------------+
+|  clk         | tap_cnt[1]_i_1_n_0            | rst              |                1 |              2 |         2.00 |
+|  clk         | cur_stage[3]_i_1_n_0          | rst              |                1 |              4 |         4.00 |
+|  clk         | c_out_grp[4]_i_1_n_0          | rst              |                3 |              5 |         1.67 |
+|  clk         | rn_grp[4]_i_1_n_0             | rst              |                1 |              5 |         5.00 |
+|  clk         | const_rd_addr_r               | rst              |                3 |              7 |         2.33 |
+|  clk         | m6_h_rd_addr_r                | rst              |                1 |              8 |         8.00 |
+|  clk         | c_in_cnt[8]_i_1_n_0           | rst              |                7 |              9 |         1.29 |
+|  clk         | h_init_cnt[8]_i_1_n_0         | rst              |                3 |              9 |         3.00 |
+|  clk         | m5_w_cnt[4]_i_1_n_0           | rst              |                3 |              9 |         3.00 |
+|  clk         | m6_lane                       | rst              |                4 |             10 |         2.50 |
+|  clk         | t_cnt[9]_i_1_n_0              | rst              |                3 |             10 |         3.33 |
+|  clk         | m6_h_wr_en_r                  | rst              |                8 |             12 |         1.50 |
+|  clk         | w_rd_addr2                    | rst              |                3 |             12 |         4.00 |
+|  clk         | w_rd_addr                     | rst              |               11 |             12 |         1.09 |
+|  clk         | m_rd_addr                     | rst              |                9 |             13 |         1.44 |
+|  clk         | m6_ssm_grp_acc[111]           | rst              |               14 |             16 |         1.14 |
+|  clk         | m6_ssm_grp_acc[207]           | rst              |               12 |             16 |         1.33 |
+|  clk         | m6_ssm_grp_acc[47]            | rst              |               14 |             16 |         1.14 |
+|  clk         | m6_ssm_grp_acc[239]           | rst              |               14 |             16 |         1.14 |
+|  clk         | m6_y_ch_reg                   | rst              |                2 |             16 |         8.00 |
+|  clk         | m6_ssm_grp_acc[79]            | rst              |               14 |             16 |         1.14 |
+|  clk         | m6_ssm_grp_acc[15]            | rst              |               11 |             16 |         1.45 |
+|  clk         | m6_ssm_grp_acc[223]           | rst              |               14 |             16 |         1.14 |
+|  clk         | m6_ssm_grp_acc[191]           | rst              |               13 |             16 |         1.23 |
+|  clk         | m6_du_reg                     | rst              |                2 |             16 |         8.00 |
+|  clk         | m6_ssm_grp_acc[143]           | rst              |                9 |             16 |         1.78 |
+|  clk         | m6_ssm_grp_acc[95]            | rst              |               12 |             16 |         1.33 |
+|  clk         | m6_ssm_grp_acc[63]            | rst              |               15 |             16 |         1.07 |
+|  clk         | m6_ssm_grp_acc[255]           | rst              |               13 |             16 |         1.23 |
+|  clk         | m6_ssm_grp_acc[175]           | rst              |               15 |             16 |         1.07 |
+|  clk         | m6_ssm_grp_acc[159]           | rst              |               12 |             16 |         1.33 |
+|  clk         | m6_ssm_grp_acc[31]            | rst              |                8 |             16 |         2.00 |
+|  clk         | m6_ssm_grp_acc[127]           | rst              |               12 |             16 |         1.33 |
+|  clk         | state[6]_i_1_n_0              | rst              |               45 |             85 |         1.89 |
+|  clk         | silu_z_reg                    | rst              |              152 |            240 |         1.58 |
+|  clk         | m6_t2_reg                     | rst              |              166 |            256 |         1.54 |
+|  clk         | cl_in_W1_vec_reg[255]_i_1_n_0 | rst              |              197 |            256 |         1.30 |
+|  clk         | cl_in_H_ext_reg[255]_i_1_n_0  | rst              |              194 |            256 |         1.32 |
+|  clk         | m5_dt_word_reg                | rst              |               35 |            256 |         7.31 |
+|  clk         | m6_delta_word                 | rst              |               36 |            256 |         7.11 |
+|  clk         | m6_u_word                     | rst              |               36 |            256 |         7.11 |
+|  clk         | m6_D_word                     | rst              |               45 |            256 |         5.69 |
+|  clk         | m6_w2_reg                     | rst              |               76 |            256 |         3.37 |
+|  clk         | m6_w1_reg                     | rst              |              119 |            256 |         2.15 |
+|  clk         | m6_t1_reg                     | rst              |              177 |            256 |         1.45 |
+|  clk         | m6_w0_reg                     | rst              |               73 |            256 |         3.51 |
+|  clk         | m_we                          | rst              |              211 |            269 |         1.27 |
+|  clk         | m6_dA_reg                     | rst              |              155 |            272 |         1.75 |
+|  clk         | cl_in_X_vec[255]_i_1_n_0      | rst              |              167 |            512 |         3.07 |
+|  clk         |                               | rst              |              519 |           1220 |         2.35 |
++--------------+-------------------------------+------------------+------------------+----------------+--------------+
+
+

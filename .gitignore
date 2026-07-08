@@ -6,3 +6,20 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Vivado simulation
+*.wdb
+*.jou
+*.log
+*.pb
+*.str
+
+# Simulation output
+.sim/
+
+# Xilinx cache
+.cache/
+.hw/
+.ip_user_files/
+.runs/
+.Xil/

@@ -1,0 +1,123 @@
+`include "_parameter.v"
+
+module Conv1D_Layer_16PE
+(
+    input clk,
+    input reset,
+    
+    // Control
+    input start,       // Bao hieu bat dau mot chuoi moi (de reset shift register)
+    input valid_in,    // Bao hieu du lieu input hop le
+    output reg valid_out, // Bao hieu du lieu output hop le
+
+    // Data Input: 16 gia tri x cua 16 kenh tai thoi diem t
+    // (Moi kenh 16-bit -> Tong bus input)
+    input signed [16 * `DATA_WIDTH - 1 : 0] x_in_vec,
+
+    // Weights: 16 bo weights. Moi bo gom 4 trong so (Kernel=4).
+    // Tong cong: 16 kenh * 4 weights * 16 bit
+    // Can load cai nay tu memory controller vao truoc khi chay.
+    // De don gian cho code nay, to gia dinh weights da duoc dua vao cong nay.
+    input signed [16 * 4 * `DATA_WIDTH - 1 : 0] weights_vec,
+
+    // Bias: 16 bias cho 16 kenh
+    input signed [16 * `DATA_WIDTH - 1 : 0] bias_vec,
+
+    // Output: 16 gia tri y
+    output reg signed [16 * `DATA_WIDTH - 1 : 0] y_out_vec
+);
+
+    // --- 1. UNPACK DATA (giai nen du lieu) ---
+    wire signed [`DATA_WIDTH-1:0] x_in [15:0];
+    wire signed [`DATA_WIDTH-1:0] w_in [15:0][3:0]; // 16 kenh, moi kenh 4 weights
+    wire signed [`DATA_WIDTH-1:0] b_in [15:0];
+    
+    reg signed [31:0] acc;
+    
+    genvar i, k;
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : unpack_channels
+            assign x_in[i] = x_in_vec[i*`DATA_WIDTH +: `DATA_WIDTH];
+            assign b_in[i] = bias_vec[i*`DATA_WIDTH +: `DATA_WIDTH];
+            for (k = 0; k < 4; k = k + 1) begin : unpack_kernel
+                // Cach map: Kenh 0 (w0, w1, w2, w3), Kenh 1...
+                assign w_in[i][k] = weights_vec[(i*4 + k)*`DATA_WIDTH +: `DATA_WIDTH];
+            end
+        end
+    endgenerate
+
+    // --- 2. SHIFT REGISTERS (bo nho dem cua so truot) ---
+    // Moi kenh can nho 4 gia tri gan nhat: x[t], x[t-1], x[t-2], x[t-3]
+    reg signed [`DATA_WIDTH-1:0] shift_reg [15:0][3:0];
+
+    integer c, w;
+    
+    // --- 3. LOGIC TINH TOAN (tich chap) ---
+    // Vi kernel nho (4), co the dung logic to hop ket hop pipeline don gian
+    // ma khong can FSM phuc tap.
+    
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            valid_out <= 0;
+            y_out_vec <= 0;
+            // Reset shift regs
+            for (c = 0; c < 16; c = c + 1) 
+                for (w = 0; w < 4; w = w + 1) 
+                    shift_reg[c][w] <= 0;
+        end else begin
+            if (start) begin
+                 // Khi bat dau chuoi moi, xoa sach lich su
+                 for (c = 0; c < 16; c = c + 1) 
+                    for (w = 0; w < 4; w = w + 1) 
+                        shift_reg[c][w] <= 0;
+                 valid_out <= 0;
+            end 
+            else if (valid_in) begin
+                valid_out <= 1; // Output se hop le o chu ky sau (latency = 1)
+                
+                for (c = 0; c < 16; c = c + 1) begin
+                    // 1. Cap nhat Shift Register (day vao)
+                    // [0] la moi nhat, [3] la cu nhat
+                    shift_reg[c][3] <= shift_reg[c][2];
+                    shift_reg[c][2] <= shift_reg[c][1];
+                    shift_reg[c][1] <= shift_reg[c][0];
+                    shift_reg[c][0] <= x_in[c]; // Gia tri moi vao dau hang
+
+                    // 2. Tinh tich chap (MAC) + Bias
+                    // Cong thuc: y = (x[t]*w0 + x[t-1]*w1 + x[t-2]*w2 + x[t-3]*w3) + bias
+                    // Luu y: tinh toan fixed-point
+                    
+                    // Vi day la logic to hop trong always block, dung bien tam 32-bit
+                    // de tinh tong, sau do cat bot.
+                    // Luu y: o day to viet gop cho gon, trinh tong hop se dung DSP.
+                    // Neu muon toi uu timing, co the tach ra thanh pipeline nhieu stage.
+                    
+                    // Tinh voi du lieu hien co trong shift_reg (truoc khi cap nhat cho cycle sau)
+                    // Logic nay hoi tricky: x_in[c] la x[t], shift_reg[c][0] dang la x[t-1]...
+                    // De don gian, tinh toan dua tren du lieu vua nap vao:
+                    
+                    acc = (x_in[c] * w_in[c][0]) + 
+                          (shift_reg[c][0] * w_in[c][1]) + 
+                          (shift_reg[c][1] * w_in[c][2]) + 
+                          (shift_reg[c][2] * w_in[c][3]);
+                    
+                    // Dich bit fixed-point (Q3.12)
+                    acc = acc >>> `FRAC_BITS;
+                    
+                    // Cong Bias
+                    acc = acc + b_in[c];
+
+                    // Saturation (chong tran 16-bit)
+                    if (acc > 32767) acc = 32767;
+                    else if (acc < -32768) acc = -32768;
+
+                    // Gan ra output
+                    y_out_vec[c*`DATA_WIDTH +: `DATA_WIDTH] <= acc[15:0];
+                end
+            end else begin
+                valid_out <= 0;
+            end
+        end
+    end
+
+endmodule
