@@ -51,20 +51,75 @@
 `define PT_MAMBA_OUT      15'd128     // Slot BULK — aliased with INPUT (safe: INPUT[t] dies before MAMBA_OUT[t] writes)
 `define PT_MAIN_DEPTH     15'd4128    // 128 + 4000 (B0: T=1000, CH_OUT=4)
 
-// Weight RAM (BRAM target=1)
-`define W_INPROJ_X_BASE   15'd0
-`define W_INPROJ_Z_BASE   15'd512
-`define W_OUTPROJ_BASE    15'd1024
-`define W_DW_BASE         15'd1536
-`define W_XPROJ_BASE      15'd1600
-`define W_DTPROJ_BASE     15'd2368
-`define W_A_BASE          15'd2400
+// Weight RAM (BRAM target=2, depth W_MEM_DEPTH=8192, TDP for MAC2 dual read)
+//   Layout sized for worst-case B4 (d_inner=256, dt_rank=8):
+//     [0..1216)      SMALLS resident (B0..B4):
+//                      W_DW      [0..64)     max = d_inner*4/16 = 64 (B4)
+//                      W_XPROJ   [64..832)   max = 48*d_inner/16 = 768 (B4)
+//                      W_DTPROJ  [832..960)  max = d_inner*dt_rank/16 = 128 (B4)
+//                      W_A       [960..1216) max = d_inner*d_state/16 = 256 (B4)
+//     [1216..3264)   Slot X   — W_INPROJ_X permanent (max 2048 words for B4)
+//     [3264..5312)   Slot Z   — W_INPROJ_Z permanent (max 2048 words for B4)
+//     [5312..7360)   Slot OUT — W_OUTPROJ permanent (max 2048 words for B4);
+//                               streaming removed (2026-07-13 refactor) —
+//                               all weights fit permanently, TDP + no runtime
+//                               DMA writes → 2R/cyc always available.
+//     [7360..8192)   spare
+`define W_MEM_DEPTH       8192
+`define W_MEM_ADDR_W      13         // ceil(log2(8192))
+`define W_DW_BASE         15'd0
+`define W_XPROJ_BASE      15'd64
+`define W_DTPROJ_BASE     15'd832
+`define W_A_BASE          15'd960
+`define W_INPROJ_X_BASE   15'd1216
+`define W_INPROJ_Z_BASE   15'd3264
+`define W_OUTPROJ_BASE    15'd5312
 
 // Const RAM (target=2)
 `define C_W_NORM_BASE     15'd0
 `define C_B_DW_BASE       15'd8
 `define C_B_DT_BASE       15'd24
 `define C_D_PARAM_BASE    15'd40
+
+// ============================================================================
+// Datapath geometry (added Phase 1)
+// ============================================================================
+`define LANE_MAX          4'd15      // 16 lanes − 1
+`define LANE_W            4          // lane counter width
+`define NUM_LANES         5'd16
+
+// M2 depthwise-conv geometry
+`define M2_TAP_COUNT      3'd4
+`define M2_TAP_MAX        2'd3       // tap_cnt roll-over
+`define M2_WEIGHT_STRIDE  15'd4      // 4 taps × 16b = 1 word per c_grp
+
+// Address-chain constants
+`define DT_SHIFT_BASE     9'd256     // MSB of 256-bit word for B/C barrel-shift
+
+// PE pipeline depth (mac_last2 = len − PE_PIPE_DEPTH)
+`define PE_PIPE_DEPTH     9'd2
+
+// Fixed-point saturation output values (16-bit)
+`define SAT16_MAX         16'sh7FFF
+`define SAT16_MIN         16'sh8000  // = -32768 signed
+
+// Activation-LUT latencies (documentation; not yet used in cycle math)
+`define SILU_LAT          3'd2
+`define SOFTPLUS_LAT      3'd2
+`define EXP_LAT           3'd2
+`define RSQRT_LAT         3'd1
+
+// cur_stage enum (matches encoding used in Mamba_Top FSM dispatch)
+`define STG_M1A           4'd0
+`define STG_M1B           4'd1
+`define STG_M2            4'd2
+`define STG_M3            4'd3
+`define STG_M4            4'd4
+`define STG_M5            4'd5
+`define STG_M6            4'd6
+`define STG_M7            4'd7
+`define STG_M8            4'd8
+`define STG_RN            4'd9
 
 // Block-0 reference dimensions (runtime values come from CH_OUT/CH_M/DT_RANK ports)
 `define B0_D_MODEL        64

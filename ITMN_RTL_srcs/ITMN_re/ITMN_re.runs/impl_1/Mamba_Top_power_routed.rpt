@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date             : Sun Jul  5 23:28:41 2026
+| Date             : Thu Jul 16 23:19:55 2026
 | Host             : letun running 64-bit major release  (build 9200)
 | Command          : report_power -file Mamba_Top_power_routed.rpt -pb Mamba_Top_power_summary_routed.pb -rpx Mamba_Top_power_routed.rpx
 | Design           : Mamba_Top
@@ -30,10 +30,10 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.491        |
+| Total On-Chip Power (W)  | 0.478        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.201        |
+| Dynamic (W)              | 0.188        |
 | Device Static (W)        | 0.290        |
 | Effective TJA (C/W)      | 2.3          |
 | Max Ambient (C)          | 83.9         |
@@ -52,19 +52,19 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-| Clocks         |     0.012 |        3 |       --- |             --- |
-| CLB Logic      |     0.054 |    24352 |       --- |             --- |
-|   LUT as Logic |     0.051 |    14438 |    117120 |           12.33 |
-|   CARRY8       |     0.003 |      568 |     14640 |            3.88 |
-|   Register     |    <0.001 |     5829 |    234240 |            2.49 |
-|   Others       |     0.000 |       73 |       --- |             --- |
-|   F7/F8 Muxes  |     0.000 |     1121 |    117120 |            0.96 |
-| Signals        |     0.070 |    23939 |       --- |             --- |
-| Block RAM      |     0.038 |       65 |       144 |           45.14 |
+| Clocks         |     0.011 |        3 |       --- |             --- |
+| CLB Logic      |     0.049 |    21950 |       --- |             --- |
+|   LUT as Logic |     0.046 |    13692 |    117120 |           11.69 |
+|   CARRY8       |     0.002 |      467 |     14640 |            3.19 |
+|   Register     |    <0.001 |     5299 |    234240 |            2.26 |
+|   Others       |     0.000 |       68 |       --- |             --- |
+|   F7/F8 Muxes  |     0.000 |      298 |    117120 |            0.25 |
+| Signals        |     0.065 |    24451 |       --- |             --- |
+| Block RAM      |     0.039 |       65 |       144 |           45.14 |
 | URAM           |     0.016 |        8 |        64 |           12.50 |
-| DSPs           |     0.011 |       64 |      1248 |            5.13 |
+| DSPs           |     0.009 |       48 |      1248 |            3.85 |
 | Static Power   |     0.290 |          |           |                 |
-| Total          |     0.491 |          |           |                 |
+| Total          |     0.478 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -74,7 +74,7 @@ Table of Contents
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source          | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint          |       0.720 |     0.345 |       0.275 |      0.070 |       NA    | Unspecified | NA         |
+| Vccint          |       0.720 |     0.327 |       0.258 |      0.070 |       NA    | Unspecified | NA         |
 | Vccint_io       |       0.850 |     0.035 |       0.000 |      0.035 |       NA    | Unspecified | NA         |
 | Vccbram         |       0.850 |     0.004 |       0.003 |      0.001 |       NA    | Unspecified | NA         |
 | Vccaux          |       1.800 |     0.077 |       0.000 |      0.077 |       NA    | Unspecified | NA         |
@@ -161,14 +161,12 @@ Table of Contents
 +----------------------+-----------+
 | Name                 | Power (W) |
 +----------------------+-----------+
-| Mamba_Top            |     0.201 |
-|   u_const            |     0.011 |
-|     ram_const        |     0.011 |
-|   u_mc               |     0.079 |
-|     PE_LANE[0].u_pe  |     0.004 |
-|     PE_LANE[10].u_pe |     0.005 |
+| Mamba_Top            |     0.188 |
+|   u_mc               |     0.077 |
+|     PE_LANE[0].u_pe  |     0.005 |
+|     PE_LANE[10].u_pe |     0.004 |
 |     PE_LANE[11].u_pe |     0.004 |
-|     PE_LANE[12].u_pe |     0.005 |
+|     PE_LANE[12].u_pe |     0.004 |
 |     PE_LANE[13].u_pe |     0.004 |
 |     PE_LANE[14].u_pe |     0.004 |
 |     PE_LANE[15].u_pe |     0.004 |
@@ -181,12 +179,12 @@ Table of Contents
 |     PE_LANE[7].u_pe  |     0.004 |
 |     PE_LANE[8].u_pe  |     0.004 |
 |     PE_LANE[9].u_pe  |     0.004 |
-|     u_hrf            |     0.009 |
-|   u_mem              |     0.063 |
-|     ram_main         |     0.035 |
-|     ram_weight       |     0.015 |
-|     ram_weight2      |     0.012 |
-|   u_rw               |     0.006 |
+|     u_hrf            |     0.010 |
+|   u_mem              |     0.073 |
+|     ram_const        |     0.011 |
+|     ram_main         |     0.033 |
+|     ram_weight       |     0.029 |
+|   u_rw               |     0.007 |
 +----------------------+-----------+
 
 

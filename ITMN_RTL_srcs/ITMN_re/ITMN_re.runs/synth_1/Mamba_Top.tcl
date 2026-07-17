@@ -94,9 +94,9 @@ OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib {
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/_parameter.v
-  C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Const_Storage.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Exp_LUT.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/H_RegFile.v
+  C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/LUT_Bank.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/M_Cluster.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v

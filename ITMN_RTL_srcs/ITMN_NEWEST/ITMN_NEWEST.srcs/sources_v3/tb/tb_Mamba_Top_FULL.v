@@ -89,6 +89,13 @@ module tb_Mamba_Top_FULL;
     reg [255:0] word_tmp, readback;
     reg signed [15:0] got_val, exp_val;
 
+    integer cyc_start;
+    integer cyc_end;
+    initial begin
+        cyc_start = 0;
+        cyc_end   = 0;
+    end
+
     task dma_wr;
         input [1:0]   target;
         input [14:0]  addr;
@@ -240,9 +247,11 @@ module tb_Mamba_Top_FULL;
         // ---- Start pipeline ----
         @(negedge clk); start = 1;
         @(negedge clk); start = 0;
-        $display("[FSM] pipeline running (T=%0d)...", T_TEST);
+        cyc_start = $time / 10;
+        $display("[FSM] pipeline running (T=%0d), cyc_start=%0d", T_TEST, cyc_start);
         wait (done_all == 1'b1);
-        $display("[FSM] done at %0t", $time);
+        cyc_end = $time / 10;
+        $display("[FSM] done at %0t, cyc_end=%0d", $time, cyc_end);
         @(negedge clk); @(negedge clk);
 
         // ---- Read back MAMBA_OUT and compare ----
@@ -273,6 +282,9 @@ module tb_Mamba_Top_FULL;
         $display("");
         $display("---- tb_Mamba_Top_FULL summary ----");
         $display("  T=%0d compares=%0d errors=%0d", T_TEST, compares, errors);
+        $display("  cyc_start=%0d  cyc_end=%0d  total=%0d cycles",
+                 cyc_start, cyc_end, cyc_end - cyc_start);
+        $display("  cycles per timestep = %0d", (cyc_end - cyc_start) / T_TEST);
         if (errors == 0) $display("===== TB FULL BYTE-EXACT PASS =====");
         else             $display("===== TB FULL FAIL =====");
         $finish;

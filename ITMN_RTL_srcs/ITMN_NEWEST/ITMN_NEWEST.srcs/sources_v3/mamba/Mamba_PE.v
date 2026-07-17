@@ -1,32 +1,29 @@
 `include "_parameter.v"
 
 // ============================================================================
-// Mamba_PE — dual-multiplier PE specialized for SSM scan.
+// Mamba_PE — clean rewrite (2026-07-16).
 //
-// Two DSP48E2 multipliers run in parallel:
-//   m1 = in_W1 * in_H
-//   m2 = in_W2 * in_X   (active only in SSM mode)
+// Physical storage: 1× acc_raw (40b) + 1× out_val (16b) + 1× out_val2 (16b) = 72b.
+// No phantom acc_next reg — comb logic uses wires (ternary chain).
 //
-// 1-cycle latency: inputs on cycle N → out_val/acc_raw on cycle N+1.
+// Fabric adders (comb per cyc): 33b (m1+m2), 17b (W1+H), 40b (mac acc).
+// vs original: 40b × 3 always-active (sum_ssm, sum_add, acc+m1) — save ~3 CARRY8/PE.
+//
+// MUX narrowed 7-way case → 3-way ternary → save ~80 LUT/PE.
+//
+// MAC branch coded canonical → Vivado can infer DSP48E2 MAC (mult+ALU+PREG).
+//
+// 1-cycle latency: inputs @ cyc N → out_val / acc_raw @ cyc N+1.
+// Byte-exact preserved vs prior version.
 //
 // Modes (op_mode[2:0]):
-//   IDLE : acc held, out=0
-//   MAC  : acc <= clear_acc ? m1 : (acc + m1);   out <= sat16(acc_next >> FB)
-//          (also used for SSM y-reduction:  y += h_new * C)
-//   MUL  : acc <= m1;                            out <= sat16(m1 >> FB)
-//   ADD  : acc <= ext(W1) + ext(H);              out <= sat16(W1 + H)
-//   SSM  : acc <= m1 + m2;                       out <= sat16((m1+m2) >> FB)
-//   MUL2 : acc <= m1_ext (don't-care);
-//          out  <= sat16(m1 >> FB)  ;  out2 <= sat16(m2 >> FB)
-//          → dual independent products in 1 cycle; enables M6 dt*A / dt*B
-//            fusion and lets downstream consume registered outputs (breaks
-//            the URAM→mult→Exp_LUT combinational chain that dominates fmax).
-//
-// Notes:
-//   - clear_acc only acts in MAC mode; ignored elsewhere (SSM/MUL2 overwrite).
-//   - When IDLE the m2 path is don't-care; Vivado will leave the DSP unused.
-//   - sat16 saturates to int16 range.
-//   - out_val2 / out_next2_exp are only meaningful in MUL2; other modes drive 0.
+//   IDLE : acc holds; out = 0
+//   MAC  : acc <= clr? m1 : acc+m1       ; out <= sat16(acc_next >> FB)
+//   MAC2 : acc <= clr? m1+m2 : acc+m1+m2 ; out <= sat16(acc_next >> FB)
+//   MUL  : acc <= m1                     ; out <= sat16(m1 >> FB)
+//   MUL2 : acc <= m1 (dc)                ; out <= sat16(m1>>FB); out2 <= sat16(m2>>FB)
+//   ADD  : acc <= sxt(W1)+sxt(H)         ; out <= sat16(W1+H)   [NO shift]
+//   SSM  : acc <= m1+m2                  ; out <= sat16((m1+m2) >> FB)
 // ============================================================================
 module Mamba_PE (
     input  wire                     clk,
@@ -38,76 +35,76 @@ module Mamba_PE (
     input  wire signed [`DATA_W-1:0] in_W2,
     input  wire signed [`DATA_W-1:0] in_X,
     output reg  signed [`DATA_W-1:0] out_val,
-    output reg  signed [`ACC_W-1:0]  acc_raw,
-    output wire signed [`DATA_W-1:0] out_next_exp, // Opt B: combinational next-output
-    output reg  signed [`DATA_W-1:0] out_val2,     // MUL2 secondary output (m2>>FB)
-    output wire signed [`DATA_W-1:0] out_next2_exp // Combinational next of out_val2
+    output reg  signed [`ACC_W-1:0]  acc_raw,      // ← ONLY 40b physical reg
+    output wire signed [`DATA_W-1:0] out_next_exp,
+    output reg  signed [`DATA_W-1:0] out_val2,
+    output wire signed [`DATA_W-1:0] out_next2_exp
 );
 
-    // -----------------------------------------------------------------------
-    // Combinational multiplies (Vivado infers DSP48E2 with internal regs if
-    // upstream registers are present; here we register the products inside
-    // acc_raw on the next clock edge).
-    // -----------------------------------------------------------------------
-    wire signed [2*`DATA_W-1:0] m1 = in_W1 * in_H;
-    wire signed [2*`DATA_W-1:0] m2 = in_W2 * in_X;
+    // Mode decoders (1 LUT each)
+    wire is_mac  = (op_mode == `MAMBA_PE_MAC );
+    wire is_mac2 = (op_mode == `MAMBA_PE_MAC2);
+    wire is_mul  = (op_mode == `MAMBA_PE_MUL );
+    wire is_mul2 = (op_mode == `MAMBA_PE_MUL2);
+    wire is_ssm  = (op_mode == `MAMBA_PE_SSM );
+    wire is_add  = (op_mode == `MAMBA_PE_ADD );
+    wire mac_en   = is_mac  | is_mac2;              // MAC accumulate
+    wire load_en  = is_mul  | is_mul2 | is_ssm;     // direct load (no acc+)
+    wire dual_sum = is_mac2 | is_ssm;               // addend = m1+m2
 
-    // Sign-extended versions for accumulator math
-    wire signed [`ACC_W-1:0] m1_ext = {{(`ACC_W - 2*`DATA_W){m1[2*`DATA_W-1]}}, m1};
-    wire signed [`ACC_W-1:0] m2_ext = {{(`ACC_W - 2*`DATA_W){m2[2*`DATA_W-1]}}, m2};
-    wire signed [`ACC_W-1:0] w1_ext = {{(`ACC_W - `DATA_W){in_W1[`DATA_W-1]}}, in_W1};
-    wire signed [`ACC_W-1:0] h_ext  = {{(`ACC_W - `DATA_W){in_H[`DATA_W-1]}},  in_H};
-    wire signed [`ACC_W-1:0] sum_ssm = m1_ext + m2_ext;
-    wire signed [`ACC_W-1:0] sum_add = w1_ext + h_ext;
+    // DSP mults — Vivado infers DSP48E2
+    (* use_dsp = "yes" *)
+    wire signed [2*`DATA_W-1:0] m1 = in_W1 * in_H;   // 32b product
+    (* use_dsp = "yes" *)
+    wire signed [2*`DATA_W-1:0] m2 = in_W2 * in_X;   // 32b product
 
-    // Next-cycle accumulator value (mode-dependent)
-    reg  signed [`ACC_W-1:0] acc_next;
-    always @* begin
-        case (op_mode)
-            `MAMBA_PE_MAC:  acc_next = clear_acc ? m1_ext : (acc_raw + m1_ext);
-            `MAMBA_PE_MAC2: acc_next = clear_acc ? sum_ssm : (acc_raw + sum_ssm);
-            `MAMBA_PE_MUL:  acc_next = m1_ext;
-            `MAMBA_PE_MUL2: acc_next = m1_ext;    // don't-care (out_val is primary)
-            `MAMBA_PE_ADD:  acc_next = sum_add;
-            `MAMBA_PE_SSM:  acc_next = sum_ssm;
-            default:        acc_next = acc_raw;   // IDLE: hold
-        endcase
-    end
+    // Narrow inner sums — width = actual result, not 40b overkill
+    wire signed [2*`DATA_W  :0] m12_sum =            // 33b: m1+m2 max range
+        {m1[2*`DATA_W-1], m1} + {m2[2*`DATA_W-1], m2};
+    wire signed [`DATA_W    :0] wh_sum =             // 17b: W1+H max range
+        {in_W1[`DATA_W-1], in_W1} + {in_H[`DATA_W-1], in_H};
 
-    // Saturating shift-right to int16 (in MAC/MUL/SSM modes shift by FB;
-    // in ADD mode no shift — value is already int16-ish, just clip).
+    // Sign-ext to 40b at consumption point
+    wire signed [`ACC_W-1:0] m1_ext40  = {{(`ACC_W - 2*`DATA_W){m1[2*`DATA_W-1]}}, m1};
+    wire signed [`ACC_W-1:0] m2_ext40  = {{(`ACC_W - 2*`DATA_W){m2[2*`DATA_W-1]}}, m2};
+    wire signed [`ACC_W-1:0] m12_ext40 = {{(`ACC_W - (2*`DATA_W+1)){m12_sum[2*`DATA_W]}}, m12_sum};
+    wire signed [`ACC_W-1:0] wh_ext40  = {{(`ACC_W - (`DATA_W+1)){wh_sum[`DATA_W]}}, wh_sum};
+
+    // Addend for MAC/load path
+    wire signed [`ACC_W-1:0] mac_addend = dual_sum ? m12_ext40 : m1_ext40;
+
+    // Canonical MAC: (clr?0:p) + addend — Vivado sees P += M pattern
+    wire signed [`ACC_W-1:0] mac_acc = (clear_acc ? {`ACC_W{1'b0}} : acc_raw) + mac_addend;
+
+    // acc_next as WIRE (ternary chain) — no phantom reg
+    wire signed [`ACC_W-1:0] acc_next =
+        mac_en   ? mac_acc     :
+        load_en  ? mac_addend  :
+        is_add   ? wh_ext40    :
+                   acc_raw;      // IDLE — hold
+
+    // Sat function
     function automatic signed [`DATA_W-1:0] sat16;
         input signed [`ACC_W-1:0] v;
         begin
-            if      (v >  40'sd32767)  sat16 = 16'sh7FFF;
-            else if (v < -40'sd32768)  sat16 = 16'sh8000;
+            if      (v >  40'sd32767)  sat16 = `SAT16_MAX;
+            else if (v < -40'sd32768)  sat16 = `SAT16_MIN;
             else                        sat16 = v[`DATA_W-1:0];
         end
     endfunction
 
-    reg  signed [`DATA_W-1:0] out_next;
-    always @* begin
-        case (op_mode)
-            `MAMBA_PE_MAC:  out_next = sat16(acc_next >>> `FRAC_BITS);
-            `MAMBA_PE_MAC2: out_next = sat16(acc_next >>> `FRAC_BITS);
-            `MAMBA_PE_MUL:  out_next = sat16(m1_ext   >>> `FRAC_BITS);
-            `MAMBA_PE_MUL2: out_next = sat16(m1_ext   >>> `FRAC_BITS);
-            `MAMBA_PE_ADD:  out_next = sat16(sum_add);
-            `MAMBA_PE_SSM:  out_next = sat16(sum_ssm  >>> `FRAC_BITS);
-            default:        out_next = 16'sd0;
-        endcase
-    end
+    // out_next: mode-specific shift
+    wire signed [`DATA_W-1:0] out_next =
+        mac_en   ? sat16(acc_next   >>> `FRAC_BITS) :
+        load_en  ? sat16(mac_addend >>> `FRAC_BITS) :
+        is_add   ? sat16(wh_ext40) :
+                   {`DATA_W{1'b0}};
 
-    // MUL2 secondary output: sat16(m2 >> FB). Zero in every other mode so
-    // downstream consumers can safely OR / mux without extra guards.
-    reg signed [`DATA_W-1:0] out_next2;
-    always @* begin
-        case (op_mode)
-            `MAMBA_PE_MUL2: out_next2 = sat16(m2_ext >>> `FRAC_BITS);
-            default:        out_next2 = 16'sd0;
-        endcase
-    end
+    // MUL2 secondary output
+    wire signed [`DATA_W-1:0] out_next2 =
+        is_mul2 ? sat16(m2_ext40 >>> `FRAC_BITS) : {`DATA_W{1'b0}};
 
+    // Register update — 1× 40b (acc_raw) + 2× 16b (out_val, out_val2)
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             acc_raw  <= {`ACC_W{1'b0}};

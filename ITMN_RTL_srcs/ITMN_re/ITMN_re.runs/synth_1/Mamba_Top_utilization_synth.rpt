@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date         : Sun Jul  5 23:25:26 2026
+| Date         : Thu Jul 16 23:15:55 2026
 | Host         : letun running 64-bit major release  (build 9200)
 | Command      : report_utilization -file Mamba_Top_utilization_synth.rpt -pb Mamba_Top_utilization_synth.pb
 | Design       : Mamba_Top
@@ -32,15 +32,15 @@ Table of Contents
 +-------------------------+-------+-------+------------+-----------+-------+
 |        Site Type        |  Used | Fixed | Prohibited | Available | Util% |
 +-------------------------+-------+-------+------------+-----------+-------+
-| CLB LUTs*               | 14497 |     0 |          0 |    117120 | 12.38 |
-|   LUT as Logic          | 14497 |     0 |          0 |    117120 | 12.38 |
+| CLB LUTs*               | 14063 |     0 |          0 |    117120 | 12.01 |
+|   LUT as Logic          | 14063 |     0 |          0 |    117120 | 12.01 |
 |   LUT as Memory         |     0 |     0 |          0 |     57600 |  0.00 |
-| CLB Registers           |  5824 |     0 |          0 |    234240 |  2.49 |
-|   Register as Flip Flop |  5824 |     0 |          0 |    234240 |  2.49 |
+| CLB Registers           |  5279 |     0 |          0 |    234240 |  2.25 |
+|   Register as Flip Flop |  5279 |     0 |          0 |    234240 |  2.25 |
 |   Register as Latch     |     0 |     0 |          0 |    234240 |  0.00 |
-| CARRY8                  |   568 |     0 |          0 |     14640 |  3.88 |
-| F7 Muxes                |  1057 |     0 |          0 |     58560 |  1.80 |
-| F8 Muxes                |    64 |     0 |          0 |     29280 |  0.22 |
+| CARRY8                  |   467 |     0 |          0 |     14640 |  3.19 |
+| F7 Muxes                |   235 |     0 |          0 |     58560 |  0.40 |
+| F8 Muxes                |    63 |     0 |          0 |     29280 |  0.22 |
 | F9 Muxes                |     0 |     0 |          0 |     14640 |  0.00 |
 +-------------------------+-------+-------+------------+-----------+-------+
 * Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
@@ -59,7 +59,7 @@ Table of Contents
 | 0     |            _ |       Reset |            - |
 | 0     |          Yes |           - |            - |
 | 0     |          Yes |           - |          Set |
-| 5824  |          Yes |           - |        Reset |
+| 5279  |          Yes |           - |        Reset |
 | 0     |          Yes |         Set |            - |
 | 0     |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
@@ -72,10 +72,9 @@ Table of Contents
 |     Site Type     | Used | Fixed | Prohibited | Available | Util% |
 +-------------------+------+-------+------------+-----------+-------+
 | Block RAM Tile    |   65 |     0 |          0 |       144 | 45.14 |
-|   RAMB36/FIFO*    |   64 |     0 |          0 |       144 | 44.44 |
-|     RAMB36E2 only |   64 |       |            |           |       |
-|   RAMB18          |    2 |     0 |          0 |       288 |  0.69 |
-|     RAMB18E2 only |    2 |       |            |           |       |
+|   RAMB36/FIFO*    |   65 |     0 |          0 |       144 | 45.14 |
+|     RAMB36E2 only |   65 |       |            |           |       |
+|   RAMB18          |    0 |     0 |          0 |       288 |  0.00 |
 | URAM              |    8 |     0 |          0 |        64 | 12.50 |
 +-------------------+------+-------+------------+-----------+-------+
 * Note: Each Block RAM Tile only has one FIFO logic available and therefore can accommodate only one FIFO36E2 or one FIFO18E2. However, if a FIFO18E2 occupies a Block RAM Tile, that tile can still accommodate a RAMB18E2
@@ -87,8 +86,8 @@ Table of Contents
 +----------------+------+-------+------------+-----------+-------+
 |    Site Type   | Used | Fixed | Prohibited | Available | Util% |
 +----------------+------+-------+------------+-----------+-------+
-| DSPs           |   64 |     0 |          0 |      1248 |  5.13 |
-|   DSP48E2 only |   64 |       |            |           |       |
+| DSPs           |   48 |     0 |          0 |      1248 |  3.85 |
+|   DSP48E2 only |   48 |       |            |           |       |
 +----------------+------+-------+------------+-----------+-------+
 
 
@@ -159,20 +158,19 @@ Table of Contents
 +----------+------+---------------------+
 | Ref Name | Used | Functional Category |
 +----------+------+---------------------+
-| LUT6     | 7113 |                 CLB |
-| FDCE     | 5824 |            Register |
-| LUT3     | 3177 |                 CLB |
-| LUT5     | 2561 |                 CLB |
-| LUT2     | 1970 |                 CLB |
-| LUT1     | 1267 |                 CLB |
-| MUXF7    | 1057 |                 CLB |
-| LUT4     |  678 |                 CLB |
-| CARRY8   |  568 |                 CLB |
-| RAMB36E2 |   64 |            BLOCKRAM |
-| MUXF8    |   64 |                 CLB |
-| DSP48E2  |   64 |          Arithmetic |
+| LUT6     | 7024 |                 CLB |
+| FDCE     | 5279 |            Register |
+| LUT5     | 3802 |                 CLB |
+| LUT2     | 1771 |                 CLB |
+| LUT3     | 1676 |                 CLB |
+| LUT4     | 1155 |                 CLB |
+| CARRY8   |  467 |                 CLB |
+| LUT1     |  392 |                 CLB |
+| MUXF7    |  235 |                 CLB |
+| RAMB36E2 |   65 |            BLOCKRAM |
+| MUXF8    |   63 |                 CLB |
+| DSP48E2  |   48 |          Arithmetic |
 | URAM288  |    8 |            BLOCKRAM |
-| RAMB18E2 |    2 |            BLOCKRAM |
 +----------+------+---------------------+
 
 

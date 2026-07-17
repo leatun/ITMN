@@ -2,8 +2,8 @@
 # Vivado v2022.1 (64-bit)
 # SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
 # IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
-# Start of session at: Sun Jul  5 23:22:17 2026
-# Process ID: 23328
+# Start of session at: Thu Jul 16 23:11:16 2026
+# Process ID: 19132
 # Current directory: C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/ITMN_re.runs/synth_1
 # Command line: vivado.exe -log Mamba_Top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Mamba_Top.tcl
 # Log file: C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/ITMN_re.runs/synth_1/Mamba_Top.vds
@@ -11,7 +11,7 @@
 # Running On: letun, OS: Windows, CPU Frequency: 3110 MHz, CPU Physical cores: 12, Host memory: 16782 MB
 #-----------------------------------------------------------
 source Mamba_Top.tcl -notrace
-create_project: Time (s): cpu = 00:00:04 ; elapsed = 00:00:07 . Memory (MB): peak = 1268.617 ; gain = 0.000
+create_project: Time (s): cpu = 00:00:03 ; elapsed = 00:00:07 . Memory (MB): peak = 1270.863 ; gain = 0.000
 Command: synth_design -top Mamba_Top -part xck26-sfvc784-2LV-c -mode out_of_context
 Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xck26'
@@ -19,24 +19,33 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xck26'
 INFO: [Device 21-403] Loading part xck26-sfvc784-2LV-c
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 16844
+INFO: [Synth 8-7075] Helper process launched with PID 18196
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 1702.176 ; gain = 317.488
+Starting RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1702.672 ; gain = 316.336
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-6157] synthesizing module 'Mamba_Top' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:13]
-INFO: [Synth 8-6157] synthesizing module 'Memory_System' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:15]
-INFO: [Synth 8-6157] synthesizing module 'BRAM_256b' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
+INFO: [Synth 8-6157] synthesizing module 'Mamba_Top' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:113]
+INFO: [Synth 8-6157] synthesizing module 'Memory_System' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:35]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
 	Parameter ADDR_WIDTH bound to: 15 - type: integer 
 	Parameter RAM_STYLE bound to: ultra - type: string 
 	Parameter DEPTH bound to: 4128 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
-INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized0' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
-	Parameter ADDR_WIDTH bound to: 14 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
+WARNING: [Synth 8-7071] port 'dout_a' of module 'BRAM_256b' is unconnected for instance 'ram_main' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:83]
+WARNING: [Synth 8-7023] instance 'ram_main' of module 'BRAM_256b' has 7 connections declared, but only 6 given [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:83]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized0' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
+	Parameter ADDR_WIDTH bound to: 13 - type: integer 
 	Parameter RAM_STYLE bound to: block - type: string 
-	Parameter DEPTH bound to: 4096 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized0' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
-INFO: [Synth 8-6155] done synthesizing module 'Memory_System' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:15]
-INFO: [Synth 8-6157] synthesizing module 'Const_Storage' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Const_Storage.v:29]
+	Parameter DEPTH bound to: 8192 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized0' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
+INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized1' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
+	Parameter ADDR_WIDTH bound to: 7 - type: integer 
+	Parameter RAM_STYLE bound to: block - type: string 
+	Parameter DEPTH bound to: 128 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized1' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:29]
+WARNING: [Synth 8-7071] port 'dout_a' of module 'BRAM_256b' is unconnected for instance 'ram_const' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:102]
+WARNING: [Synth 8-7023] instance 'ram_const' of module 'BRAM_256b' has 7 connections declared, but only 6 given [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:102]
+INFO: [Synth 8-6155] done synthesizing module 'Memory_System' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v:35]
+INFO: [Synth 8-6157] synthesizing module 'LUT_Bank' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/LUT_Bank.v:23]
 INFO: [Synth 8-6157] synthesizing module 'Silu_LUT' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Silu_LUT.v:17]
 CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/silu_lut.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Silu_LUT.v:31]
 INFO: [Synth 8-6155] done synthesizing module 'Silu_LUT' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Silu_LUT.v:17]
@@ -49,16 +58,12 @@ INFO: [Synth 8-6155] done synthesizing module 'Exp_LUT' (0#1) [C:/Users/ADMIN/Do
 INFO: [Synth 8-6157] synthesizing module 'RSqrt_ROM' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/RSqrt_ROM.v:19]
 CRITICAL WARNING: [Synth 8-4445] could not open $readmem data file 'golden_all/rsqrt_q97.txt'; please make sure the file is added to project and has read permission, ignoring [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/RSqrt_ROM.v:25]
 INFO: [Synth 8-6155] done synthesizing module 'RSqrt_ROM' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/RSqrt_ROM.v:19]
-INFO: [Synth 8-6157] synthesizing module 'BRAM_256b__parameterized1' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
-	Parameter ADDR_WIDTH bound to: 7 - type: integer 
-	Parameter RAM_STYLE bound to: block - type: string 
-INFO: [Synth 8-6155] done synthesizing module 'BRAM_256b__parameterized1' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v:20]
-INFO: [Synth 8-6155] done synthesizing module 'Const_Storage' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Const_Storage.v:29]
+INFO: [Synth 8-6155] done synthesizing module 'LUT_Bank' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/LUT_Bank.v:23]
 INFO: [Synth 8-6157] synthesizing module 'M_Cluster' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/M_Cluster.v:24]
 	Parameter H_ADDR_W bound to: 9 - type: integer 
 	Parameter H_DEPTH bound to: 256 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'Mamba_PE' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:31]
-INFO: [Synth 8-6155] done synthesizing module 'Mamba_PE' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:31]
+INFO: [Synth 8-6157] synthesizing module 'Mamba_PE' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:28]
+INFO: [Synth 8-6155] done synthesizing module 'Mamba_PE' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:28]
 INFO: [Synth 8-6157] synthesizing module 'H_RegFile' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/H_RegFile.v:29]
 	Parameter ADDR_W bound to: 9 - type: integer 
 	Parameter DEPTH bound to: 256 - type: integer 
@@ -68,7 +73,7 @@ INFO: [Synth 8-6155] done synthesizing module 'Reduce16' (0#1) [C:/Users/ADMIN/D
 INFO: [Synth 8-6155] done synthesizing module 'M_Cluster' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/M_Cluster.v:24]
 INFO: [Synth 8-6157] synthesizing module 'Reduce16Wide' [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Reduce16Wide.v:20]
 INFO: [Synth 8-6155] done synthesizing module 'Reduce16Wide' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Reduce16Wide.v:20]
-INFO: [Synth 8-6155] done synthesizing module 'Mamba_Top' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:13]
+INFO: [Synth 8-6155] done synthesizing module 'Mamba_Top' (0#1) [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:113]
 WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or DRAM implementation is not possible; see log for reasons.
 	1: Unable to determine number of words or word size in RAM. 
 	2: No valid read/write found for RAM. 
@@ -188,58 +193,40 @@ WARNING: [Synth 8-4767] Trying to implement RAM ' ' in registers. Block RAM or D
 RAM dissolved into registers
 WARNING: [Synth 8-7129] Port wr_addr[8] in module H_RegFile is either unconnected or has no load
 WARNING: [Synth 8-7129] Port rd_addr[8] in module H_RegFile is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[14] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[13] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[12] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[11] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[10] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[9] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[8] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_addr[7] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[14] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[13] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[12] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[11] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[10] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[9] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[8] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port const_read_addr[7] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[14] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[13] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[12] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[11] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[10] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[9] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[8] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port dma_raddr[7] in module Const_Storage is either unconnected or has no load
-WARNING: [Synth 8-7129] Port addr_a[13] in module BRAM_256b__parameterized0 is either unconnected or has no load
-WARNING: [Synth 8-7129] Port addr_a[12] in module BRAM_256b__parameterized0 is either unconnected or has no load
-WARNING: [Synth 8-7129] Port addr_b[13] in module BRAM_256b__parameterized0 is either unconnected or has no load
-WARNING: [Synth 8-7129] Port addr_b[12] in module BRAM_256b__parameterized0 is either unconnected or has no load
 WARNING: [Synth 8-7129] Port addr_a[14] in module BRAM_256b is either unconnected or has no load
 WARNING: [Synth 8-7129] Port addr_a[13] in module BRAM_256b is either unconnected or has no load
 WARNING: [Synth 8-7129] Port addr_b[14] in module BRAM_256b is either unconnected or has no load
 WARNING: [Synth 8-7129] Port addr_b[13] in module BRAM_256b is either unconnected or has no load
 WARNING: [Synth 8-7129] Port reset in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr[14] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port weight_read_addr[13] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr2[14] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port weight_read_addr2[13] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[14] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[13] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[12] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[11] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[10] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[9] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[8] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[7] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[3] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[2] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[1] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[0] in module Mamba_Top is either unconnected or has no load
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:07 . Memory (MB): peak = 1881.523 ; gain = 496.836
+Finished RTL Elaboration : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 1883.297 ; gain = 496.961
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1881.523 ; gain = 496.836
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 1899.590 ; gain = 513.254
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1881.523 ; gain = 496.836
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 1899.590 ; gain = 513.254
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.264 . Memory (MB): peak = 1881.523 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.328 . Memory (MB): peak = 1900.520 ; gain = 0.891
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
@@ -250,13 +237,13 @@ INFO: [Project 1-236] Implementation specific constraints were found while readi
 Resolution: To avoid this warning, move constraints listed in [.Xil/Mamba_Top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2198.203 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 2181.102 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.076 . Memory (MB): peak = 2199.199 ; gain = 0.996
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.118 . Memory (MB): peak = 2182.066 ; gain = 0.965
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:18 ; elapsed = 00:00:21 . Memory (MB): peak = 2199.199 ; gain = 814.512
+Finished Constraint Validation : Time (s): cpu = 00:00:26 ; elapsed = 00:00:30 . Memory (MB): peak = 2182.066 ; gain = 795.730
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
@@ -264,25 +251,48 @@ Start Loading Part and Timing Information
 Loading part: xck26-sfvc784-2LV-c
 INFO: [Synth 8-6742] Reading net delay rules and data
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:18 ; elapsed = 00:00:21 . Memory (MB): peak = 2199.199 ; gain = 814.512
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:26 ; elapsed = 00:00:30 . Memory (MB): peak = 2182.066 ; gain = 795.730
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:18 ; elapsed = 00:00:21 . Memory (MB): peak = 2199.199 ; gain = 814.512
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:26 ; elapsed = 00:00:30 . Memory (MB): peak = 2182.066 ; gain = 795.730
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"BRAM_256b:/ram_reg"'.
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+WARNING: [Synth 8-5792] The ram_style = "ultra" set on RAM "BRAM_256b:/ram_reg" is ignored because invalid write mode.
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5800] Cascade chain of height 8 reduced to 5 because memory depth for RAM "BRAM_256b:/ram_reg" is not power of 2. 
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 5 and width 36 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "BRAM_256b:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "BRAM_256b__parameterized0:/ram_reg"
 INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "BRAM_256b__parameterized0:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 36 for RAM "BRAM_256b__parameterized1:/ram_reg"
+INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "BRAM_256b__parameterized1:/ram_reg"
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:24 ; elapsed = 00:00:27 . Memory (MB): peak = 2199.199 ; gain = 814.512
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:35 ; elapsed = 00:00:39 . Memory (MB): peak = 2182.066 ; gain = 795.730
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
@@ -293,76 +303,79 @@ Detailed RTL Component Info :
 	   2 Input   43 Bit       Adders := 2     
 	   2 Input   42 Bit       Adders := 4     
 	   2 Input   41 Bit       Adders := 8     
-	   2 Input   40 Bit       Adders := 32    
+	   2 Input   40 Bit       Adders := 16    
 	   2 Input   20 Bit       Adders := 1     
 	   2 Input   19 Bit       Adders := 2     
 	   2 Input   18 Bit       Adders := 4     
-	   2 Input   17 Bit       Adders := 9     
+	   2 Input   17 Bit       Adders := 24    
 	   2 Input   16 Bit       Adders := 48    
 	   2 Input   15 Bit       Adders := 4     
 	   3 Input   14 Bit       Adders := 5     
-	   3 Input   12 Bit       Adders := 3     
-	   2 Input   12 Bit       Adders := 1     
 	   3 Input   11 Bit       Adders := 4     
+	   2 Input   11 Bit       Adders := 2     
 	   2 Input   10 Bit       Adders := 2     
 	   2 Input    9 Bit       Adders := 5     
-	   2 Input    7 Bit       Adders := 2     
-	   2 Input    6 Bit       Adders := 6     
+	   2 Input    7 Bit       Adders := 3     
+	   2 Input    6 Bit       Adders := 9     
 	   2 Input    5 Bit       Adders := 7     
-	   2 Input    4 Bit       Adders := 3     
-	   2 Input    3 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 2     
+	   2 Input    3 Bit       Adders := 3     
 	   3 Input    2 Bit       Adders := 2     
+	   2 Input    2 Bit       Adders := 1     
 +---Registers : 
 	              256 Bit    Registers := 24    
 	               40 Bit    Registers := 16    
-	               16 Bit    Registers := 35    
+	               16 Bit    Registers := 34    
 	               15 Bit    Registers := 5     
 	               13 Bit    Registers := 1     
 	               10 Bit    Registers := 1     
 	                9 Bit    Registers := 4     
 	                7 Bit    Registers := 1     
 	                5 Bit    Registers := 3     
-	                4 Bit    Registers := 3     
-	                3 Bit    Registers := 1     
+	                4 Bit    Registers := 2     
+	                3 Bit    Registers := 2     
 	                2 Bit    Registers := 1     
 	                1 Bit    Registers := 6     
 +---RAMs : 
+	            2048K Bit	(8192 X 256 bit)          RAMs := 1     
 	            1032K Bit	(4128 X 256 bit)          RAMs := 1     
-	            1024K Bit	(4096 X 256 bit)          RAMs := 2     
 	              64K Bit	(256 X 256 bit)          RAMs := 1     
 	              32K Bit	(128 X 256 bit)          RAMs := 1     
 +---Muxes : 
 	   2 Input  256 Bit        Muxes := 10    
-	 104 Input  256 Bit        Muxes := 4     
+	  65 Input  256 Bit        Muxes := 5     
+	   8 Input  256 Bit        Muxes := 1     
 	   3 Input  256 Bit        Muxes := 1     
 	   2 Input   45 Bit        Muxes := 1     
-	   2 Input   40 Bit        Muxes := 16    
-	   2 Input   16 Bit        Muxes := 244   
+	   2 Input   40 Bit        Muxes := 96    
+	   2 Input   16 Bit        Muxes := 242   
 	   3 Input   16 Bit        Muxes := 16    
 	   2 Input   15 Bit        Muxes := 2     
-	 104 Input   15 Bit        Muxes := 4     
-	   2 Input   14 Bit        Muxes := 2     
-	   2 Input   13 Bit        Muxes := 2     
-	   2 Input   11 Bit        Muxes := 1     
-	   4 Input   11 Bit        Muxes := 1     
-	 104 Input    9 Bit        Muxes := 1     
-	   3 Input    9 Bit        Muxes := 1     
+	   6 Input   15 Bit        Muxes := 2     
+	  65 Input   15 Bit        Muxes := 3     
+	   2 Input   14 Bit        Muxes := 1     
+	   2 Input   13 Bit        Muxes := 5     
+	   4 Input   13 Bit        Muxes := 1     
 	   2 Input    9 Bit        Muxes := 3     
+	   3 Input    9 Bit        Muxes := 1     
+	  65 Input    9 Bit        Muxes := 1     
 	   2 Input    8 Bit        Muxes := 48    
-	   2 Input    7 Bit        Muxes := 5     
+	   2 Input    7 Bit        Muxes := 4     
 	   5 Input    7 Bit        Muxes := 1     
-	   2 Input    6 Bit        Muxes := 2     
-	   2 Input    5 Bit        Muxes := 5     
-	 104 Input    5 Bit        Muxes := 1     
+	   2 Input    6 Bit        Muxes := 4     
+	   2 Input    5 Bit        Muxes := 7     
 	   3 Input    5 Bit        Muxes := 1     
-	   2 Input    4 Bit        Muxes := 1     
-	 104 Input    4 Bit        Muxes := 1     
+	  65 Input    5 Bit        Muxes := 1     
 	   5 Input    4 Bit        Muxes := 1     
-	 104 Input    3 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 1     
+	  65 Input    4 Bit        Muxes := 1     
+	  65 Input    3 Bit        Muxes := 3     
+	  65 Input    2 Bit        Muxes := 1     
 	   2 Input    2 Bit        Muxes := 1     
-	 104 Input    1 Bit        Muxes := 39    
-	   2 Input    1 Bit        Muxes := 2     
-	   5 Input    1 Bit        Muxes := 2     
+	  65 Input    1 Bit        Muxes := 36    
+	   5 Input    1 Bit        Muxes := 3     
+	   2 Input    1 Bit        Muxes := 6     
+	   6 Input    1 Bit        Muxes := 6     
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -378,188 +391,138 @@ Finished Part Resource Summary
 ---------------------------------------------------------------------------------
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
-DSP Report: Generating DSP m1, operation Mode is: A*B.
-DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
-DSP Report: Generating DSP m2, operation Mode is: A*B.
-DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
-DSP Report: Generating DSP m1, operation Mode is: A*B.
-DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
-DSP Report: Generating DSP m2, operation Mode is: A*B.
-DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
-DSP Report: Generating DSP m1, operation Mode is: A*B.
-DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
-DSP Report: Generating DSP m2, operation Mode is: A*B.
-DSP Report: operator m2 is absorbed into DSP m2.
 WARNING: [Synth 8-7129] Port run_stage[3] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[2] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[1] in module Mamba_Top is either unconnected or has no load
 WARNING: [Synth 8-7129] Port run_stage[0] in module Mamba_Top is either unconnected or has no load
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
+DSP Report: Generating DSP m2, operation Mode is: A*B.
+DSP Report: operator m2 is absorbed into DSP m2.
+DSP Report: Generating DSP m1, operation Mode is: A*B.
+DSP Report: operator m1 is absorbed into DSP m1.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
+DSP Report: Generating DSP m2, operation Mode is: A*B.
+DSP Report: operator m2 is absorbed into DSP m2.
+DSP Report: Generating DSP m1, operation Mode is: A*B.
+DSP Report: operator m1 is absorbed into DSP m1.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
+DSP Report: Generating DSP m2, operation Mode is: A*B.
+DSP Report: operator m2 is absorbed into DSP m2.
+DSP Report: Generating DSP m1, operation Mode is: A*B.
+DSP Report: operator m1 is absorbed into DSP m1.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
 WARNING: [Synth 8-7129] Port wr_addr[8] in module H_RegFile is either unconnected or has no load
 WARNING: [Synth 8-7129] Port rd_addr[8] in module H_RegFile is either unconnected or has no load
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-DSP Report: Generating DSP acc_next1, operation Mode is: C+A*B.
-DSP Report: operator acc_next1 is absorbed into DSP acc_next1.
-DSP Report: operator m1 is absorbed into DSP acc_next1.
 DSP Report: Generating DSP m1, operation Mode is: A*B.
 DSP Report: operator m1 is absorbed into DSP m1.
-DSP Report: Generating DSP sum_ssm, operation Mode is: PCIN+A*B.
-DSP Report: operator sum_ssm is absorbed into DSP sum_ssm.
-DSP Report: operator m2 is absorbed into DSP sum_ssm.
+DSP Report: Generating DSP m12_sum, operation Mode is: C+A*B.
+DSP Report: operator m12_sum is absorbed into DSP m12_sum.
+DSP Report: operator m2 is absorbed into DSP m12_sum.
 DSP Report: Generating DSP m2, operation Mode is: A*B.
 DSP Report: operator m2 is absorbed into DSP m2.
-INFO: [Synth 8-5546] ROM "m6_w0_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "cl_in_W2_vec" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "silu_z_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_w2_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_w1_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_t2_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_u_word" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m5_dt_word_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "S_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "cl_in_H_ext" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_D_word" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_t1_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_dA_reg" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m6_delta_word" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5544] ROM "p_1_out0" won't be mapped to Block RAM because address size (3) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "p_1_out0" won't be mapped to Block RAM because address size (3) smaller than threshold (5)
+INFO: [Synth 8-5546] ROM "done_stage" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "cl_op_mode" won't be mapped to RAM because it is too sparse
 INFO: [Synth 8-5546] ROM "cl_in_W1_vec" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5546] ROM "m_we" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m6_dA_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m6_y_ch_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "cl_in_H_ext" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "S_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m5_dt_word_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "silu_z_reg" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "cl_in_W2_vec" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "m6_h_from_rf_r" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "rsqrt_idx_r" won't be mapped to RAM because it is too sparse
 WARNING: [Synth 8-7129] Port reset in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port core_read_addr[14] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port core_read_addr[13] in module Memory_System is either unconnected or has no load
@@ -567,137 +530,136 @@ WARNING: [Synth 8-7129] Port core_write_addr[14] in module Memory_System is eith
 WARNING: [Synth 8-7129] Port core_write_addr[13] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr[14] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr[13] in module Memory_System is either unconnected or has no load
-WARNING: [Synth 8-7129] Port weight_read_addr[12] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr2[14] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port weight_read_addr2[13] in module Memory_System is either unconnected or has no load
-WARNING: [Synth 8-7129] Port weight_read_addr2[12] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[14] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[13] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[12] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[11] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[10] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[9] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[8] in module Memory_System is either unconnected or has no load
+WARNING: [Synth 8-7129] Port const_read_addr[7] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port dma_addr[14] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port dma_addr[13] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port dma_raddr[14] in module Memory_System is either unconnected or has no load
 WARNING: [Synth 8-7129] Port dma_raddr[13] in module Memory_System is either unconnected or has no load
 INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"u_mem/ram_main/ram_reg"'.
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "u_mem/ram_weight/ram_reg"
 INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "u_mem/ram_weight2/ram_reg"
 INFO: [Synth 8-5780] Default cascade height of 8 will be used for URAM '"u_mem/ram_main/ram_reg"'.
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[0]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[1]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[2]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[3]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[4]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[5]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[6]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[7]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[8]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[9]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[10]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[11]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[12]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[13]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[14]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[15]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[16]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[17]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[18]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[19]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[20]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[21]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[22]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[23]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[24]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[25]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[26]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[27]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[28]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[29]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[30]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[31]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[32]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[33]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[34]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[35]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[36]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[37]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[38]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[39]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[40]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[41]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[42]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[43]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[44]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[45]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[46]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[47]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[48]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[49]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[50]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[51]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[52]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[53]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[54]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[55]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[56]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[57]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[58]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[59]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[60]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[61]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[62]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[63]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[64]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[65]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[66]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[67]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[68]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[69]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[70]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[71]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[72]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[73]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[74]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[75]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[76]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[77]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[78]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[79]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[80]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[81]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[82]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[83]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[84]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[85]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[86]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[87]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[88]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[89]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[90]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[91]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[92]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[93]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[94]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[95]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[96]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[97]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[98]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
-INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[99]' (FDCE) to 'm6_h_wr_data_ext_r_reg[255]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[0]' (FDCE) to 'm6_h_wr_data_ext_r_reg[1]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[1]' (FDCE) to 'm6_h_wr_data_ext_r_reg[2]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[2]' (FDCE) to 'm6_h_wr_data_ext_r_reg[3]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[3]' (FDCE) to 'm6_h_wr_data_ext_r_reg[4]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[4]' (FDCE) to 'm6_h_wr_data_ext_r_reg[5]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[5]' (FDCE) to 'm6_h_wr_data_ext_r_reg[6]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[6]' (FDCE) to 'm6_h_wr_data_ext_r_reg[7]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[7]' (FDCE) to 'm6_h_wr_data_ext_r_reg[8]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[8]' (FDCE) to 'm6_h_wr_data_ext_r_reg[9]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[9]' (FDCE) to 'm6_h_wr_data_ext_r_reg[10]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[10]' (FDCE) to 'm6_h_wr_data_ext_r_reg[11]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[11]' (FDCE) to 'm6_h_wr_data_ext_r_reg[12]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[12]' (FDCE) to 'm6_h_wr_data_ext_r_reg[13]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[13]' (FDCE) to 'm6_h_wr_data_ext_r_reg[14]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[14]' (FDCE) to 'm6_h_wr_data_ext_r_reg[15]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[15]' (FDCE) to 'm6_h_wr_data_ext_r_reg[16]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[16]' (FDCE) to 'm6_h_wr_data_ext_r_reg[17]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[17]' (FDCE) to 'm6_h_wr_data_ext_r_reg[18]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[18]' (FDCE) to 'm6_h_wr_data_ext_r_reg[19]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[19]' (FDCE) to 'm6_h_wr_data_ext_r_reg[20]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[20]' (FDCE) to 'm6_h_wr_data_ext_r_reg[21]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[21]' (FDCE) to 'm6_h_wr_data_ext_r_reg[22]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[22]' (FDCE) to 'm6_h_wr_data_ext_r_reg[23]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[23]' (FDCE) to 'm6_h_wr_data_ext_r_reg[24]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[24]' (FDCE) to 'm6_h_wr_data_ext_r_reg[25]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[25]' (FDCE) to 'm6_h_wr_data_ext_r_reg[26]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[26]' (FDCE) to 'm6_h_wr_data_ext_r_reg[27]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[27]' (FDCE) to 'm6_h_wr_data_ext_r_reg[28]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[28]' (FDCE) to 'm6_h_wr_data_ext_r_reg[29]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[29]' (FDCE) to 'm6_h_wr_data_ext_r_reg[30]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[30]' (FDCE) to 'm6_h_wr_data_ext_r_reg[31]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[31]' (FDCE) to 'm6_h_wr_data_ext_r_reg[32]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[32]' (FDCE) to 'm6_h_wr_data_ext_r_reg[33]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[33]' (FDCE) to 'm6_h_wr_data_ext_r_reg[34]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[34]' (FDCE) to 'm6_h_wr_data_ext_r_reg[35]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[35]' (FDCE) to 'm6_h_wr_data_ext_r_reg[36]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[36]' (FDCE) to 'm6_h_wr_data_ext_r_reg[37]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[37]' (FDCE) to 'm6_h_wr_data_ext_r_reg[38]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[38]' (FDCE) to 'm6_h_wr_data_ext_r_reg[39]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[39]' (FDCE) to 'm6_h_wr_data_ext_r_reg[40]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[40]' (FDCE) to 'm6_h_wr_data_ext_r_reg[41]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[41]' (FDCE) to 'm6_h_wr_data_ext_r_reg[42]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[42]' (FDCE) to 'm6_h_wr_data_ext_r_reg[43]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[43]' (FDCE) to 'm6_h_wr_data_ext_r_reg[44]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[44]' (FDCE) to 'm6_h_wr_data_ext_r_reg[45]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[45]' (FDCE) to 'm6_h_wr_data_ext_r_reg[46]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[46]' (FDCE) to 'm6_h_wr_data_ext_r_reg[47]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[47]' (FDCE) to 'm6_h_wr_data_ext_r_reg[48]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[48]' (FDCE) to 'm6_h_wr_data_ext_r_reg[49]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[49]' (FDCE) to 'm6_h_wr_data_ext_r_reg[50]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[50]' (FDCE) to 'm6_h_wr_data_ext_r_reg[51]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[51]' (FDCE) to 'm6_h_wr_data_ext_r_reg[52]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[52]' (FDCE) to 'm6_h_wr_data_ext_r_reg[53]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[53]' (FDCE) to 'm6_h_wr_data_ext_r_reg[54]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[54]' (FDCE) to 'm6_h_wr_data_ext_r_reg[55]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[55]' (FDCE) to 'm6_h_wr_data_ext_r_reg[56]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[56]' (FDCE) to 'm6_h_wr_data_ext_r_reg[57]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[57]' (FDCE) to 'm6_h_wr_data_ext_r_reg[58]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[58]' (FDCE) to 'm6_h_wr_data_ext_r_reg[59]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[59]' (FDCE) to 'm6_h_wr_data_ext_r_reg[60]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[60]' (FDCE) to 'm6_h_wr_data_ext_r_reg[61]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[61]' (FDCE) to 'm6_h_wr_data_ext_r_reg[62]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[62]' (FDCE) to 'm6_h_wr_data_ext_r_reg[63]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[63]' (FDCE) to 'm6_h_wr_data_ext_r_reg[64]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[64]' (FDCE) to 'm6_h_wr_data_ext_r_reg[65]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[65]' (FDCE) to 'm6_h_wr_data_ext_r_reg[66]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[66]' (FDCE) to 'm6_h_wr_data_ext_r_reg[67]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[67]' (FDCE) to 'm6_h_wr_data_ext_r_reg[68]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[68]' (FDCE) to 'm6_h_wr_data_ext_r_reg[69]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[69]' (FDCE) to 'm6_h_wr_data_ext_r_reg[70]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[70]' (FDCE) to 'm6_h_wr_data_ext_r_reg[71]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[71]' (FDCE) to 'm6_h_wr_data_ext_r_reg[72]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[72]' (FDCE) to 'm6_h_wr_data_ext_r_reg[73]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[73]' (FDCE) to 'm6_h_wr_data_ext_r_reg[74]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[74]' (FDCE) to 'm6_h_wr_data_ext_r_reg[75]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[75]' (FDCE) to 'm6_h_wr_data_ext_r_reg[76]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[76]' (FDCE) to 'm6_h_wr_data_ext_r_reg[77]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[77]' (FDCE) to 'm6_h_wr_data_ext_r_reg[78]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[78]' (FDCE) to 'm6_h_wr_data_ext_r_reg[79]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[79]' (FDCE) to 'm6_h_wr_data_ext_r_reg[80]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[80]' (FDCE) to 'm6_h_wr_data_ext_r_reg[81]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[81]' (FDCE) to 'm6_h_wr_data_ext_r_reg[82]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[82]' (FDCE) to 'm6_h_wr_data_ext_r_reg[83]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[83]' (FDCE) to 'm6_h_wr_data_ext_r_reg[84]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[84]' (FDCE) to 'm6_h_wr_data_ext_r_reg[85]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[85]' (FDCE) to 'm6_h_wr_data_ext_r_reg[86]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[86]' (FDCE) to 'm6_h_wr_data_ext_r_reg[87]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[87]' (FDCE) to 'm6_h_wr_data_ext_r_reg[88]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[88]' (FDCE) to 'm6_h_wr_data_ext_r_reg[89]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[89]' (FDCE) to 'm6_h_wr_data_ext_r_reg[90]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[90]' (FDCE) to 'm6_h_wr_data_ext_r_reg[91]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[91]' (FDCE) to 'm6_h_wr_data_ext_r_reg[92]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[92]' (FDCE) to 'm6_h_wr_data_ext_r_reg[93]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[93]' (FDCE) to 'm6_h_wr_data_ext_r_reg[94]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[94]' (FDCE) to 'm6_h_wr_data_ext_r_reg[95]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[95]' (FDCE) to 'm6_h_wr_data_ext_r_reg[96]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[96]' (FDCE) to 'm6_h_wr_data_ext_r_reg[97]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[97]' (FDCE) to 'm6_h_wr_data_ext_r_reg[98]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[98]' (FDCE) to 'm6_h_wr_data_ext_r_reg[99]'
+INFO: [Synth 8-3886] merging instance 'm6_h_wr_data_ext_r_reg[99]' (FDCE) to 'm6_h_wr_data_ext_r_reg[100]'
 INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m6_h_wr_data_ext_r_reg[255] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\m6_h_rd_addr_r_reg[8] )
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:50 ; elapsed = 00:01:12 . Memory (MB): peak = 2199.199 ; gain = 814.512
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:01:06 ; elapsed = 00:01:50 . Memory (MB): peak = 2182.066 ; gain = 795.730
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-6057] Memory: "ram_main/ram_reg" defined in module: "u_mem" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
 ---------------------------------------------------------------------------------
@@ -714,14 +676,13 @@ Ultra RAM: Preliminary Mapping Report (see note below)
 Note: The table above is a preliminary report that shows the Ultra RAMs at the current stage of the synthesis flow. Some Ultra RAMs may be reimplemented as non Ultra RAM primitives later in the synthesis flow. Multiple instantiated Ultra RAMs are reported only once. Fields "FF provided for Pipeline" and "FF absorbed" respectively indicate number of registers available for pipelining and number of registers absorbed in the URAM matrix for pipelining. 
 
 Block RAM: Preliminary Mapping Report (see note below)
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
-|Module Name | RTL Object          | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights | 
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
-|Mamba_Top   | ram_const/ram_reg   | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
-|u_hrf       | mem_reg             | 256 x 256(READ_FIRST)  | W |   | 256 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
-|u_mem       | ram_weight/ram_reg  | 4 K x 256(READ_FIRST)  | W |   | 4 K x 256(WRITE_FIRST) |   | R | Port A and B     | 1      | 28     | 4,4,4,4,4,4,4,1 | 
-|u_mem       | ram_weight2/ram_reg | 4 K x 256(READ_FIRST)  | W |   | 4 K x 256(WRITE_FIRST) |   | R | Port A and B     | 1      | 28     | 4,4,4,4,4,4,4,1 | 
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
+|Module Name | RTL Object         | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights | 
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
+|u_hrf       | mem_reg            | 256 x 256(READ_FIRST)  | W |   | 256 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
+|u_mem       | ram_weight/ram_reg | 8 K x 256(READ_FIRST)  | W | R | 8 K x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 57     | 8,8,8,8,8,8,8,1 | 
+|u_mem       | ram_const/ram_reg  | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
 
 Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
 
@@ -729,69 +690,53 @@ DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding R
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
 |Module Name | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | C+A*B       | 16     | 16     | 40     | -      | 40     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 16     | 16     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 16     | 16     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
 
@@ -803,31 +748,22 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:01 ; elapsed = 00:01:25 . Memory (MB): peak = 2611.777 ; gain = 1227.090
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:22 ; elapsed = 00:02:11 . Memory (MB): peak = 2605.188 ; gain = 1218.852
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5556] The block RAM "i_0/u_mem/ram_weight/ram_reg" may be mapped as a cascade chain, because it is not timing critical.
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
+INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 8 and width 36 for RAM "i_0/u_mem/ram_weight/ram_reg"
 INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "i_0/u_mem/ram_weight/ram_reg"
-INFO: [Synth 8-5556] The block RAM "i_0/u_mem/ram_weight2/ram_reg" may be mapped as a cascade chain, because it is not timing critical.
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-5555] Implemented Block Ram Cascade chain of height 4 and width 36 for RAM "i_0/u_mem/ram_weight2/ram_reg"
-INFO: [Synth 8-7030] Implemented Non-Cascaded Block Ram (cascade_height = 1) of width 4 for RAM "i_0/u_mem/ram_weight2/ram_reg"
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:01:22 ; elapsed = 00:01:47 . Memory (MB): peak = 2924.676 ; gain = 1539.988
+Finished Timing Optimization : Time (s): cpu = 00:01:58 ; elapsed = 00:02:49 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-6057] Memory: "ram_main/ram_reg" defined in module: "u_mem" implemented as Ultra-Ram has no pipeline registers. It is recommended to use pipeline registers to achieve high performance.
 ---------------------------------------------------------------------------------
@@ -843,14 +779,13 @@ Ultra RAM: Final Mapping Report (see note below)
 
 
 Block RAM: Final Mapping Report
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
-|Module Name | RTL Object          | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights | 
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
-|Mamba_Top   | ram_const/ram_reg   | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
-|i_0/u_mem   | ram_weight/ram_reg  | 4 K x 256(READ_FIRST)  | W |   | 4 K x 256(WRITE_FIRST) |   | R | Port A and B     | 1      | 28     | 4,4,4,4,4,4,4,1 | 
-|i_0/u_mem   | ram_weight2/ram_reg | 4 K x 256(READ_FIRST)  | W |   | 4 K x 256(WRITE_FIRST) |   | R | Port A and B     | 1      | 28     | 4,4,4,4,4,4,4,1 | 
-|u_hrf       | mem_reg             | 256 x 256(READ_FIRST)  | W |   | 256 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
-+------------+---------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
+|Module Name | RTL Object         | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | Cascade Heights | 
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
+|i_0/u_mem   | ram_weight/ram_reg | 8 K x 256(READ_FIRST)  | W | R | 8 K x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 57     | 8,8,8,8,8,8,8,1 | 
+|u_mem       | ram_const/ram_reg  | 128 x 256(READ_FIRST)  | W |   | 128 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
+|u_hrf       | mem_reg            | 256 x 256(READ_FIRST)  | W |   | 256 x 256(WRITE_FIRST) |   | R | Port A and B     | 0      | 4      |                 | 
++------------+--------------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+-----------------+
 
 ---------------------------------------------------------------------------------
 Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
@@ -858,45 +793,112 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-7052] The timing for the instance u_consti_8/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_consti_8/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_consti_8/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_consti_8/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:369]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:371]
+INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v:372]
 INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_11 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_19 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_27 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_28 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_11 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_19 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_27 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight2/ram_reg_bram_28 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-5844] Detected registers with asynchronous reset at DSP/BRAM block boundary. Consider using synchronous reset for optimal packing [C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v:113]
-INFO: [Synth 8-7052] The timing for the instance i_1/u_mc/u_hrf/mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_1/u_mc/u_hrf/mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_1/u_mc/u_hrf/mem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance i_1/u_mc/u_hrf/mem_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_56 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_weight/ram_reg_bram_56 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mem/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mc/u_hrf/mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mc/u_hrf/mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mc/u_hrf/mem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance i_0/u_mc/u_hrf/mem_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:01:32 ; elapsed = 00:02:11 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Technology Mapping : Time (s): cpu = 00:01:59 ; elapsed = 00:03:24 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -910,26 +912,26 @@ Finished Flattening Before IO Insertion
 ---------------------------------------------------------------------------------
 Start Final Netlist Cleanup
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_const/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_11 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_19 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_27 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_28 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_7 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_11 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_15 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_19 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_27 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
-INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight2/ram_reg_bram_28 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_23 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_31 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_39 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_47 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_55 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_56 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_weight/ram_reg_bram_56 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_const/ram_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_const/ram_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_const/ram_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_mem/ram_const/ram_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mc/u_hrf/mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mc/u_hrf/mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
 INFO: [Synth 8-7052] The timing for the instance u_mc/u_hrf/mem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
@@ -938,37 +940,37 @@ INFO: [Synth 8-7052] The timing for the instance u_mc/u_hrf/mem_reg_3 (implement
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:01:36 ; elapsed = 00:02:16 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished IO Insertion : Time (s): cpu = 00:02:07 ; elapsed = 00:03:32 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:01:36 ; elapsed = 00:02:16 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Renaming Generated Instances : Time (s): cpu = 00:02:07 ; elapsed = 00:03:32 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:01:39 ; elapsed = 00:02:19 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:02:11 ; elapsed = 00:03:37 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:01:39 ; elapsed = 00:02:19 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Renaming Generated Ports : Time (s): cpu = 00:02:12 ; elapsed = 00:03:37 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:01:40 ; elapsed = 00:02:20 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Handling Custom Attributes : Time (s): cpu = 00:02:13 ; elapsed = 00:03:39 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:01:40 ; elapsed = 00:02:20 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Renaming Generated Nets : Time (s): cpu = 00:02:14 ; elapsed = 00:03:39 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -978,69 +980,53 @@ DSP Final Report (the ' indicates corresponding REG is set)
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
 |Module Name | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | Dynamic     | -      | -      | -      | -      | 40     | -    | -    | -    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|Mamba_PE    | PCIN+A*B    | 30     | 18     | -      | -      | 40     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Mamba_PE    | C+A*B       | 30     | 18     | 33     | -      | 33     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
 |Mamba_PE    | A*B         | 30     | 18     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
 +------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
 
@@ -1055,51 +1041,51 @@ Report Cell Usage:
 +------+----------------+------+
 |      |Cell            |Count |
 +------+----------------+------+
-|1     |CARRY8          |   568|
-|2     |DSP_ALU         |    64|
-|3     |DSP_A_B_DATA    |    64|
-|4     |DSP_C_DATA      |    64|
-|6     |DSP_MULTIPLIER  |    64|
-|7     |DSP_M_DATA      |    64|
-|8     |DSP_OUTPUT      |    64|
-|9     |DSP_PREADD      |    64|
-|10    |DSP_PREADD_DATA |    64|
-|11    |LUT1            |  1267|
-|12    |LUT2            |  1970|
-|13    |LUT3            |  3177|
-|14    |LUT4            |   678|
-|15    |LUT5            |  2561|
-|16    |LUT6            |  7113|
-|17    |MUXF7           |  1057|
-|18    |MUXF8           |    64|
-|19    |RAMB18E2        |     2|
-|20    |RAMB36E2        |    64|
+|1     |CARRY8          |   467|
+|2     |DSP_ALU         |    48|
+|3     |DSP_A_B_DATA    |    48|
+|4     |DSP_C_DATA      |    48|
+|6     |DSP_MULTIPLIER  |    48|
+|7     |DSP_M_DATA      |    48|
+|8     |DSP_OUTPUT      |    48|
+|9     |DSP_PREADD      |    48|
+|10    |DSP_PREADD_DATA |    48|
+|11    |LUT1            |   392|
+|12    |LUT2            |  1771|
+|13    |LUT3            |  1676|
+|14    |LUT4            |  1155|
+|15    |LUT5            |  3802|
+|16    |LUT6            |  7024|
+|17    |MUXF7           |   235|
+|18    |MUXF8           |    63|
+|19    |RAMB36E2        |    65|
 |24    |URAM288         |     8|
-|26    |FDCE            |  5824|
+|26    |FDCE            |  5279|
 +------+----------------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:01:40 ; elapsed = 00:02:20 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Finished Writing Synthesis Report : Time (s): cpu = 00:02:14 ; elapsed = 00:03:39 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 0 critical warnings and 23 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:01:26 ; elapsed = 00:02:12 . Memory (MB): peak = 2928.082 ; gain = 1225.719
-Synthesis Optimization Complete : Time (s): cpu = 00:01:40 ; elapsed = 00:02:22 . Memory (MB): peak = 2928.082 ; gain = 1543.395
+Synthesis finished with 0 errors, 0 critical warnings and 30 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:01:54 ; elapsed = 00:03:29 . Memory (MB): peak = 3062.160 ; gain = 1393.348
+Synthesis Optimization Complete : Time (s): cpu = 00:02:14 ; elapsed = 00:03:41 . Memory (MB): peak = 3062.160 ; gain = 1675.824
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.193 . Memory (MB): peak = 2941.824 ; gain = 0.000
-INFO: [Netlist 29-17] Analyzing 1753 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.282 . Memory (MB): peak = 3062.160 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 813 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 2963.742 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 3062.160 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
-  A total of 64 instances were transformed.
-  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 64 instances
+  A total of 48 instances were transformed.
+  DSP48E2 => DSP48E2 (DSP_ALU, DSP_A_B_DATA, DSP_C_DATA, DSP_MULTIPLIER, DSP_M_DATA, DSP_OUTPUT, DSP_PREADD, DSP_PREADD_DATA): 48 instances
 
-Synth Design complete, checksum: e4426990
+Synth Design complete, checksum: f2e2e88
 INFO: [Common 17-83] Releasing license: Synthesis
-272 Infos, 168 Warnings, 4 Critical Warnings and 0 Errors encountered.
+343 Infos, 161 Warnings, 4 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:01:48 ; elapsed = 00:02:47 . Memory (MB): peak = 2963.742 ; gain = 1695.125
+synth_design: Time (s): cpu = 00:02:25 ; elapsed = 00:04:14 . Memory (MB): peak = 3062.160 ; gain = 1791.297
 INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
 INFO: [Common 17-1381] The checkpoint 'C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/ITMN_re.runs/synth_1/Mamba_Top.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:07 ; elapsed = 00:00:06 . Memory (MB): peak = 3062.160 ; gain = 0.000
 INFO: [runtcl-4] Executing : report_utilization -file Mamba_Top_utilization_synth.rpt -pb Mamba_Top_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Sun Jul  5 23:25:26 2026...
+INFO: [Common 17-206] Exiting Vivado at Thu Jul 16 23:15:55 2026...
