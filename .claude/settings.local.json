@@ -94,7 +94,12 @@
       "Bash(vmap work *)",
       "Bash(vlog -work work +incdir+../common ../common/_parameter.v ../common/BRAM_256b.v ../common/Memory_System.v ../common/LUT_Bank.v ../common/*_LUT.v ../common/RSqrt_ROM.v ../common/Reduce16.v ../common/Reduce16Wide.v ../mamba/*.v ../top/Mamba_Top.v)",
       "Bash(vlog -work work +incdir+../common ../common/_parameter.v ../common/BRAM_256b.v ../common/Memory_System.v ../common/LUT_Bank.v ../common/*_LUT.v ../common/RSqrt_ROM.v ../mamba/*.v ../top/Mamba_Top.v)",
-      "Bash(vlog -work work +incdir+../common ../tb/tb_Mamba_Top_DBG.v)"
+      "Bash(vlog -work work +incdir+../common ../tb/tb_Mamba_Top_DBG.v)",
+      "Bash(cp /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/*.v /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_FASTMAMBA/common/)",
+      "Bash(cp /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/*.v /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_FASTMAMBA/mamba/)",
+      "Bash(cp /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v /c/Users/ADMIN/Downloads/ITMN_MASTER/ITMN_RTL_srcs/ITMN_FASTMAMBA/top/)",
+      "Bash(mkdir -p \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/ITMN_FASTMAMBA.sim/sim_1/behav/xsim/golden_all\")",
+      "Bash(cp \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/silu_lut.txt\" \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/exp_lut.txt\" \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/softplus_lut.txt\" \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_re/golden_all/rsqrt_q97.txt\" \"C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/ITMN_FASTMAMBA.sim/sim_1/behav/xsim/golden_all/\")"
     ]
   }
 }

@@ -1,0 +1,22 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  -i "../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/BRAM_256b.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Exp_LUT.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/H_RegFile.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/LUT_Bank.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/M_Cluster.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Mamba_PE.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/top/Mamba_Top.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Memory_System.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/RSqrt_ROM.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Reduce16.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Reduce16Wide.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Silu_LUT.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Softplus_LUT.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_5BLOCK.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

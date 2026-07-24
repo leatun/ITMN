@@ -57,7 +57,7 @@
     <Option Name="IPStaticSourceDir" Val="$PIPUSERFILESDIR/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
     <Option Name="DSABoardId" Val="kv260_som"/>
-    <Option Name="WTXSimLaunchSim" Val="123"/>
+    <Option Name="WTXSimLaunchSim" Val="126"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
@@ -206,14 +206,14 @@
     </FileSet>
     <FileSet Name="sim_1" Type="SimulationSrcs" RelSrcDir="$PSRCDIR/sim_1" RelGenDir="$PGENDIR/sim_1">
       <Filter Type="Srcs"/>
-      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_FULL.v">
+      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_5BLOCK.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_DBG.v">
+      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_FULL.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -221,7 +221,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_5BLOCK.v">
+      <File Path="$PPRDIR/../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_DBG.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -239,7 +239,7 @@
       </File>
       <Config>
         <Option Name="DesignMode" Val="RTL"/>
-        <Option Name="TopModule" Val="tb_Mamba_Top_FULL"/>
+        <Option Name="TopModule" Val="tb_Mamba_Top_5BLOCK"/>
         <Option Name="TopLib" Val="xil_defaultlib"/>
         <Option Name="TransportPathDelay" Val="0"/>
         <Option Name="TransportIntDelay" Val="0"/>

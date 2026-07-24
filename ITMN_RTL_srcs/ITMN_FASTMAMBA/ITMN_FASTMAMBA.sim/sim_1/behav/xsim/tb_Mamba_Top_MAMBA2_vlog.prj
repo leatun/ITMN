@@ -1,0 +1,22 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib "C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/common/_parameter.v" -i "../../../../common" -i "../../../../golden_all" --include "../../../../common" \
+"../../../../common/BRAM_256b.v" \
+"../../../../common/Exp_LUT.v" \
+"../../../../mamba/H_RegFile.v" \
+"../../../../common/LUT_Bank.v" \
+"../../../../mamba/M_Cluster.v" \
+"../../../../mamba/Mamba_PE.v" \
+"../../../../top/Mamba_Top.v" \
+"../../../../common/Memory_System.v" \
+"../../../../common/RSqrt_ROM.v" \
+"../../../../mamba/Reduce16.v" \
+"../../../../mamba/Reduce16Wide.v" \
+"../../../../common/Silu_LUT.v" \
+"../../../../common/Softplus_LUT.v" \
+"../../../../tb/tb_Mamba_Top_MAMBA2.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort
