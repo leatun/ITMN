@@ -128,12 +128,12 @@ module Mamba_Top (
                                        // Mamba2 = 18 (dt=24 + B=128 + C=128 = 280 elems)
 
     input  wire         dma_write_en,
-    input  wire [1:0]   dma_target,
+    input  wire [2:0]   dma_target,       // Widened 2→3 bit for bank_B (3'd4)
     input  wire [14:0]  dma_addr,
     input  wire [255:0] dma_wdata,
 
     input  wire         dma_read_en,
-    input  wire [1:0]   dma_rtarget,
+    input  wire [2:0]   dma_rtarget,      // Widened 2→3 bit
     input  wire [14:0]  dma_raddr,
     output wire [255:0] dma_rdata
 );
@@ -239,6 +239,7 @@ module Mamba_Top (
     localparam [6:0] S_M7_6      = 7'd54;
     localparam [6:0] S_M7_7      = 7'd55;
     localparam [6:0] S_MAC5        = 7'd98;
+    localparam [6:0] S_MAC5B       = 7'd103; // PP: cluster2 write cycle after S_MAC5
     localparam [6:0] S_M6_8      = 7'd99;
     localparam [6:0] S_M6_15       = 7'd101;
     localparam [6:0] S_MAC3         = 7'd102;
@@ -269,7 +270,32 @@ module Mamba_Top (
     localparam [6:0] S_M6_17     = 7'd91;
     localparam [6:0] S_M6_18    = 7'd92;
     localparam [6:0] S_M6_19     = 7'd93;
+    // Phase 3: cluster1 waits here after last M6 push, until cluster2 drains FIFO + finishes gate.
+    localparam [6:0] S_M6_WAIT_C2 = 7'd104;
     localparam [6:0] S_DONE             = 7'd127;
+
+    // ============================================================================
+    // Phase 3: Cluster2 M6-aux FSM state constants (5-bit c2_state).
+    // Runs in parallel with cluster1's M6 chain via Handshake_FIFO.
+    // ============================================================================
+    localparam [4:0] S_C2_IDLE       = 5'd0;   // waiting for FIFO / non-M6 stage
+    localparam [4:0] S_C2_POP        = 5'd1;   // pop FIFO → capture per-(l,s) data
+    localparam [4:0] S_C2_YMAC       = 5'd2;   // MAC(h_new · C[s])
+    localparam [4:0] S_C2_YWAIT      = 5'd3;   // PE latency
+    localparam [4:0] S_C2_ACCUM      = 5'd4;   // accumulate y_ch_reg (per s)
+    localparam [4:0] S_C2_DUMUL      = 5'd5;   // MUL(D_scalar · u_scalar)
+    localparam [4:0] S_C2_DUWAIT     = 5'd6;   // PE latency
+    localparam [4:0] S_C2_YSUM       = 5'd7;   // ADD(y_ch + Du)
+    localparam [4:0] S_C2_YSUM_WAIT  = 5'd8;   // PE latency
+    localparam [4:0] S_C2_YSUM_LATCH = 5'd9;   // store to c2_ssm_grp_acc[l*16]
+    localparam [4:0] S_C2_LOADZ      = 5'd10;  // issue z[g] read from ram_main
+    localparam [4:0] S_C2_ZWAIT1     = 5'd11;  // BRAM 2-cyc latency + 1 for silu-latch
+    localparam [4:0] S_C2_ZWAIT2     = 5'd12;
+    localparam [4:0] S_C2_GATE       = 5'd13;  // MUL(y_gated · silu(z))
+    localparam [4:0] S_C2_GATE_WAIT  = 5'd14;
+    localparam [4:0] S_C2_WRITE      = 5'd15;  // assert wr signals to ram_main
+    localparam [4:0] S_C2_DONE       = 5'd16;  // signal c2_done, wait for cluster1 to exit STG_M6
+    localparam [4:0] S_C2_WRITE2     = 5'd17;  // hold wr signals 1 more cyc so BRAM sees we=1 at edge
 
     reg [6:0]   state;
     reg [3:0]   cur_stage;
@@ -322,28 +348,46 @@ module Mamba_Top (
 
     wire [255:0] silu_in_drv, sp_in_drv, exp_in_drv;
 
+    // Phase 1.1: bank_B ports exposed but tied idle until Cluster2 wired in Phase 1.2.
+    wire [255:0] w_rd_data3, w_rd_data4;   // reserved for Cluster2 MAC2 (W1, W2)
+
+    // Phase 3: cluster2 M6-aux memory port arbitration.
+    // c2_state / c2_m_* regs declared with cluster2 block (below). Forward-reference
+    // via wire declarations here to avoid Vivado's implicit 1-bit wire coercion in
+    // Memory_System port expressions (which would leave the arbitration signals in
+    // Z state and cause cluster1 to stall forever at S_M6_10).
+    wire        c2_using_main_rd;   // (c2_state == LOADZ) || (c2_state == ZWAIT1)
+    wire        c2_using_main_wr;   // (c2_state == WRITE) || (c2_state == WRITE2)
+
     Memory_System u_mem (
-        .clk              (clk),
-        .reset            (rst),
-        .core_read_addr   (m_rd_addr),
-        .core_read_data   (m_rd_data),
-        .core_write_en    (m_we),
-        .core_write_addr  (m_wr_addr),
-        .core_write_data  (m_wr_data),
-        .weight_read_addr (w_rd_addr),
-        .weight_read_data (w_rd_data),
-        .weight_read_addr2(w_rd_addr2),
-        .weight_read_data2(w_rd_data2),
-        .const_read_addr  (const_rd_addr_r),
-        .const_read_data  (const_rd_data),
-        .dma_write_en     (dma_write_en),
-        .dma_target       (dma_target),
-        .dma_addr         (dma_addr),
-        .dma_wdata        (dma_wdata),
-        .dma_read_en      (dma_read_en),
-        .dma_rtarget      (dma_rtarget),
-        .dma_raddr        (dma_raddr),
-        .dma_rdata        (dma_rdata)
+        .clk               (clk),
+        .reset             (rst),
+        // Arbitrated: cluster2 takes priority for z-read + y_gated-write during M6.
+        .core_read_addr    (c2_using_main_rd ? c2_m_rd_addr : m_rd_addr),
+        .core_read_data    (m_rd_data),
+        .core_write_en     (c2_using_main_wr ? c2_m_we      : m_we),
+        .core_write_addr   (c2_using_main_wr ? c2_m_wr_addr : m_wr_addr),
+        .core_write_data   (c2_using_main_wr ? c2_m_wr_data : m_wr_data),
+        .weight_read_addr  (w_rd_addr),        // bank_A W1 (Cluster1)
+        .weight_read_data  (w_rd_data),
+        .weight_read_addr2 (w_rd_addr2),       // bank_A W2 (Cluster1)
+        .weight_read_data2 (w_rd_data2),
+        // Bank_B addresses mirror Cluster1's (identical offset formula, different bank content).
+        // Cluster2 consumes only when pp_enable (its op_mode is IDLE otherwise → stale data ignored).
+        .weight_read_addr3 (w_rd_addr),        // bank_B W1 (Cluster2)
+        .weight_read_data3 (w_rd_data3),
+        .weight_read_addr4 (w_rd_addr2),       // bank_B W2 (Cluster2)
+        .weight_read_data4 (w_rd_data4),
+        .const_read_addr   (const_rd_addr_r),
+        .const_read_data   (const_rd_data),
+        .dma_write_en      (dma_write_en),
+        .dma_target        (dma_target),
+        .dma_addr          (dma_addr),
+        .dma_wdata         (dma_wdata),
+        .dma_read_en       (dma_read_en),
+        .dma_rtarget       (dma_rtarget),
+        .dma_raddr         (dma_raddr),
+        .dma_rdata         (dma_rdata)
     );
 
     LUT_Bank u_lut (
@@ -372,7 +416,7 @@ module Mamba_Top (
     wire                      cl_h_wr_from_pe_w  = h_ctrl_active ? m6_h_wr_from_pe_r  : 1'b0;
     wire [16*`DATA_W-1:0]     cl_h_wr_data_ext_w = h_ctrl_active ? m6_h_wr_data_ext_r : 256'b0;
 
-    M_Cluster #(.H_ADDR_W(14), .H_DEPTH(16384)) u_mc (
+    M_Cluster #(.H_ADDR_W(14), .H_DEPTH(16384), .HAS_H(1)) u_mc (
         .clk          (clk),
         .rst          (rst),
         .op_mode      (cl_op_mode),
@@ -395,6 +439,141 @@ module Mamba_Top (
         .out_next_vec2(cl_out_next_vec2)
     );
 
+    // ============================================================================
+    // Cluster2 (u_mc2) — 16-lane aux cluster for ping-pong M-stages + M6 substep.
+    // Phase 1.2 wiring: all inputs tied to 0 (smoke test — cluster idle).
+    // Phase 1.3+ will drive cl2_* signals from FSM ping-pong logic.
+    // HAS_H=0 → no second H_RegFile (saves 16 URAM); in_H_ext used directly.
+    // ============================================================================
+    reg  [2:0]                cl2_op_mode;
+    reg                       cl2_clear_acc;
+    reg  [16*`DATA_W-1:0]     cl2_in_W1_vec, cl2_in_H_ext, cl2_in_W2_vec, cl2_in_X_vec;
+    wire [16*`DATA_W-1:0]     cl2_out_vec, cl2_out_next_vec;
+    wire [16*`DATA_W-1:0]     cl2_out_vec2, cl2_out_next_vec2;
+    wire [16*`ACC_W-1:0]      cl2_acc_raw_vec;
+    wire [`DATA_W+4:0]        cl2_y_reduce_out;
+    // Cluster2 output capture reg — snapshot cl2_out_vec at S_MAC5 (same cycle cluster1
+    // writes valid output). Prevents "extra MAC" from S_MAC5's stale MAC2 mode from
+    // polluting cl2_out_vec seen at S_MAC5B. Cluster1's write is safe because m_wr_data
+    // captures cl_out_vec at S_MAC5 edge before the extra MAC pollutes.
+    reg  [16*`DATA_W-1:0]     cl2_out_reg;
+
+    // ============================================================================
+    // Phase 3: Cluster2 M6-aux state + registers
+    // ============================================================================
+    reg [4:0]         c2_state;
+    reg [255:0]       c2_h_new_reg;      // from FIFO
+    reg [255:0]       c2_C_reg;          // from FIFO (C[s])
+    reg signed [15:0] c2_u_scalar_reg;   // from FIFO (u[l] scalar)
+    reg signed [15:0] c2_D_scalar_reg;   // from FIFO (D[l] scalar)
+    reg [6:0]         c2_g_id;           // from FIFO
+    reg [3:0]         c2_l_id;
+    reg [2:0]         c2_s_id;
+    reg signed [23:0] c2_y_ch_reg;       // per-s accumulator (matches m6_y_ch_reg width)
+    reg [255:0]       c2_ssm_grp_acc;    // per-lane accum within group (matches m6_ssm_grp_acc)
+    reg [255:0]       c2_silu_z_reg;     // silu(z) for current group
+    reg               c2_done;
+    reg [14:0]        c2_m_rd_addr;      // z_addr from cluster2
+    reg [14:0]        c2_m_wr_addr;      // y_gated addr
+    reg [255:0]       c2_m_wr_data;
+    reg               c2_m_we;
+
+    // Combinational: cluster2 saturation for accumulated y_ch (matches Cluster1 flow)
+    wire signed [`ACC_W+4:0] cl2_sum_d_wide;
+    Reduce16Wide u_rw2 (
+        .in_vec (cl2_acc_raw_vec),
+        .out_sum(cl2_sum_d_wide)
+    );
+    wire signed [`ACC_W+4:0] cl2_y_ch_full = cl2_sum_d_wide >>> `FRAC_BITS;
+    wire signed [15:0] cl2_y_ch_sat =
+        (cl2_y_ch_full >  45'sd32767)  ? 16'sh7FFF :
+        (cl2_y_ch_full < -45'sd32768)  ? 16'sh8000 :
+                                          cl2_y_ch_full[15:0];
+    wire signed [15:0] c2_y_ch_reg_sat =
+        (c2_y_ch_reg >  24'sd32767)  ? 16'sh7FFF :
+        (c2_y_ch_reg < -24'sd32768)  ? 16'sh8000 :
+                                        c2_y_ch_reg[15:0];
+
+    // FIFO wires
+    localparam FIFO_W = 558;   // 256 (h_new) + 256 (C) + 16 (u) + 16 (D) + 7 (g) + 4 (l) + 3 (s)
+    wire              fifo_push;
+    wire              fifo_pop = (c2_state == S_C2_POP) && !fifo_empty;
+    wire [FIFO_W-1:0] fifo_wdata;
+    wire [FIFO_W-1:0] fifo_rdata;
+    wire              fifo_full;
+    wire              fifo_empty;
+
+    Handshake_FIFO #(.WIDTH(FIFO_W), .DEPTH(2)) u_fifo_m6 (
+        .clk   (clk),
+        .rst   (rst),
+        .push  (fifo_push),
+        .wdata (fifo_wdata),
+        .pop   (fifo_pop),
+        .rdata (fifo_rdata),
+        .full  (fifo_full),
+        .empty (fifo_empty)
+    );
+
+    // FIFO field slicing (from LSB to MSB order):
+    //   [255:0]   = h_new
+    //   [511:256] = C[s]
+    //   [527:512] = u_scalar
+    //   [543:528] = D_scalar
+    //   [550:544] = g_id
+    //   [554:551] = l_id
+    //   [557:555] = s_id
+    wire [255:0] fifo_r_h_new    = fifo_rdata[255:0];
+    wire [255:0] fifo_r_C        = fifo_rdata[511:256];
+    wire [15:0]  fifo_r_u_scalar = fifo_rdata[527:512];
+    wire [15:0]  fifo_r_D_scalar = fifo_rdata[543:528];
+    wire [6:0]   fifo_r_g_id     = fifo_rdata[550:544];
+    wire [3:0]   fifo_r_l_id     = fifo_rdata[554:551];
+    wire [2:0]   fifo_r_s_id     = fifo_rdata[557:555];
+
+    // Cluster2 needs ram_main for z-read (LOADZ+ZWAIT1) and y_gated-write (WRITE+WRITE2).
+    // Both windows cover 2 cycles because BRAM samples addr at edge after issue-cycle.
+    // Cluster1's M6 FSM at S_M6_10 waits (via c1_m6_can_advance) during these windows.
+    // Wires declared forward above (before Memory_System instance).
+    assign c2_using_main_rd = (c2_state == S_C2_LOADZ) || (c2_state == S_C2_ZWAIT1);
+    assign c2_using_main_wr = (c2_state == S_C2_WRITE) || (c2_state == S_C2_WRITE2);
+
+    // Cluster1's M6 push+advance can only happen when FIFO has space AND cluster2 not
+    // holding ram_main for next read. Tying push firing to advance guarantees single
+    // push per (l,s) iteration (no duplicate push if stalled).
+    wire c1_m6_can_advance = !fifo_full && !c2_using_main_rd;
+    wire [15:0] fifo_w_u_scalar = m6_u_word[ctr_l*16 +: 16];
+    wire [15:0] fifo_w_D_scalar = m6_D_word[ctr_l*16 +: 16];
+    assign fifo_push  = (state == S_M6_10) && c1_m6_can_advance;
+    // FIFO word packing (LSB → MSB): h_new, C[s], u_scalar, D_scalar, g_id, l_id, s_id.
+    // h_new sourced from cl_out_next_vec (combinational PE ADD output, valid at cycle
+    // S_M6_10 when cl_op_mode is held at ADD — see S_M6_10 case in main FSM).
+    assign fifo_wdata = {ctr_s, ctr_l, ctr_g,
+                         fifo_w_D_scalar, fifo_w_u_scalar,
+                         m6_w1_reg, cl_out_next_vec};
+
+    M_Cluster #(.H_ADDR_W(14), .H_DEPTH(16384), .HAS_H(0)) u_mc2 (
+        .clk          (clk),
+        .rst          (rst),
+        .op_mode      (cl2_op_mode),
+        .clear_acc    (cl2_clear_acc),
+        .in_W1_vec    (cl2_in_W1_vec),
+        .in_H_ext     (cl2_in_H_ext),
+        .in_W2_vec    (cl2_in_W2_vec),
+        .in_X_vec     (cl2_in_X_vec),
+        .h_from_rf    (1'b0),                  // Unused (HAS_H=0)
+        .h_rd_addr    (14'd0),
+        .h_wr_en      (1'b0),
+        .h_wr_addr    (14'd0),
+        .h_wr_from_pe (1'b0),
+        .h_wr_data_ext(256'd0),
+        .out_vec      (cl2_out_vec),
+        .acc_raw_vec  (cl2_acc_raw_vec),
+        .y_reduce_out (cl2_y_reduce_out),
+        .out_next_vec (cl2_out_next_vec),
+        .out_vec2     (cl2_out_vec2),
+        .out_next_vec2(cl2_out_next_vec2)
+    );
+
     wire signed [`ACC_W+4:0] sum_d_wide;
     Reduce16Wide u_rw (
         .in_vec (cl_acc_raw_vec),
@@ -408,9 +587,12 @@ module Mamba_Top (
                                        mean_i_signed[12:0];
     wire [255:0] S_broadcast = {16{S_reg}};
 
-    assign silu_in_drv = (state == S_M3_1 ) ? m_rd_data :
-                         (state == S_M7_3) ? m_rd_data :
-                                                    256'b0;
+    // silu_in_drv: M3 stream, M7 (legacy, now unreachable after Phase 3), and cluster2 gate.
+    // Cluster2 gate silu(z) driven when c2_state is ZWAIT2 (m_rd_data = z_word from c2's read).
+    assign silu_in_drv = (state == S_M3_1 )        ? m_rd_data :
+                         (state == S_M7_3)         ? m_rd_data :
+                         (c2_state == S_C2_ZWAIT2) ? m_rd_data :
+                                                     256'b0;
     assign sp_in_drv   = (state == S_M5_9  ) ? cl_out_vec : 256'b0;
     assign exp_in_drv  = (state == S_M6_6) ? cl_out_vec : 256'b0;
 
@@ -447,10 +629,26 @@ module Mamba_Top (
         (cur_stage == STG_M1B) ? m1b_wr_addr :
         (cur_stage == STG_M4) ? m4_wr_addr  :
                               m8_wr_addr;
+    // Ping-pong cluster2 write address = same base + (ctr_g+1). Only used when pp_enable.
+    wire [14:0] mac_wr_addr_c2 = mac_wr_addr + 15'd1;
 
     wire [7:0]  mac_grp_last = mac_grp_count - 8'd1;
     wire [14:0] mac_len_ext  = {3'b0, mac_len};
-    wire [14:0] w_grp_base   = mac_w_base + ({8'b0, ctr_g} * mac_len_ext);
+
+    // Ping-pong enable for MAC2 stages. Phase 1: M1A/M1B. Phase 2 extends to M4/M8.
+    // When enabled: bank_A holds even-group weights, bank_B holds odd-group weights;
+    // both banks addressed by same offset (ctr_g >> 1). ctr_g increments by 2.
+    // All PP stages' group counts must be even:
+    //   M1A/M1B: ch_m_act = 96 (even ✓)
+    //   M4     : XP_OUT_GRP = 18  (even ✓ for Mamba2)
+    //   M8     : CH_OUT = 48       (even ✓ for Mamba2)
+    wire pp_enable = (cur_stage == STG_M1A) || (cur_stage == STG_M1B) ||
+                     (cur_stage == STG_M4)  || (cur_stage == STG_M8);
+
+    // g_bank_idx: for PP, use ctr_g[6:1] = ctr_g/2 (both banks addressed identically).
+    // For non-PP (M4/M8 in Phase 1), use full ctr_g.
+    wire [6:0] g_bank_idx = pp_enable ? {1'b0, ctr_g[6:1]} : ctr_g;
+    wire [14:0] w_grp_base = mac_w_base + ({8'b0, g_bank_idx} * mac_len_ext);
 
     wire [10:0] ctr_k_p1 = ctr_k + 11'd1;
     wire [10:0] ctr_k_p2 = ctr_k + 11'd2;
@@ -465,9 +663,20 @@ module Mamba_Top (
     wire [14:0] mac_w_addr_k4  = w_grp_base + {4'b0, ctr_k_p4};
 
     wire [6:0]  ctr_g_p1 = ctr_g + 7'd1;
-    wire [14:0] w_grp_base_next = mac_w_base + ({8'b0, ctr_g_p1} * mac_len_ext);
+    wire [6:0]  ctr_g_p2 = ctr_g + 7'd2;
+    // Next group increment: +2 for PP (even→next even), +1 otherwise.
+    wire [6:0]  ctr_g_step = pp_enable ? ctr_g_p2 : ctr_g_p1;
+    // Next iter's g_bank_idx: for PP (ctr_g even, +2), next bank idx = ctr_g/2 + 1 = ctr_g_p2[6:1].
+    wire [6:0]  g_bank_idx_next = pp_enable ? {1'b0, ctr_g_p2[6:1]} : ctr_g_p1;
+    wire [14:0] w_grp_base_next = mac_w_base + ({8'b0, g_bank_idx_next} * mac_len_ext);
     wire [14:0] mac_w_addr_gnext = w_grp_base_next;
     wire [14:0] mac_rd_addr_g0 = mac_in_base;
+
+    // Terminate MAC group-loop:
+    //   Non-PP: ctr_g == mac_grp_last (last group).
+    //   PP    : ctr_g+1 == mac_grp_last (last odd, i.e. cluster2's last group).
+    wire mac_last_iter = pp_enable ? (ctr_g_p1 == {1'b0, mac_grp_last[6:0]})
+                                    : (ctr_g    == {1'b0, mac_grp_last[6:0]});
 
     wire [7:0]  inner_grp_last = ch_m_act - 8'd1;
 
@@ -606,6 +815,8 @@ module Mamba_Top (
             cl_in_H_ext        <= 256'd0;
             cl_in_W2_vec       <= 256'd0;
             cl_in_X_vec        <= 256'd0;
+            // cl2_op_mode / cl2_clear_acc / cl2_in_* moved to cluster2 always block.
+            cl2_out_reg        <= 256'd0;
             const_rd_addr_r    <= 15'd0;
             rsqrt_idx_r        <= 13'd0;
             S_reg              <= 16'd0;
@@ -632,6 +843,7 @@ module Mamba_Top (
         end else begin
             cl_op_mode           <= `MAMBA_PE_IDLE;
             cl_clear_acc         <= 1'b0;
+            // cl2_op_mode / cl2_clear_acc default handled in cluster2 always block.
             m_we                 <= 1'b0;
             m6_h_wr_en_r         <= 1'b0;
 
@@ -681,12 +893,16 @@ module Mamba_Top (
                     state        <= S_MAC3;
                 end
                 S_MAC3: begin
+                    // Cluster1 (bank_A weights, even group)
                     cl_in_W1_vec <= w_rd_data;
                     cl_in_W2_vec <= w_rd_data2;
                     cl_in_H_ext  <= y_broadcast;
                     cl_in_X_vec  <= y_broadcast2;
                     cl_op_mode   <= `MAMBA_PE_MAC2;
                     cl_clear_acc <= 1'b1;
+                    // NOTE: Cluster2's cl2_* signals for M-stage ping-pong are driven
+                    // from the cluster2 always block (see bottom of module). Consolidated
+                    // there to avoid dual-driver conflict with M6-aux states.
                     m_rd_addr    <= mac_rd_addr_k4;
                     w_rd_addr    <= mac_w_addr_k4;
                     w_rd_addr2   <= mac_w_addr_k4 + 15'd1;
@@ -699,6 +915,7 @@ module Mamba_Top (
                     cl_in_W2_vec <= w_rd_data2;
                     cl_in_H_ext  <= y_broadcast;
                     cl_in_X_vec  <= y_broadcast2;
+                    // Cluster2 signals driven from cluster2 always block.
                     m_rd_addr  <= mac_rd_addr_k4;
                     w_rd_addr  <= mac_w_addr_k4;
                     w_rd_addr2 <= mac_w_addr_k4 + 15'd1;
@@ -707,21 +924,71 @@ module Mamba_Top (
                         state <= S_MAC5;
                     end
                 end
+                // S_MAC5: cluster1 write. If PP → next cycle S_MAC5B writes cluster2.
+                // Non-PP → do existing exit logic (loop or stage transition) directly.
                 S_MAC5: begin
                     m_we      <= 1'b1;
                     m_wr_addr <= mac_wr_addr;
                     m_wr_data <= cl_out_vec;
-                    if (ctr_g == mac_grp_last) begin
+                    if (pp_enable) begin
+                        // Snapshot cluster2 output BEFORE its stale MAC2 pollutes cl2_out_vec
+                        // at edge S_MAC5 (see cl2_out_reg comment above).
+                        cl2_out_reg <= cl2_out_vec;
+                        state <= S_MAC5B;
+                    end else begin
+                        if (mac_last_iter) begin
+                            ctr_g <= 7'd0;
+                            ctr_k  <= 11'd0;
+                            case (cur_stage)
+                                STG_M1A: begin cur_stage <= STG_M1B; state <= S_MAC1; end
+                                STG_M1B: begin cur_stage <= STG_M2;  state <= S_M2_1;  end
+                                STG_M4: begin
+                                    if (USE_M5) begin
+                                        cur_stage <= STG_M5;
+                                        m_rd_addr <= m5_dt_addr;
+                                        state     <= S_M5_1;
+                                    end else begin
+                                        cur_stage <= STG_M6;
+                                        ctr_l     <= 4'd0;
+                                        ctr_s     <= 3'd0;
+                                        ctr_load  <= 3'd0;
+                                        state     <= S_M6_1;
+                                    end
+                                end
+                                STG_M8: begin
+                                    if (t_cnt == t_last) begin
+                                        state <= S_DONE;
+                                    end else begin
+                                        t_cnt     <= t_cnt + 10'd1;
+                                        cur_stage <= STG_RN;
+                                        state     <= S_RN1;
+                                    end
+                                end
+                                default: state <= S_IDLE;
+                            endcase
+                        end else begin
+                            ctr_g  <= ctr_g_step;
+                            ctr_k   <= 11'd0;
+                            m_rd_addr  <= mac_rd_addr_g0;
+                            w_rd_addr  <= mac_w_addr_gnext;
+                            w_rd_addr2 <= mac_w_addr_gnext + 15'd1;
+                            state      <= S_MAC2;
+                        end
+                    end
+                end
+                // S_MAC5B (PP only): cluster2 write at (ctr_g+1)-address, then exit logic.
+                // Uses cl2_out_reg (snapshotted at S_MAC5 edge) to avoid extra-MAC pollution.
+                S_MAC5B: begin
+                    m_we      <= 1'b1;
+                    m_wr_addr <= mac_wr_addr_c2;
+                    m_wr_data <= cl2_out_reg;
+                    if (mac_last_iter) begin
                         ctr_g <= 7'd0;
                         ctr_k  <= 11'd0;
                         case (cur_stage)
                             STG_M1A: begin cur_stage <= STG_M1B; state <= S_MAC1; end
-                            STG_M1B: begin cur_stage <= STG_M2;  state <= S_M2_1;  end
+                            STG_M1B: begin cur_stage <= STG_M2;  state <= S_M2_1; end
                             STG_M4: begin
-                                // Prefetch dt_raw during LATCH (port A used for write, port B free)
-                                // → skip S_M5_DT_READ. Keep DT_WAIT: BRAM needs 1-cyc read latency
-                                // between addr-issue and dout-valid.
-                                // FastMamba port: USE_M5=0 → skip M5 (Mamba2 has no dt-proj)
                                 if (USE_M5) begin
                                     cur_stage <= STG_M5;
                                     m_rd_addr <= m5_dt_addr;
@@ -746,7 +1013,7 @@ module Mamba_Top (
                             default: state <= S_IDLE;
                         endcase
                     end else begin
-                        ctr_g  <= ctr_g_p1;
+                        ctr_g  <= ctr_g_step;         // += 2 for PP
                         ctr_k   <= 11'd0;
                         m_rd_addr  <= mac_rd_addr_g0;
                         w_rd_addr  <= mac_w_addr_gnext;
@@ -1055,86 +1322,52 @@ module Mamba_Top (
                 // picks cl_out_vec). Adding an ADD_WAIT state between would let
                 // the default cl_op_mode <= IDLE clear PE mode before SSM_LATCH,
                 // wiping cl_out_vec to 0 (IDLE out_next default).
+                // Phase 3: WRITE_H + FIFO_PUSH + iteration control.
+                // Keep cl_op_mode = ADD throughout S_M6_10 (including stall cycles) so PE
+                // continuously produces h_new in cl_out_next_vec (comb) and cl_out_vec (reg).
+                // Both H_RegFile write (uses cl_out_vec at edge) and FIFO push (uses
+                // cl_out_next_vec at push cycle) get correct h_new even under stall.
                 S_M6_10: begin
+                    cl_op_mode        <= `MAMBA_PE_ADD;            // hold ADD → PE re-fires idempotently
+                    // cl_in_W1_vec, cl_in_H_ext still = T1, T2 from S_M6_9 (regs, not cleared).
                     m6_h_wr_en_r      <= 1'b1;
                     m6_h_wr_addr_r    <= m6_c;                     // Widened 14-bit
                     m6_h_wr_from_pe_r <= 1'b1;
-                    state             <= S_M6_11;
-                end
-                // Y_MAC per s: single MAC C[s]·h_new[s]. External accumulator
-                // (m6_y_ch_reg) sums the 8 per-s partials at S_M6_13, since PE
-                // acc would be clobbered by DAB MUL2 / SSM MUL2 / ADD ops in
-                // the intervening LOAD → compute chain.
-                S_M6_11: begin
-                    cl_op_mode   <= `MAMBA_PE_MAC;
-                    cl_clear_acc <= 1'b1;                         // fresh MAC per s
-                    cl_in_W1_vec <= cl_out_vec;                   // h_new[l,s]
-                    cl_in_H_ext  <= m6_w1_reg;                    // C[s]
-                    state        <= S_M6_12;
-                end
-                S_M6_12: state <= S_M6_13;                        // PE MAC settle
-                S_M6_13: begin
-                    // Accumulate partial y[c] across s = 0..N_STATE_GRP-1
-                    if (ctr_s == 3'd0) begin
-                        m6_y_ch_reg <= {{8{m6_y_ch_sat[15]}}, m6_y_ch_sat};
-                    end else begin
-                        m6_y_ch_reg <= m6_y_ch_reg +
-                                       {{8{m6_y_ch_sat[15]}}, m6_y_ch_sat};
+                    // fifo_push comb-driven when state == S_M6_10 && c1_m6_can_advance.
+                    // Iterate only when advance possible (FIFO not full, c2 not using main).
+                    if (c1_m6_can_advance) begin
+                        if (ctr_s != `N_STATE_GRP_MAX) begin
+                            ctr_s    <= ctr_s + 3'd1;
+                            ctr_load <= 3'd0;
+                            state    <= S_M6_1;
+                        end else if (ctr_l != `LANE_MAX) begin
+                            ctr_l    <= ctr_l + 4'd1;
+                            ctr_s    <= 3'd0;
+                            ctr_load <= 3'd0;
+                            state    <= S_M6_1;
+                        end else if (ctr_g != inner_grp_last) begin
+                            ctr_g    <= ctr_g + 7'd1;
+                            ctr_l    <= 4'd0;
+                            ctr_s    <= 3'd0;
+                            ctr_load <= 3'd0;
+                            state    <= S_M6_1;
+                        end else begin
+                            // All (g, l, s) pushed. Wait for cluster2 to drain FIFO + write last y_gated.
+                            state <= S_M6_WAIT_C2;
+                        end
                     end
-                    if (ctr_s == `N_STATE_GRP_MAX) begin
-                        // Done all s → continue to D·u + YSUM
-                        state <= S_M6_14;
-                    end else begin
-                        // Next s: reload B/C/A for new s
-                        ctr_s    <= ctr_s + 3'd1;
-                        ctr_load <= 3'd0;
-                        state    <= S_M6_1;
-                    end
+                    // else: stall in S_M6_10. h_wr_en re-fires (idempotent — same addr, same data).
                 end
-                S_M6_14: begin
-                    cl_op_mode   <= `MAMBA_PE_MUL;
-                    cl_in_W1_vec <= m6_D_broadcast;
-                    cl_in_H_ext  <= m6_u_broadcast;
-                    state        <= S_M6_15;
-                end
-                S_M6_15: state <= S_M6_16;
-                // Fire PE ADD: sat16(y_ch_reg + cl_out_vec[15:0]).
-                // cl_in_H_ext captures cl_out_vec[15:0]=D*u while still valid.
-                // Lane-0 broadcast is enough since only lane 0 of PE output is read.
-                S_M6_16: begin
-                    cl_op_mode   <= `MAMBA_PE_ADD;
-                    cl_in_W1_vec <= {16{m6_y_ch_reg_sat}};        // sat16 of 24-bit acc
-                    cl_in_H_ext  <= {16{cl_out_vec[15:0]}};
-                    state        <= S_M6_17;
-                end
-                S_M6_17: state <= S_M6_18;
-                S_M6_18: begin
-                    m6_ssm_grp_acc[ctr_l*16 +: 16] <= cl_out_vec[15:0];
-                    if (ctr_l == `LANE_MAX) begin
-                        state <= S_M6_19;
-                    end else begin
-                        // Next lane: reload B/C/A for new (l, s=0); dt/u still valid
-                        ctr_l    <= ctr_l + 4'd1;
-                        ctr_s    <= 3'd0;
-                        ctr_load <= 3'd0;
-                        state    <= S_M6_1;
-                    end
-                end
-                S_M6_19: begin
-                    m_we      <= 1'b1;
-                    m_wr_addr <= m6_y_ssm_wr_addr;
-                    m_wr_data <= m6_ssm_grp_acc;
-                    if (ctr_g == inner_grp_last) begin
-                        ctr_g <= 7'd0;
-                        cur_stage <= STG_M7;
-                        state     <= S_M7_1;
-                    end else begin
-                        // Next group: full 5-slot LOAD (dt/u/D refresh + B/C/A[s=0])
-                        ctr_g    <= ctr_g + 7'd1;
-                        ctr_l    <= 4'd0;
-                        ctr_s    <= 3'd0;
-                        ctr_load <= 3'd0;
-                        state    <= S_M6_1;
+                // Wait for cluster2 to finish all Y+DU+YSUM+gate+write for all groups.
+                // Cluster2 signals c2_done when last WRITE completed.
+                S_M6_WAIT_C2: begin
+                    if (c2_done && fifo_empty) begin
+                        ctr_g     <= 7'd0;
+                        ctr_l     <= 4'd0;
+                        ctr_s     <= 3'd0;
+                        cur_stage <= STG_M8;                       // Skip STG_M7 (merged into c2)
+                        ctr_k     <= 11'd0;
+                        state     <= S_MAC1;
                     end
                 end
 
@@ -1183,4 +1416,179 @@ module Mamba_Top (
             endcase
         end
     end
+
+    // ============================================================================
+    // Phase 3: Cluster2 FSM + PE input driver (unified — avoids dual-driver conflict).
+    // Two roles:
+    //   (1) M-stage ping-pong partner (M1A/M1B/M4/M8) — mirrors cluster1's MAC2
+    //       fire, but weights come from bank_B (w_rd_data3/4).
+    //   (2) M6 substep aux — consumes FIFO items from cluster1 (h_new + C + u + D + IDs),
+    //       runs Y_MAC + accumulate + D·u + YSUM + gate MUL + write y_gated. M7 merged.
+    //
+    // Both roles are mutually exclusive by cur_stage (M-stage PP → cur_stage in
+    // {M1A/M1B/M4/M8}; M6-aux → cur_stage == STG_M6). No conflict.
+    // ============================================================================
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            c2_state        <= S_C2_IDLE;
+            cl2_op_mode     <= `MAMBA_PE_IDLE;
+            cl2_clear_acc   <= 1'b0;
+            cl2_in_W1_vec   <= 256'b0;
+            cl2_in_H_ext    <= 256'b0;
+            cl2_in_W2_vec   <= 256'b0;
+            cl2_in_X_vec    <= 256'b0;
+            c2_h_new_reg    <= 256'b0;
+            c2_C_reg        <= 256'b0;
+            c2_u_scalar_reg <= 16'sd0;
+            c2_D_scalar_reg <= 16'sd0;
+            c2_g_id         <= 7'd0;
+            c2_l_id         <= 4'd0;
+            c2_s_id         <= 3'd0;
+            c2_y_ch_reg     <= 24'sd0;
+            c2_ssm_grp_acc  <= 256'b0;
+            c2_silu_z_reg   <= 256'b0;
+            c2_done         <= 1'b0;
+            c2_m_rd_addr    <= 15'd0;
+            c2_m_wr_addr    <= 15'd0;
+            c2_m_wr_data    <= 256'b0;
+            c2_m_we         <= 1'b0;
+        end else begin
+            // Defaults (case may override).
+            cl2_op_mode   <= `MAMBA_PE_IDLE;
+            cl2_clear_acc <= 1'b0;
+            c2_m_we       <= 1'b0;
+
+            // ------------------------------------------------------------
+            // Role (1): M-stage ping-pong (mirrors cluster1's MAC2 in S_MAC3/S_MAC4).
+            // Same 1-cyc NBA latency as cluster1 → PEs fire in lockstep.
+            // ------------------------------------------------------------
+            if (pp_enable && (state == S_MAC3 || state == S_MAC4)) begin
+                cl2_op_mode   <= `MAMBA_PE_MAC2;
+                cl2_clear_acc <= (state == S_MAC3);        // matches cluster1's clear pattern
+                cl2_in_W1_vec <= w_rd_data3;               // bank_B W1
+                cl2_in_W2_vec <= w_rd_data4;               // bank_B W2
+                cl2_in_H_ext  <= y_broadcast;
+                cl2_in_X_vec  <= y_broadcast2;
+            end
+
+            // ------------------------------------------------------------
+            // Role (2): M6 substep aux — cluster2 FSM.
+            // ------------------------------------------------------------
+            case (c2_state)
+                S_C2_IDLE: begin
+                    if (cur_stage != STG_M6) c2_done <= 1'b0;
+                    if (cur_stage == STG_M6 && !fifo_empty && !c2_done)
+                        c2_state <= S_C2_POP;
+                end
+
+                S_C2_POP: begin
+                    c2_h_new_reg    <= fifo_r_h_new;
+                    c2_C_reg        <= fifo_r_C;
+                    c2_u_scalar_reg <= fifo_r_u_scalar;
+                    c2_D_scalar_reg <= fifo_r_D_scalar;
+                    c2_g_id         <= fifo_r_g_id;
+                    c2_l_id         <= fifo_r_l_id;
+                    c2_s_id         <= fifo_r_s_id;
+                    c2_state        <= S_C2_YMAC;
+                end
+
+                S_C2_YMAC: begin
+                    // Fire MAC (h_new · C[s]) — fresh MAC per s (clear_acc=1).
+                    cl2_op_mode   <= `MAMBA_PE_MAC;
+                    cl2_clear_acc <= 1'b1;
+                    cl2_in_W1_vec <= c2_h_new_reg;
+                    cl2_in_H_ext  <= c2_C_reg;
+                    c2_state      <= S_C2_YWAIT;
+                end
+
+                S_C2_YWAIT: c2_state <= S_C2_ACCUM;
+
+                S_C2_ACCUM: begin
+                    if (c2_s_id == 3'd0)
+                        c2_y_ch_reg <= {{8{cl2_y_ch_sat[15]}}, cl2_y_ch_sat};
+                    else
+                        c2_y_ch_reg <= c2_y_ch_reg + {{8{cl2_y_ch_sat[15]}}, cl2_y_ch_sat};
+
+                    if (c2_s_id == `N_STATE_GRP_MAX)
+                        c2_state <= S_C2_DUMUL;
+                    else
+                        c2_state <= S_C2_IDLE;             // wait for next FIFO (l, s+1)
+                end
+
+                S_C2_DUMUL: begin
+                    cl2_op_mode   <= `MAMBA_PE_MUL;
+                    cl2_in_W1_vec <= {16{c2_D_scalar_reg}};
+                    cl2_in_H_ext  <= {16{c2_u_scalar_reg}};
+                    c2_state      <= S_C2_DUWAIT;
+                end
+
+                S_C2_DUWAIT: c2_state <= S_C2_YSUM;
+
+                S_C2_YSUM: begin
+                    cl2_op_mode   <= `MAMBA_PE_ADD;
+                    cl2_in_W1_vec <= {16{c2_y_ch_reg_sat}};
+                    cl2_in_H_ext  <= {16{cl2_out_vec[15:0]}};   // D·u (lane 0)
+                    c2_state      <= S_C2_YSUM_WAIT;
+                end
+
+                S_C2_YSUM_WAIT: c2_state <= S_C2_YSUM_LATCH;
+
+                S_C2_YSUM_LATCH: begin
+                    c2_ssm_grp_acc[c2_l_id*16 +: 16] <= cl2_out_vec[15:0];
+                    if (c2_l_id == `LANE_MAX)
+                        c2_state <= S_C2_LOADZ;
+                    else
+                        c2_state <= S_C2_IDLE;
+                end
+
+                S_C2_LOADZ: begin
+                    c2_m_rd_addr <= PT_Z_GATE + {8'b0, c2_g_id};
+                    c2_state     <= S_C2_ZWAIT1;
+                end
+
+                S_C2_ZWAIT1: c2_state <= S_C2_ZWAIT2;
+
+                S_C2_ZWAIT2: begin
+                    c2_silu_z_reg <= silu_out_w;
+                    c2_state      <= S_C2_GATE;
+                end
+
+                S_C2_GATE: begin
+                    cl2_op_mode   <= `MAMBA_PE_MUL;
+                    cl2_in_W1_vec <= c2_ssm_grp_acc;
+                    cl2_in_H_ext  <= c2_silu_z_reg;
+                    c2_state      <= S_C2_GATE_WAIT;
+                end
+
+                S_C2_GATE_WAIT: c2_state <= S_C2_WRITE;
+
+                S_C2_WRITE: begin
+                    c2_m_we      <= 1'b1;
+                    c2_m_wr_addr <= PT_Y_GATED + {8'b0, c2_g_id};
+                    c2_m_wr_data <= cl2_out_vec;
+                    c2_state     <= S_C2_WRITE2;
+                end
+
+                S_C2_WRITE2: begin
+                    c2_m_we <= 1'b1;
+                    if (c2_g_id == inner_grp_last[6:0]) begin
+                        c2_done  <= 1'b1;
+                        c2_state <= S_C2_DONE;
+                    end else begin
+                        c2_state <= S_C2_IDLE;
+                    end
+                end
+
+                S_C2_DONE: begin
+                    if (cur_stage != STG_M6) begin
+                        c2_done  <= 1'b0;
+                        c2_state <= S_C2_IDLE;
+                    end
+                end
+
+                default: c2_state <= S_C2_IDLE;
+            endcase
+        end
+    end
+
 endmodule

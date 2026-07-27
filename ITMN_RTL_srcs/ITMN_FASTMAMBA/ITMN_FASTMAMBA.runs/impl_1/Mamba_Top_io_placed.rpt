@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------
 | Tool Version              : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date                      : Sun Jul 19 13:59:28 2026
+| Date                      : Sat Jul 25 13:07:32 2026
 | Host                      : letun running 64-bit major release  (build 9200)
 | Command                   : report_io -file Mamba_Top_io_placed.rpt
 | Design                    : Mamba_Top
@@ -25,7 +25,7 @@ Table of Contents
 +---------------+
 | Total User IO |
 +---------------+
-|           595 |
+|           597 |
 +---------------+
 
 

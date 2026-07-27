@@ -28,13 +28,16 @@ module tb_Mamba_Top_MAMBA2;
     localparam XP_OUT_GRP_V    = 5'd18;   // Mamba2 dt(24)+B(128)+C(128)/16 ≈ 18
     localparam T_TEST          = 1;       // 1 token
 
-    // ---- DMA reload cost (paper model, 1 cyc / 256b word) ----
+    // ---- DMA reload cost (paper-fair MODEL — NOT measured from sim) ----
+    // Assumes 256b/cyc AXI streaming of all weights per layer:
     //   W_InProj full (dt+B+C+x+z): 3352 * 768 / 16 = 160896
     //   W_OutProj:                  1536 * 768 / 16 = 73728
     //   W_DW (short conv):          1536 * 4 / 16   = 384
     //   W_A (per-head):             24 * 128 / 16   = 192
     //   Norms + biases (rough):                      ≈ 200
     //   Total per layer ≈ 235,400
+    // Real HW would overlap DMA with compute via double-buffering; this is
+    // worst-case serial model matching FastMamba paper methodology.
     localparam integer DMA_CYC_PER_LAYER = 235400;
 
     // ---- Clock / reset ----
@@ -54,11 +57,11 @@ module tb_Mamba_Top_MAMBA2;
     reg  [4:0]   XP_OUT_GRP_IN = XP_OUT_GRP_V;
 
     reg          dma_write_en = 0;
-    reg  [1:0]   dma_target   = 0;
+    reg  [2:0]   dma_target   = 0;   // Widened 2→3-bit for weight bank_B (3'd4)
     reg  [14:0]  dma_addr     = 0;
     reg  [255:0] dma_wdata    = 0;
     reg          dma_read_en  = 0;
-    reg  [1:0]   dma_rtarget  = 0;
+    reg  [2:0]   dma_rtarget  = 0;
     reg  [14:0]  dma_raddr    = 0;
     wire [255:0] dma_rdata;
 
@@ -136,7 +139,45 @@ module tb_Mamba_Top_MAMBA2;
         #50000000;
         $display("ERROR: timeout (50ms = 5M cyc). last stage=%0d state=%0d ctr_g=%0d ctr_l=%0d ctr_s=%0d",
                  dut.cur_stage, dut.state, dut.ctr_g, dut.ctr_l, dut.ctr_s);
+        $display("  Phase 3 debug: c2_state=%0d fifo_full=%0b fifo_empty=%0b c2_using_main_rd=%0b c2_using_main_wr=%0b",
+                 dut.c2_state, dut.fifo_full, dut.fifo_empty, dut.c2_using_main_rd, dut.c2_using_main_wr);
+        $display("  c1_m6_can_advance=%0b fifo_push=%0b c2_done=%0b",
+                 dut.c1_m6_can_advance, dut.fifo_push, dut.c2_done);
         $finish;
+    end
+
+    // ---- Phase 3 M6 debug watch: report when cluster1 enters S_M6_10 first time ----
+    reg m6_10_seen; initial m6_10_seen = 0;
+    always @(posedge clk) begin
+        if (!rst && !m6_10_seen && dut.state == 7'd81) begin
+            m6_10_seen <= 1;
+            $display("[cyc=%0d] FIRST S_M6_10: ctr_g=%0d ctr_l=%0d ctr_s=%0d c2_state=%0d fifo_full=%0b fifo_empty=%0b c1_can_advance=%0b",
+                     $time/10, dut.ctr_g, dut.ctr_l, dut.ctr_s, dut.c2_state, dut.fifo_full, dut.fifo_empty, dut.c1_m6_can_advance);
+        end
+    end
+
+    // ---- Periodic snapshot every 100k cyc during M6 stall ----
+    integer snap_ctr; initial snap_ctr = 0;
+    always @(posedge clk) begin
+        if (!rst && dut.cur_stage == 4'd6) begin
+            snap_ctr <= snap_ctr + 1;
+            if (snap_ctr % 100000 == 0)
+                $display("[cyc=%0d] SNAP M6: state=%0d ctr_g=%0d/l=%0d/s=%0d c2=%0d fifo_full=%0b fifo_empty=%0b can_adv=%0b",
+                         $time/10, dut.state, dut.ctr_g, dut.ctr_l, dut.ctr_s, dut.c2_state,
+                         dut.fifo_full, dut.fifo_empty, dut.c1_m6_can_advance);
+        end
+    end
+
+    // ---- FIFO event trace (only first 20 events to avoid log spam) ----
+    integer fifo_evt; initial fifo_evt = 0;
+    always @(posedge clk) begin
+        if (!rst && fifo_evt < 20) begin
+            if (dut.fifo_push || dut.fifo_pop) begin
+                $display("[cyc=%0d] FIFO push=%0b pop=%0b count_pre=%0d state=%0d c2=%0d",
+                         $time/10, dut.fifo_push, dut.fifo_pop, dut.u_fifo_m6.count, dut.state, dut.c2_state);
+                fifo_evt <= fifo_evt + 1;
+            end
+        end
     end
 
     initial begin
@@ -151,7 +192,7 @@ module tb_Mamba_Top_MAMBA2;
         $display("[DMA] INPUT preload (%0d words)", CH_OUT_V * T_TEST);
         @(negedge clk);
         dma_write_en = 1;
-        dma_target   = 2'd0;
+        dma_target   = 3'd0;   // ram_main (PT_INPUT preload)
         for (i = 0; i < CH_OUT_V * T_TEST; i = i + 1) begin
             dma_addr  = `PT_INPUT + i[14:0];
             dma_wdata = {16{16'sh0100}};
@@ -217,8 +258,10 @@ module tb_Mamba_Top_MAMBA2;
                  1000000 / ((((cyc_end - cyc_start) + DMA_CYC_PER_LAYER) / 100) * 24));
         $display("");
         $display("--------- Paper baseline (FastMamba Fig 9, VC709@250MHz) ---------");
-        $display("  Their Mamba2-2.7B decode     : 5.68 tok/s (176 ms/tok)");
-        $display("  Resource ratio (DSPs)        : ITMN 48 vs FastMamba 3333 (~70x)");
+        $display("  Their Mamba2-2.7B decode     : 5.68 tok/s (176 ms/tok, 3333 DSPs)");
+        $display("  ITMN Phase 3 (2x16 cluster)  : ~96 DSPs (48 c1 + 48 c2, from synth)");
+        $display("  DSP density ratio            : ~35x fewer DSPs than FastMamba");
+        $display("  Note: FastMamba runs 2.7B model, ITMN runs 130M — 21x model size diff");
         $display("========================================================");
         $finish;
     end

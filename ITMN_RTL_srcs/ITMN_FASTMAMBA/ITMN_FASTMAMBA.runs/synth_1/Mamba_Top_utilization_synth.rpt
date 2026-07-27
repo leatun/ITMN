@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date         : Sun Jul 19 13:56:56 2026
+| Date         : Sat Jul 25 13:04:31 2026
 | Host         : letun running 64-bit major release  (build 9200)
 | Command      : report_utilization -file Mamba_Top_utilization_synth.rpt -pb Mamba_Top_utilization_synth.pb
 | Design       : Mamba_Top
@@ -32,15 +32,15 @@ Table of Contents
 +-------------------------+-------+-------+------------+-----------+-------+
 |        Site Type        |  Used | Fixed | Prohibited | Available | Util% |
 +-------------------------+-------+-------+------------+-----------+-------+
-| CLB LUTs*               | 15055 |     0 |          0 |    117120 | 12.85 |
-|   LUT as Logic          | 15055 |     0 |          0 |    117120 | 12.85 |
+| CLB LUTs*               | 22273 |     0 |          0 |    117120 | 19.02 |
+|   LUT as Logic          | 22273 |     0 |          0 |    117120 | 19.02 |
 |   LUT as Memory         |     0 |     0 |          0 |     57600 |  0.00 |
-| CLB Registers           |  5857 |     0 |          0 |    234240 |  2.50 |
-|   Register as Flip Flop |  5857 |     0 |          0 |    234240 |  2.50 |
+| CLB Registers           | 10122 |     0 |          0 |    234240 |  4.32 |
+|   Register as Flip Flop | 10122 |     0 |          0 |    234240 |  4.32 |
 |   Register as Latch     |     0 |     0 |          0 |    234240 |  0.00 |
-| CARRY8                  |   492 |     0 |          0 |     14640 |  3.36 |
-| F7 Muxes                |   512 |     0 |          0 |     58560 |  0.87 |
-| F8 Muxes                |    88 |     0 |          0 |     29280 |  0.30 |
+| CARRY8                  |   870 |     0 |          0 |     14640 |  5.94 |
+| F7 Muxes                |  1099 |     0 |          0 |     58560 |  1.88 |
+| F8 Muxes                |   121 |     0 |          0 |     29280 |  0.41 |
 | F9 Muxes                |     0 |     0 |          0 |     14640 |  0.00 |
 +-------------------------+-------+-------+------------+-----------+-------+
 * Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
@@ -59,9 +59,9 @@ Table of Contents
 | 0     |            _ |       Reset |            - |
 | 0     |          Yes |           - |            - |
 | 0     |          Yes |           - |          Set |
-| 5857  |          Yes |           - |        Reset |
-| 0     |          Yes |         Set |            - |
-| 0     |          Yes |       Reset |            - |
+| 9006  |          Yes |           - |        Reset |
+| 30    |          Yes |         Set |            - |
+| 1086  |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -71,9 +71,9 @@ Table of Contents
 +-------------------+------+-------+------------+-----------+-------+
 |     Site Type     | Used | Fixed | Prohibited | Available | Util% |
 +-------------------+------+-------+------------+-----------+-------+
-| Block RAM Tile    |   61 |     0 |          0 |       144 | 42.36 |
-|   RAMB36/FIFO*    |   61 |     0 |          0 |       144 | 42.36 |
-|     RAMB36E2 only |   61 |       |            |           |       |
+| Block RAM Tile    |  118 |     0 |          0 |       144 | 81.94 |
+|   RAMB36/FIFO*    |  118 |     0 |          0 |       144 | 81.94 |
+|     RAMB36E2 only |  118 |       |            |           |       |
 |   RAMB18          |    0 |     0 |          0 |       288 |  0.00 |
 | URAM              |   24 |     0 |          0 |        64 | 37.50 |
 +-------------------+------+-------+------------+-----------+-------+
@@ -86,8 +86,8 @@ Table of Contents
 +----------------+------+-------+------------+-----------+-------+
 |    Site Type   | Used | Fixed | Prohibited | Available | Util% |
 +----------------+------+-------+------------+-----------+-------+
-| DSPs           |   51 |     0 |          0 |      1248 |  4.09 |
-|   DSP48E2 only |   51 |       |            |           |       |
+| DSPs           |   83 |     0 |          0 |      1248 |  6.65 |
+|   DSP48E2 only |   83 |       |            |           |       |
 +----------------+------+-------+------------+-----------+-------+
 
 
@@ -155,23 +155,25 @@ Table of Contents
 8. Primitives
 -------------
 
-+----------+------+---------------------+
-| Ref Name | Used | Functional Category |
-+----------+------+---------------------+
-| LUT6     | 8026 |                 CLB |
-| FDCE     | 5857 |            Register |
-| LUT5     | 3273 |                 CLB |
-| LUT2     | 2490 |                 CLB |
-| LUT4     | 1441 |                 CLB |
-| LUT3     | 1230 |                 CLB |
-| MUXF7    |  512 |                 CLB |
-| CARRY8   |  492 |                 CLB |
-| LUT1     |  406 |                 CLB |
-| MUXF8    |   88 |                 CLB |
-| RAMB36E2 |   61 |            BLOCKRAM |
-| DSP48E2  |   51 |          Arithmetic |
-| URAM288  |   24 |            BLOCKRAM |
-+----------+------+---------------------+
++----------+-------+---------------------+
+| Ref Name |  Used | Functional Category |
++----------+-------+---------------------+
+| LUT6     | 12359 |                 CLB |
+| FDCE     |  9006 |            Register |
+| LUT5     |  4071 |                 CLB |
+| LUT2     |  3785 |                 CLB |
+| LUT3     |  2585 |                 CLB |
+| LUT4     |  1760 |                 CLB |
+| MUXF7    |  1099 |                 CLB |
+| FDRE     |  1086 |            Register |
+| CARRY8   |   870 |                 CLB |
+| LUT1     |   488 |                 CLB |
+| MUXF8    |   121 |                 CLB |
+| RAMB36E2 |   118 |            BLOCKRAM |
+| DSP48E2  |    83 |          Arithmetic |
+| FDSE     |    30 |            Register |
+| URAM288  |    24 |            BLOCKRAM |
++----------+-------+---------------------+
 
 
 9. Black Boxes

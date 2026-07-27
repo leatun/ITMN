@@ -1,0 +1,38 @@
+# run 1000ns
+
+======== BLOCK 0 ========
+  preload cycles = 6141
+  start cyc = 6146
+  end cyc   = 3226275  compute = 3220129 cycles
+
+======== BLOCK 1 ========
+  preload cycles = 6141
+  start cyc = 3232421
+  end cyc   = 6452550  compute = 3220129 cycles
+
+======== BLOCK 2 ========
+  preload cycles = 4141
+  start cyc = 6456696
+  end cyc   = 8066825  compute = 1610129 cycles
+
+======== BLOCK 3 ========
+  preload cycles = 4141
+  start cyc = 8070971
+  end cyc   = 9681100  compute = 1610129 cycles
+
+======== BLOCK 4 ========
+  preload cycles = 9417
+  start cyc = 9690522
+  end cyc   = 11692779  compute = 2002257 cycles
+
+========== 5-BLOCK CYCLE SUMMARY ==========
+| Blk |  T   | Preload | Compute  |  cyc/t |
+|-----|------|---------|----------|--------|
+| B0  | 1000 |    6141 |  3220129 |   3220 |
+| B1  | 1000 |    6141 |  3220129 |   3220 |
+| B2  |  500 |    4141 |  1610129 |   3220 |
+| B3  |  500 |    4141 |  1610129 |   3220 |
+| B4  |  250 |    9417 |  2002257 |   8009 |
+===========================================
+Grand total (preload+compute across 5 blocks) = 11692776 cycles
+===== TB 5-BLOCK DONE =====

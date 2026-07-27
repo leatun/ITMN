@@ -1,0 +1,24 @@
+[DMA] W_InProj_X (512 words)
+INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_Mamba_Top_FULL_behav' loaded.
+INFO: [USF-XSim-97] XSim simulation ran for 1000ns
+launch_simulation: Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 1391.797 ; gain = 0.000
+run -all
+[DMA] W_InProj_Z
+[DMA] W_OutProj
+[DMA] W_DW
+[DMA] W_XProj
+[DMA] W_DtProj
+[DMA] W_A
+[DMA] gamma
+[DMA] B_DW
+[DMA] B_DT
+[DMA] D_param
+[DMA] INPUT (4000 words)
+[FSM] pipeline running (T=1000), cyc_start=6146
+[FSM] done at 32262755000, cyc_end=3226275
+
+---- tb_Mamba_Top_FULL summary ----
+  T=1000 compares=64000 errors=0
+  cyc_start=6146  cyc_end=3226275  total=3220129 cycles
+  cycles per timestep = 3220
+===== TB FULL BYTE-EXACT PASS =====

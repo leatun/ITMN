@@ -73,6 +73,9 @@
 //     [7360..8192)   spare
 `define W_MEM_DEPTH       8192
 `define W_MEM_ADDR_W      13         // ceil(log2(8192))
+// Bank B holds odd-group PP weights only (no SMALLS) → ~half data of bank A.
+// Keep full 8192 depth for now (symmetric); shrink later if BRAM budget tight.
+`define W_MEM_DEPTH_B     8192
 `define W_DW_BASE         15'd0
 `define W_XPROJ_BASE      15'd64
 `define W_DTPROJ_BASE     15'd832

@@ -29,6 +29,12 @@ set_property include_dirs [list \
     "${proj_dir}/golden_all" \
 ] [get_filesets sources_1]
 
+# Add Phase 3 Handshake_FIFO source explicitly if not already in project
+if {[llength [get_files -quiet "Handshake_FIFO.v"]] == 0} {
+    add_files -norecurse "${proj_dir}/mamba/Handshake_FIFO.v"
+    puts "Added Handshake_FIFO.v to sources_1"
+}
+
 # ---------- 1. Force OOC mode on synth_1 + impl_1 ----------------------------
 set_property -name {STEPS.SYNTH_DESIGN.ARGS.MORE OPTIONS} \
     -value {-mode out_of_context} -objects [get_runs synth_1]

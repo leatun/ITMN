@@ -23,7 +23,8 @@
 // ============================================================================
 module M_Cluster #(
     parameter H_ADDR_W = `H_ADDR_W,
-    parameter H_DEPTH  = `H_DEPTH
+    parameter H_DEPTH  = `H_DEPTH,
+    parameter HAS_H    = 1        // 0 = skip H_RegFile (Cluster2 aux); in_H_ext then always drives PE.H
 ) (
     input  wire                clk,
     input  wire                rst,
@@ -55,34 +56,42 @@ module M_Cluster #(
     output wire [16*`DATA_W-1:0] out_next_vec2     // MUL2 secondary combinational next-outputs
 );
 
-    // ---- H_RegFile instance ----
-    wire [16*`DATA_W-1:0] h_rd_data;
-    wire [16*`DATA_W-1:0] h_wr_data = h_wr_from_pe ? out_vec : h_wr_data_ext;
+    // ---- H_RegFile instance (conditional on HAS_H) ----
+    wire [16*`DATA_W-1:0] in_H_vec;
 
-    H_RegFile #(
-        .ADDR_W(H_ADDR_W),
-        .DEPTH (H_DEPTH)
-    ) u_hrf (
-        .clk     (clk),
-        .rst     (rst),
-        .wr_en   (h_wr_en),
-        .wr_addr (h_wr_addr),
-        .wr_data (h_wr_data),
-        .rd_addr (h_rd_addr),
-        .rd_data (h_rd_data)
-    );
+    generate
+    if (HAS_H) begin : HAS_H_GEN
+        wire [16*`DATA_W-1:0] h_rd_data;
+        wire [16*`DATA_W-1:0] h_wr_data = h_wr_from_pe ? out_vec : h_wr_data_ext;
 
-    // ---- Pipeline register on H read data (fmax opt: breaks URAM→PE MAC path) ----
-    // H read becomes 2-cyc latency (was 1-cyc). FSM_M has ~13 cyc margin between
-    // h_rd_addr issue (S_M6_1 slot 0) and h_rd_data use (S_M6_7). Safe.
-    reg  [16*`DATA_W-1:0] h_rd_data_r;
-    always @(posedge clk or posedge rst) begin
-        if (rst) h_rd_data_r <= {16*`DATA_W{1'b0}};
-        else     h_rd_data_r <= h_rd_data;
+        H_RegFile #(
+            .ADDR_W(H_ADDR_W),
+            .DEPTH (H_DEPTH)
+        ) u_hrf (
+            .clk     (clk),
+            .rst     (rst),
+            .wr_en   (h_wr_en),
+            .wr_addr (h_wr_addr),
+            .wr_data (h_wr_data),
+            .rd_addr (h_rd_addr),
+            .rd_data (h_rd_data)
+        );
+
+        // Pipeline reg on H read data (fmax opt: breaks URAM→PE MAC path).
+        // H read becomes 2-cyc latency; FSM_M has ~13 cyc margin between
+        // h_rd_addr issue (S_M6_1 slot 0) and h_rd_data use (S_M6_7). Safe.
+        reg  [16*`DATA_W-1:0] h_rd_data_r;
+        always @(posedge clk or posedge rst) begin
+            if (rst) h_rd_data_r <= {16*`DATA_W{1'b0}};
+            else     h_rd_data_r <= h_rd_data;
+        end
+        assign in_H_vec = h_from_rf ? h_rd_data_r : in_H_ext;
+    end else begin : NO_H_GEN
+        // No H_RegFile — cluster always uses external H input (FIFO-fed for M6-aux role).
+        // h_from_rf / h_rd_addr / h_wr_* ports ignored.
+        assign in_H_vec = in_H_ext;
     end
-
-    // ---- in_H vector mux ----
-    wire [16*`DATA_W-1:0] in_H_vec = h_from_rf ? h_rd_data_r : in_H_ext;
+    endgenerate
 
     // ---- 16 × Mamba_PE ----
     genvar i;

@@ -3,6 +3,7 @@ verilog xil_defaultlib "C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/comm
 "../../../../common/BRAM_256b.v" \
 "../../../../common/Exp_LUT.v" \
 "../../../../mamba/H_RegFile.v" \
+"../../../../mamba/Handshake_FIFO.v" \
 "../../../../common/LUT_Bank.v" \
 "../../../../mamba/M_Cluster.v" \
 "../../../../mamba/Mamba_PE.v" \

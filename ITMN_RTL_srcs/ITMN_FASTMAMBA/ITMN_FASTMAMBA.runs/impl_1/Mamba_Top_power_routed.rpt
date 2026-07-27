@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date             : Sun Jul 19 14:01:50 2026
+| Date             : Sat Jul 25 13:10:34 2026
 | Host             : letun running 64-bit major release  (build 9200)
 | Command          : report_power -file Mamba_Top_power_routed.rpt -pb Mamba_Top_power_summary_routed.pb -rpx Mamba_Top_power_routed.rpx
 | Design           : Mamba_Top
@@ -30,14 +30,14 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.513        |
+| Total On-Chip Power (W)  | 0.598        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.222        |
-| Device Static (W)        | 0.291        |
+| Dynamic (W)              | 0.306        |
+| Device Static (W)        | 0.292        |
 | Effective TJA (C/W)      | 2.3          |
-| Max Ambient (C)          | 83.8         |
-| Junction Temperature (C) | 26.2         |
+| Max Ambient (C)          | 83.6         |
+| Junction Temperature (C) | 26.4         |
 | Confidence Level         | Medium       |
 | Setting File             | ---          |
 | Simulation Activity File | ---          |
@@ -52,19 +52,19 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-| Clocks         |     0.012 |        3 |       --- |             --- |
-| CLB Logic      |     0.053 |    23892 |       --- |             --- |
-|   LUT as Logic |     0.050 |    14646 |    117120 |           12.51 |
-|   CARRY8       |     0.002 |      492 |     14640 |            3.36 |
-|   Register     |    <0.001 |     5861 |    234240 |            2.50 |
-|   Others       |     0.000 |       71 |       --- |             --- |
-|   F7/F8 Muxes  |     0.000 |      600 |    117120 |            0.51 |
-| Signals        |     0.080 |    29556 |       --- |             --- |
-| Block RAM      |     0.032 |       61 |       144 |           42.36 |
+| Clocks         |     0.019 |        3 |       --- |             --- |
+| CLB Logic      |     0.074 |    37391 |       --- |             --- |
+|   LUT as Logic |     0.068 |    21623 |    117120 |           18.46 |
+|   CARRY8       |     0.004 |      870 |     14640 |            5.94 |
+|   Register     |     0.001 |    10122 |    234240 |            4.32 |
+|   Others       |     0.000 |      128 |       --- |             --- |
+|   F7/F8 Muxes  |     0.000 |     1220 |    117120 |            1.04 |
+| Signals        |     0.109 |    43710 |       --- |             --- |
+| Block RAM      |     0.055 |      118 |       144 |           81.94 |
 | URAM           |     0.034 |       24 |        64 |           37.50 |
-| DSPs           |     0.010 |       51 |      1248 |            4.09 |
-| Static Power   |     0.291 |          |           |                 |
-| Total          |     0.513 |          |           |                 |
+| DSPs           |     0.016 |       83 |      1248 |            6.65 |
+| Static Power   |     0.292 |          |           |                 |
+| Total          |     0.598 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -74,9 +74,9 @@ Table of Contents
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source          | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint          |       0.720 |     0.376 |       0.305 |      0.071 |       NA    | Unspecified | NA         |
+| Vccint          |       0.720 |     0.493 |       0.421 |      0.072 |       NA    | Unspecified | NA         |
 | Vccint_io       |       0.850 |     0.035 |       0.000 |      0.035 |       NA    | Unspecified | NA         |
-| Vccbram         |       0.850 |     0.004 |       0.003 |      0.001 |       NA    | Unspecified | NA         |
+| Vccbram         |       0.850 |     0.005 |       0.004 |      0.001 |       NA    | Unspecified | NA         |
 | Vccaux          |       1.800 |     0.077 |       0.000 |      0.077 |       NA    | Unspecified | NA         |
 | Vccaux_io       |       1.800 |     0.031 |       0.000 |      0.031 |       NA    | Unspecified | NA         |
 | Vcco33          |       3.300 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -161,30 +161,50 @@ Table of Contents
 +----------------------+-----------+
 | Name                 | Power (W) |
 +----------------------+-----------+
-| Mamba_Top            |     0.222 |
-|   u_mc               |     0.097 |
+| Mamba_Top            |     0.306 |
+|   u_fifo_m6          |     0.004 |
+|   u_mc               |     0.088 |
+|     HAS_H_GEN.u_hrf  |     0.018 |
 |     PE_LANE[0].u_pe  |     0.005 |
 |     PE_LANE[10].u_pe |     0.005 |
-|     PE_LANE[11].u_pe |     0.005 |
-|     PE_LANE[12].u_pe |     0.005 |
-|     PE_LANE[13].u_pe |     0.005 |
-|     PE_LANE[14].u_pe |     0.005 |
-|     PE_LANE[15].u_pe |     0.005 |
-|     PE_LANE[1].u_pe  |     0.005 |
-|     PE_LANE[2].u_pe  |     0.005 |
+|     PE_LANE[11].u_pe |     0.004 |
+|     PE_LANE[12].u_pe |     0.004 |
+|     PE_LANE[13].u_pe |     0.003 |
+|     PE_LANE[14].u_pe |     0.004 |
+|     PE_LANE[15].u_pe |     0.004 |
+|     PE_LANE[1].u_pe  |     0.004 |
+|     PE_LANE[2].u_pe  |     0.004 |
 |     PE_LANE[3].u_pe  |     0.004 |
 |     PE_LANE[4].u_pe  |     0.005 |
-|     PE_LANE[5].u_pe  |     0.005 |
-|     PE_LANE[6].u_pe  |     0.005 |
-|     PE_LANE[7].u_pe  |     0.005 |
+|     PE_LANE[5].u_pe  |     0.004 |
+|     PE_LANE[6].u_pe  |     0.004 |
+|     PE_LANE[7].u_pe  |     0.004 |
 |     PE_LANE[8].u_pe  |     0.005 |
-|     PE_LANE[9].u_pe  |     0.005 |
-|     u_hrf            |     0.018 |
-|   u_mem              |     0.082 |
-|     ram_const        |     0.016 |
+|     PE_LANE[9].u_pe  |     0.004 |
+|   u_mc2              |     0.060 |
+|     PE_LANE[0].u_pe  |     0.006 |
+|     PE_LANE[10].u_pe |     0.004 |
+|     PE_LANE[11].u_pe |     0.004 |
+|     PE_LANE[12].u_pe |     0.004 |
+|     PE_LANE[13].u_pe |     0.003 |
+|     PE_LANE[14].u_pe |     0.004 |
+|     PE_LANE[15].u_pe |     0.003 |
+|     PE_LANE[1].u_pe  |     0.003 |
+|     PE_LANE[2].u_pe  |     0.003 |
+|     PE_LANE[3].u_pe  |     0.003 |
+|     PE_LANE[4].u_pe  |     0.003 |
+|     PE_LANE[5].u_pe  |     0.003 |
+|     PE_LANE[6].u_pe  |     0.005 |
+|     PE_LANE[7].u_pe  |     0.004 |
+|     PE_LANE[8].u_pe  |     0.003 |
+|     PE_LANE[9].u_pe  |     0.004 |
+|   u_mem              |     0.100 |
+|     ram_const        |     0.011 |
 |     ram_main         |     0.037 |
-|     ram_weight       |     0.029 |
-|   u_rw               |     0.008 |
+|     ram_weight_A     |     0.026 |
+|     ram_weight_B     |     0.026 |
+|   u_rw               |     0.006 |
+|   u_rw2              |     0.007 |
 +----------------------+-----------+
 
 
