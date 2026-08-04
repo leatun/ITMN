@@ -270,32 +270,49 @@ module Mamba_Top (
     localparam [6:0] S_M6_17     = 7'd91;
     localparam [6:0] S_M6_18    = 7'd92;
     localparam [6:0] S_M6_19     = 7'd93;
+    // Phase 6.2b: prefetch-latch-C state (Y_MAC || LOAD prefetch tail)
+    localparam [6:0] S_M6_13B    = 7'd94;
     // Phase 3: cluster1 waits here after last M6 push, until cluster2 drains FIFO + finishes gate.
     localparam [6:0] S_M6_WAIT_C2 = 7'd104;
     localparam [6:0] S_DONE             = 7'd127;
 
     // ============================================================================
-    // Phase 3: Cluster2 M6-aux FSM state constants (5-bit c2_state).
-    // Runs in parallel with cluster1's M6 chain via Handshake_FIFO.
+    // Phase 5: Cluster2 FULL M6+M7 FSM (5-bit c2_state, 27 states used).
+    // Runs FULL M6 chain in parallel with cluster1 on ODD groups (g=1,3,...,95).
+    // No FIFO — c2 has own H_RegFile_B (via HAS_H=1) and directly loads its own
+    // B[s], C[s], A[s], dt, u from memory ports (arbitrated with c1).
     // ============================================================================
-    localparam [4:0] S_C2_IDLE       = 5'd0;   // waiting for FIFO / non-M6 stage
-    localparam [4:0] S_C2_POP        = 5'd1;   // pop FIFO → capture per-(l,s) data
-    localparam [4:0] S_C2_YMAC       = 5'd2;   // MAC(h_new · C[s])
-    localparam [4:0] S_C2_YWAIT      = 5'd3;   // PE latency
-    localparam [4:0] S_C2_ACCUM      = 5'd4;   // accumulate y_ch_reg (per s)
-    localparam [4:0] S_C2_DUMUL      = 5'd5;   // MUL(D_scalar · u_scalar)
-    localparam [4:0] S_C2_DUWAIT     = 5'd6;   // PE latency
-    localparam [4:0] S_C2_YSUM       = 5'd7;   // ADD(y_ch + Du)
-    localparam [4:0] S_C2_YSUM_WAIT  = 5'd8;   // PE latency
-    localparam [4:0] S_C2_YSUM_LATCH = 5'd9;   // store to c2_ssm_grp_acc[l*16]
-    localparam [4:0] S_C2_LOADZ      = 5'd10;  // issue z[g] read from ram_main
-    localparam [4:0] S_C2_ZWAIT1     = 5'd11;  // BRAM 2-cyc latency + 1 for silu-latch
-    localparam [4:0] S_C2_ZWAIT2     = 5'd12;
-    localparam [4:0] S_C2_GATE       = 5'd13;  // MUL(y_gated · silu(z))
-    localparam [4:0] S_C2_GATE_WAIT  = 5'd14;
-    localparam [4:0] S_C2_WRITE      = 5'd15;  // assert wr signals to ram_main
-    localparam [4:0] S_C2_DONE       = 5'd16;  // signal c2_done, wait for cluster1 to exit STG_M6
-    localparam [4:0] S_C2_WRITE2     = 5'd17;  // hold wr signals 1 more cyc so BRAM sees we=1 at edge
+    localparam [4:0] S_C2_IDLE        = 5'd0;
+    localparam [4:0] S_C2_YMAC        = 5'd2;   // MAC(h_new · C[s]) — per (l,s)
+    localparam [4:0] S_C2_YWAIT       = 5'd3;
+    localparam [4:0] S_C2_ACCUM       = 5'd4;
+    localparam [4:0] S_C2_DUMUL       = 5'd5;
+    localparam [4:0] S_C2_DUWAIT      = 5'd6;
+    localparam [4:0] S_C2_YSUM        = 5'd7;
+    localparam [4:0] S_C2_YSUM_WAIT   = 5'd8;
+    localparam [4:0] S_C2_YSUM_LATCH  = 5'd9;
+    localparam [4:0] S_C2_LOADZ       = 5'd10;
+    localparam [4:0] S_C2_ZWAIT1      = 5'd11;
+    localparam [4:0] S_C2_ZWAIT2      = 5'd12;
+    localparam [4:0] S_C2_GATE        = 5'd13;
+    localparam [4:0] S_C2_GATE_WAIT   = 5'd14;
+    localparam [4:0] S_C2_WRITE       = 5'd15;
+    localparam [4:0] S_C2_DONE        = 5'd16;
+    localparam [4:0] S_C2_WRITE2      = 5'd17;
+    // Phase 5 NEW: c2 M6 LOAD+SSM chain (mirror of c1's S_M6_1..S_M6_10)
+    localparam [4:0] S_C2_M6_LOAD1    = 5'd18;  // issue addr (main/weight/const per slot)
+    localparam [4:0] S_C2_M6_LOAD2    = 5'd19;  // BRAM wait
+    localparam [4:0] S_C2_M6_LOAD3    = 5'd20;  // latch data; branch to DAB or next slot
+    localparam [4:0] S_C2_M6_DAB_MUL2 = 5'd21;  // PE MUL2(dt·A, dt·B)
+    localparam [4:0] S_C2_M6_EXP_WAIT = 5'd22;
+    localparam [4:0] S_C2_M6_DAB_LATCH= 5'd23;  // capture c2_dA=exp, c2_dB=cl2_out_vec2
+    localparam [4:0] S_C2_M6_SSM_MUL2 = 5'd24;  // PE MUL2(dA·h_old, dB·u) via H_RegFile_B
+    localparam [4:0] S_C2_M6_SSM_WAIT = 5'd25;
+    localparam [4:0] S_C2_M6_ADD_ISSUE= 5'd26;  // PE ADD(T1+T2)
+    localparam [4:0] S_C2_M6_SSM_LATCH= 5'd27;  // WRITE_H_B; advance (s→l→g); branch to YMAC
+    localparam [4:0] S_C2_H_INIT      = 5'd28;  // zero H_RegFile_B at start
+    // Phase 6.2b: prefetch-latch-C state (mirror of S_M6_13B)
+    localparam [4:0] S_C2_LATCH_C     = 5'd29;
 
     reg [6:0]   state;
     reg [3:0]   cur_stage;
@@ -317,6 +334,9 @@ module Mamba_Top (
     reg [255:0] m6_delta_word, m6_u_word, m6_w0_reg, m6_w1_reg, m6_w2_reg, m6_D_word;
     reg [255:0] m6_dA_reg, m6_dB_reg, m6_ssm_grp_acc;
     reg signed [23:0] m6_y_ch_reg;  // Widened for 8-s external accumulation
+    // Phase 6.2c: flag = 1 when m_rd_data at S_M6_4 fire holds C (short LOAD or prefetch);
+    // = 0 when it holds u_word (full 5-slot LOAD exit at slot 4). Guards C latch at DAB.
+    reg m6_pref_c_valid;
 
     reg  [14:0]  m_rd_addr;
     reg          m_we;
@@ -351,35 +371,94 @@ module Mamba_Top (
     // Phase 1.1: bank_B ports exposed but tied idle until Cluster2 wired in Phase 1.2.
     wire [255:0] w_rd_data3, w_rd_data4;   // reserved for Cluster2 MAC2 (W1, W2)
 
-    // Phase 3: cluster2 M6-aux memory port arbitration.
-    // c2_state / c2_m_* regs declared with cluster2 block (below). Forward-reference
-    // via wire declarations here to avoid Vivado's implicit 1-bit wire coercion in
-    // Memory_System port expressions (which would leave the arbitration signals in
-    // Z state and cause cluster1 to stall forever at S_M6_10).
-    wire        c2_using_main_rd;   // (c2_state == LOADZ) || (c2_state == ZWAIT1)
-    wire        c2_using_main_wr;   // (c2_state == WRITE) || (c2_state == WRITE2)
+    // Phase 5: Cluster2 registers declared here (BEFORE Memory_System) to satisfy
+    // Vivado XSim's requirement that wires used in port expressions be declared first.
+    // (Previously Phase 3 used forward-decls but that caused implicit-1'bZ coercion.)
+    reg [4:0]         c2_state;
+    reg [6:0]         c2_g;
+    reg [3:0]         c2_l;
+    reg [2:0]         c2_s;
+    reg [2:0]         c2_load;
+    reg [13:0]        c2_h_init_cnt;
+    reg [255:0]       c2_delta_word;
+    reg [255:0]       c2_u_word;
+    reg [255:0]       c2_w0_reg;         // B[s]
+    reg [255:0]       c2_w1_reg;         // C[s]
+    reg [255:0]       c2_w2_reg;         // A[s]
+    reg [255:0]       c2_D_word;
+    reg [255:0]       c2_dA_reg, c2_dB_reg;
+    reg [255:0]       c2_ssm_grp_acc;
+    reg [255:0]       c2_silu_z_reg;
+    reg signed [23:0] c2_y_ch_reg;
+    reg               c2_h_from_rf_r;
+    reg [13:0]        c2_h_rd_addr_r;
+    reg               c2_h_wr_en_r;
+    reg [13:0]        c2_h_wr_addr_r;
+    reg               c2_h_wr_from_pe_r;
+    reg [255:0]       c2_h_wr_data_ext_r;
+    reg [14:0]        c2_m_rd_addr;
+    reg [14:0]        c2_m_wr_addr;
+    reg [255:0]       c2_m_wr_data;
+    reg               c2_m_we;
+    reg [14:0]        c2_w_rd_addr;
+    reg [14:0]        c2_const_rd_addr;
+    reg               c2_done;
+    reg               c2_pref_pending;   // Phase 6.2b: prefetch flag (YMAC → LATCH_C)
+
+    // ---- Phase 5 refactor: DEDICATED memory ports, no mutex ----
+    // c2 has own read paths via Memory_System's port_a (dual-port BRAM):
+    //   - ram_main port_a → c2 dedicated read (unless c1/DMA writes that cyc)
+    //   - ram_const port_a → c2 dedicated read (unless DMA writes)
+    // Write path serialized: c1 wins tie on ram_main write; c2 stalls 1 cyc.
+    wire [255:0] m_rd_data2, const_rd_data2;   // c2 dedicated read paths
+
+    // Write mux: c1 has priority on ram_main port_a write.
+    wire        c1_writes_main      = m_we;
+    // Predict c1 write next cyc — used by c2 to stall its WRITE state advance,
+    // avoiding races where both cluster set we=1 at same edge.
+    // c1 writes at S_M7_7 (prev state S_M7_6). Non-M6 writes happen when c2 idle.
+    wire        c1_will_write_next  = (state == S_M7_6);
+    // c1_write_in_pref_window removed: post-mirror ram_main, c2 reads never
+    // conflict with writes (port_b vs port_a separation).
+    wire        c2_writes_main = c2_m_we && !c1_writes_main;
+    wire        mem_write_en   = c1_writes_main || c2_writes_main;
+    wire [14:0] mem_write_addr = c1_writes_main ? m_wr_addr : c2_m_wr_addr;
+    wire [255:0] mem_write_data = c1_writes_main ? m_wr_data : c2_m_wr_data;
+
+    // Bank_B weight port: c2's own during M6; c1 mirror during PP MAC2 stages.
+    wire bank_b_c2_own = (cur_stage == STG_M6);
+    wire [14:0] w_rd_addr_bB  = bank_b_c2_own ? c2_w_rd_addr : w_rd_addr;
+    wire [14:0] w_rd_addr2_bB = bank_b_c2_own ? c2_w_rd_addr : w_rd_addr2;
 
     Memory_System u_mem (
         .clk               (clk),
         .reset             (rst),
-        // Arbitrated: cluster2 takes priority for z-read + y_gated-write during M6.
-        .core_read_addr    (c2_using_main_rd ? c2_m_rd_addr : m_rd_addr),
+        // c1 read (port_b dedicated)
+        .core_read_addr    (m_rd_addr),
         .core_read_data    (m_rd_data),
-        .core_write_en     (c2_using_main_wr ? c2_m_we      : m_we),
-        .core_write_addr   (c2_using_main_wr ? c2_m_wr_addr : m_wr_addr),
-        .core_write_data   (c2_using_main_wr ? c2_m_wr_data : m_wr_data),
-        .weight_read_addr  (w_rd_addr),        // bank_A W1 (Cluster1)
+        // c2 read (port_a dedicated when not writing)
+        .core_read_addr2   (c2_m_rd_addr),
+        .core_read_data2   (m_rd_data2),
+        // Unified write (c1 wins tie)
+        .core_write_en     (mem_write_en),
+        .core_write_addr   (mem_write_addr),
+        .core_write_data   (mem_write_data),
+        // Weight bank A (c1 2R)
+        .weight_read_addr  (w_rd_addr),
         .weight_read_data  (w_rd_data),
-        .weight_read_addr2 (w_rd_addr2),       // bank_A W2 (Cluster1)
+        .weight_read_addr2 (w_rd_addr2),
         .weight_read_data2 (w_rd_data2),
-        // Bank_B addresses mirror Cluster1's (identical offset formula, different bank content).
-        // Cluster2 consumes only when pp_enable (its op_mode is IDLE otherwise → stale data ignored).
-        .weight_read_addr3 (w_rd_addr),        // bank_B W1 (Cluster2)
+        // Weight bank B (c2 2R, or PP mirror)
+        .weight_read_addr3 (w_rd_addr_bB),
         .weight_read_data3 (w_rd_data3),
-        .weight_read_addr4 (w_rd_addr2),       // bank_B W2 (Cluster2)
+        .weight_read_addr4 (w_rd_addr2_bB),
         .weight_read_data4 (w_rd_data4),
+        // Const RAM dual port
         .const_read_addr   (const_rd_addr_r),
         .const_read_data   (const_rd_data),
+        .const_read_addr2  (c2_const_rd_addr),
+        .const_read_data2  (const_rd_data2),
+        // DMA
         .dma_write_en      (dma_write_en),
         .dma_target        (dma_target),
         .dma_addr          (dma_addr),
@@ -399,6 +478,22 @@ module Mamba_Top (
         .exp_out_flat  (exp_out_w),
         .rsqrt_idx     (rsqrt_idx_r),
         .rsqrt_data    (rsqrt_data)
+    );
+
+    // Phase 5: second LUT bank for cluster2 (avoids arbitration on exp/silu when
+    // c1 and c2 need LUT output same cycle). Softplus/RSqrt tied off — c2 doesn't
+    // use them in M6 chain. Cost: ~48 LUT primitives + 2 BRAM tiles for rsqrt (unused).
+    wire [255:0] c2_silu_in_drv, c2_exp_in_drv;
+    wire [255:0] c2_silu_out_w, c2_exp_out_w;
+    LUT_Bank u_lut2 (
+        .silu_in_flat  (c2_silu_in_drv),
+        .sp_in_flat    (256'b0),
+        .exp_in_flat   (c2_exp_in_drv),
+        .silu_out_flat (c2_silu_out_w),
+        .sp_out_flat   (),
+        .exp_out_flat  (c2_exp_out_w),
+        .rsqrt_idx     (13'b0),
+        .rsqrt_data    ()
     );
 
     reg                       m6_h_from_rf_r;
@@ -459,24 +554,9 @@ module Mamba_Top (
     reg  [16*`DATA_W-1:0]     cl2_out_reg;
 
     // ============================================================================
-    // Phase 3: Cluster2 M6-aux state + registers
+    // Phase 5: Cluster2 combinational helpers + M6 address wires.
+    // (Reg declarations moved up before Memory_System — see line ~370.)
     // ============================================================================
-    reg [4:0]         c2_state;
-    reg [255:0]       c2_h_new_reg;      // from FIFO
-    reg [255:0]       c2_C_reg;          // from FIFO (C[s])
-    reg signed [15:0] c2_u_scalar_reg;   // from FIFO (u[l] scalar)
-    reg signed [15:0] c2_D_scalar_reg;   // from FIFO (D[l] scalar)
-    reg [6:0]         c2_g_id;           // from FIFO
-    reg [3:0]         c2_l_id;
-    reg [2:0]         c2_s_id;
-    reg signed [23:0] c2_y_ch_reg;       // per-s accumulator (matches m6_y_ch_reg width)
-    reg [255:0]       c2_ssm_grp_acc;    // per-lane accum within group (matches m6_ssm_grp_acc)
-    reg [255:0]       c2_silu_z_reg;     // silu(z) for current group
-    reg               c2_done;
-    reg [14:0]        c2_m_rd_addr;      // z_addr from cluster2
-    reg [14:0]        c2_m_wr_addr;      // y_gated addr
-    reg [255:0]       c2_m_wr_data;
-    reg               c2_m_we;
 
     // Combinational: cluster2 saturation for accumulated y_ch (matches Cluster1 flow)
     wire signed [`ACC_W+4:0] cl2_sum_d_wide;
@@ -494,64 +574,35 @@ module Mamba_Top (
         (c2_y_ch_reg < -24'sd32768)  ? 16'sh8000 :
                                         c2_y_ch_reg[15:0];
 
-    // FIFO wires
-    localparam FIFO_W = 558;   // 256 (h_new) + 256 (C) + 16 (u) + 16 (D) + 7 (g) + 4 (l) + 3 (s)
-    wire              fifo_push;
-    wire              fifo_pop = (c2_state == S_C2_POP) && !fifo_empty;
-    wire [FIFO_W-1:0] fifo_wdata;
-    wire [FIFO_W-1:0] fifo_rdata;
-    wire              fifo_full;
-    wire              fifo_empty;
+    // ---- Cluster2 M6 address wires (mirror of c1's m6_* using c2 counters) ----
+    wire [13:0]  c2_m6_c            = {c2_g, c2_l, c2_s};
+    wire [14:0]  c2_m6_B_addr_s     = PT_X_PROJ + {12'b0, c2_s};
+    wire [14:0]  c2_m6_C_addr_s     = PT_X_PROJ + {7'b0, `N_STATE_GRP} + {12'b0, c2_s};
+    wire [10:0]  c2_m6_channel      = {c2_g, c2_l};
+    wire [14:0]  c2_m6_A_addr_s     = W_A_BASE  + {1'b0, c2_m6_channel, 3'b0} + {12'b0, c2_s};
+    wire [14:0]  c2_m6_delta_addr   = PT_DELTA + {8'b0, c2_g};
+    wire [14:0]  c2_m6_u_addr       = PT_U     + {8'b0, c2_g};
+    wire [14:0]  c2_m6_D_addr_const = C_D_PARAM_BASE + {8'b0, c2_g};
+    wire [14:0]  c2_m7_z_addr       = PT_Z_GATE  + {8'b0, c2_g};
+    wire [14:0]  c2_m7_wr_addr      = PT_Y_GATED + {8'b0, c2_g};
 
-    Handshake_FIFO #(.WIDTH(FIFO_W), .DEPTH(2)) u_fifo_m6 (
-        .clk   (clk),
-        .rst   (rst),
-        .push  (fifo_push),
-        .wdata (fifo_wdata),
-        .pop   (fifo_pop),
-        .rdata (fifo_rdata),
-        .full  (fifo_full),
-        .empty (fifo_empty)
-    );
+    // Phase 6.2b: c2 prefetch addresses (s+1)
+    wire [2:0]   c2_s_p1_pref        = c2_s + 3'd1;
+    wire [14:0]  c2_m6_B_addr_s_next = PT_X_PROJ + {12'b0, c2_s_p1_pref};
+    wire [14:0]  c2_m6_C_addr_s_next = PT_X_PROJ + {7'b0, `N_STATE_GRP} + {12'b0, c2_s_p1_pref};
+    wire [14:0]  c2_m6_A_addr_s_next = W_A_BASE  + {1'b0, c2_m6_channel, 3'b0} + {12'b0, c2_s_p1_pref};
+    wire [13:0]  c2_m6_c_next        = {c2_g, c2_l, c2_s_p1_pref};
 
-    // FIFO field slicing (from LSB to MSB order):
-    //   [255:0]   = h_new
-    //   [511:256] = C[s]
-    //   [527:512] = u_scalar
-    //   [543:528] = D_scalar
-    //   [550:544] = g_id
-    //   [554:551] = l_id
-    //   [557:555] = s_id
-    wire [255:0] fifo_r_h_new    = fifo_rdata[255:0];
-    wire [255:0] fifo_r_C        = fifo_rdata[511:256];
-    wire [15:0]  fifo_r_u_scalar = fifo_rdata[527:512];
-    wire [15:0]  fifo_r_D_scalar = fifo_rdata[543:528];
-    wire [6:0]   fifo_r_g_id     = fifo_rdata[550:544];
-    wire [3:0]   fifo_r_l_id     = fifo_rdata[554:551];
-    wire [2:0]   fifo_r_s_id     = fifo_rdata[557:555];
+    wire [15:0]  c2_dt_scalar    = c2_delta_word[c2_l*16 +: 16];
+    wire [255:0] c2_dt_broadcast = {16{c2_dt_scalar}};
+    wire [15:0]  c2_u_scalar_w   = c2_u_word[c2_l*16 +: 16];
+    wire [255:0] c2_u_broadcast  = {16{c2_u_scalar_w}};
+    wire [15:0]  c2_D_scalar     = c2_D_word[c2_l*16 +: 16];
+    wire [255:0] c2_D_broadcast  = {16{c2_D_scalar}};
 
-    // Cluster2 needs ram_main for z-read (LOADZ+ZWAIT1) and y_gated-write (WRITE+WRITE2).
-    // Both windows cover 2 cycles because BRAM samples addr at edge after issue-cycle.
-    // Cluster1's M6 FSM at S_M6_10 waits (via c1_m6_can_advance) during these windows.
-    // Wires declared forward above (before Memory_System instance).
-    assign c2_using_main_rd = (c2_state == S_C2_LOADZ) || (c2_state == S_C2_ZWAIT1);
-    assign c2_using_main_wr = (c2_state == S_C2_WRITE) || (c2_state == S_C2_WRITE2);
+    // ---- Memory arbitration wires declared above (before Memory_System). ----
 
-    // Cluster1's M6 push+advance can only happen when FIFO has space AND cluster2 not
-    // holding ram_main for next read. Tying push firing to advance guarantees single
-    // push per (l,s) iteration (no duplicate push if stalled).
-    wire c1_m6_can_advance = !fifo_full && !c2_using_main_rd;
-    wire [15:0] fifo_w_u_scalar = m6_u_word[ctr_l*16 +: 16];
-    wire [15:0] fifo_w_D_scalar = m6_D_word[ctr_l*16 +: 16];
-    assign fifo_push  = (state == S_M6_10) && c1_m6_can_advance;
-    // FIFO word packing (LSB → MSB): h_new, C[s], u_scalar, D_scalar, g_id, l_id, s_id.
-    // h_new sourced from cl_out_next_vec (combinational PE ADD output, valid at cycle
-    // S_M6_10 when cl_op_mode is held at ADD — see S_M6_10 case in main FSM).
-    assign fifo_wdata = {ctr_s, ctr_l, ctr_g,
-                         fifo_w_D_scalar, fifo_w_u_scalar,
-                         m6_w1_reg, cl_out_next_vec};
-
-    M_Cluster #(.H_ADDR_W(14), .H_DEPTH(16384), .HAS_H(0)) u_mc2 (
+    M_Cluster #(.H_ADDR_W(14), .H_DEPTH(16384), .HAS_H(1)) u_mc2 (
         .clk          (clk),
         .rst          (rst),
         .op_mode      (cl2_op_mode),
@@ -560,12 +611,12 @@ module Mamba_Top (
         .in_H_ext     (cl2_in_H_ext),
         .in_W2_vec    (cl2_in_W2_vec),
         .in_X_vec     (cl2_in_X_vec),
-        .h_from_rf    (1'b0),                  // Unused (HAS_H=0)
-        .h_rd_addr    (14'd0),
-        .h_wr_en      (1'b0),
-        .h_wr_addr    (14'd0),
-        .h_wr_from_pe (1'b0),
-        .h_wr_data_ext(256'd0),
+        .h_from_rf    (c2_h_from_rf_r),
+        .h_rd_addr    (c2_h_rd_addr_r),
+        .h_wr_en      (c2_h_wr_en_r),
+        .h_wr_addr    (c2_h_wr_addr_r),
+        .h_wr_from_pe (c2_h_wr_from_pe_r),
+        .h_wr_data_ext(c2_h_wr_data_ext_r),
         .out_vec      (cl2_out_vec),
         .acc_raw_vec  (cl2_acc_raw_vec),
         .y_reduce_out (cl2_y_reduce_out),
@@ -587,14 +638,17 @@ module Mamba_Top (
                                        mean_i_signed[12:0];
     wire [255:0] S_broadcast = {16{S_reg}};
 
-    // silu_in_drv: M3 stream, M7 (legacy, now unreachable after Phase 3), and cluster2 gate.
-    // Cluster2 gate silu(z) driven when c2_state is ZWAIT2 (m_rd_data = z_word from c2's read).
-    assign silu_in_drv = (state == S_M3_1 )        ? m_rd_data :
-                         (state == S_M7_3)         ? m_rd_data :
-                         (c2_state == S_C2_ZWAIT2) ? m_rd_data :
-                                                     256'b0;
-    assign sp_in_drv   = (state == S_M5_9  ) ? cl_out_vec : 256'b0;
+    // Phase 5: c1 LUT bank drives (silu M3 + M7, softplus M5, exp M6 DAB).
+    // c2 has its own u_lut2 bank; no need to share silu here.
+    assign silu_in_drv = (state == S_M3_1) ? m_rd_data :
+                         (state == S_M7_3) ? m_rd_data :
+                                              256'b0;
+    assign sp_in_drv   = (state == S_M5_9) ? cl_out_vec : 256'b0;
     assign exp_in_drv  = (state == S_M6_6) ? cl_out_vec : 256'b0;
+
+    // c2 LUT bank drivers (independent from c1). c2 uses its dedicated m_rd_data2.
+    assign c2_silu_in_drv = (c2_state == S_C2_ZWAIT2)       ? m_rd_data2  : 256'b0;
+    assign c2_exp_in_drv  = (c2_state == S_C2_M6_DAB_LATCH) ? cl2_out_vec : 256'b0;
 
     wire [11:0] mac_len =
         (cur_stage == STG_M4) ? d_inner :
@@ -751,6 +805,13 @@ module Mamba_Top (
     wire [14:0] m7_y_addr    = PT_Y_SSM  + {8'b0, ctr_g};
     wire [14:0] m7_wr_addr   = PT_Y_GATED + {8'b0, ctr_g};
 
+    // Phase 6.2b: prefetch addresses for (s+1) within same (g, l)
+    wire [2:0]   ctr_s_p1_pref     = ctr_s + 3'd1;
+    wire [14:0]  m6_B_addr_s_next  = PT_X_PROJ + {12'b0, ctr_s_p1_pref};
+    wire [14:0]  m6_C_addr_s_next  = PT_X_PROJ + {7'b0, `N_STATE_GRP} + {12'b0, ctr_s_p1_pref};
+    wire [14:0]  m6_A_addr_s_next  = W_A_BASE  + {1'b0, m6_channel, 3'b0} + {12'b0, ctr_s_p1_pref};
+    wire [13:0]  m6_c_next         = {ctr_g, ctr_l, ctr_s_p1_pref};
+
     wire [15:0]  m6_dt_scalar    = m6_delta_word[ctr_l*16 +: 16];
     wire [255:0] m6_dt_broadcast = {16{m6_dt_scalar}};
     wire [15:0]  m6_u_scalar     = m6_u_word[ctr_l*16 +: 16];
@@ -838,6 +899,7 @@ module Mamba_Top (
             m6_h_wr_addr_r     <= 14'd0;
             m6_h_wr_from_pe_r  <= 1'b0;
             m6_h_wr_data_ext_r <= 256'd0;
+            m6_pref_c_valid    <= 1'b0;
             done_stage         <= 1'b0;
             done_all           <= 1'b0;
         end else begin
@@ -1234,14 +1296,18 @@ module Mamba_Top (
                 //   3-slot per-(l,s) reload otherwise.
                 //   H_RegFile read addr issued at slot 0 for h_old[l,s].
                 // -----------------------------------------------------------
+                // Phase 6.2 OPT-2a: LOAD slot 0 issues B[s] on main AND A[s] on weight
+                // in the SAME cycle (different memory ports — no conflict). Slot 2 removed
+                // as separate step. Per (l,s) reload: 2 slots (0, 1) instead of 3.
+                // Full 5-slot at group start: slots 0, 1, 3, 4 (slot 2 merged into 0).
                 S_M6_1: begin
                     case (ctr_load)
                         3'd0: begin
                             m_rd_addr      <= m6_B_addr_s;
-                            m6_h_rd_addr_r <= m6_c;              // h_old[l,s]
+                            m6_h_rd_addr_r <= m6_c;
+                            w_rd_addr      <= m6_A_addr_s;         // parallel weight issue
                         end
                         3'd1: m_rd_addr <= m6_C_addr_s;
-                        3'd2: w_rd_addr <= m6_A_addr_s;          // weight port for A
                         3'd3: begin
                             m_rd_addr       <= m6_delta_addr;
                             const_rd_addr_r <= m6_D_addr_const;
@@ -1254,34 +1320,49 @@ module Mamba_Top (
                 S_M6_2: state <= S_M6_3;                          // WAIT (BRAM 2-cyc)
                 S_M6_3: begin
                     case (ctr_load)
-                        3'd0: m6_w0_reg     <= m_rd_data;         // B[s]
-                        3'd1: m6_w1_reg     <= m_rd_data;         // C[s]
-                        3'd2: m6_w2_reg     <= w_rd_data;         // A[s]
-                        3'd3: begin
-                            m6_delta_word   <= m_rd_data;
-                            m6_D_word       <= const_rd_data;
+                        3'd0: begin
+                            m6_w0_reg <= m_rd_data;                // B[s]
+                            m6_w2_reg <= w_rd_data;                // A[s] latched parallel
                         end
-                        3'd4: m6_u_word     <= m_rd_data;
+                        3'd1: m6_w1_reg <= m_rd_data;              // C[s]
+                        3'd3: begin
+                            m6_delta_word <= m_rd_data;
+                            m6_D_word     <= const_rd_data;
+                        end
+                        3'd4: m6_u_word <= m_rd_data;
                         default: ;
                     endcase
-                    // Exit: full 5 (group start) or short 3 (per-l,s reload)
+                    // Exit + set flag m6_pref_c_valid:
+                    //   1 = m_rd_data at S_M6_4 fire holds C → safe to latch
+                    //   0 = m_rd_data holds u_word (full 5-slot exit at slot 4) → skip latch
                     if (ctr_load == 3'd4) begin
-                        state    <= S_M6_4;
-                    end else if (ctr_load == 3'd2 &&
+                        m6_pref_c_valid <= 1'b0;                   // last read = u_word
+                        state           <= S_M6_4;
+                    end else if (ctr_load == 3'd1 &&
                                  !(ctr_l == 4'd0 && ctr_s == 3'd0)) begin
-                        state    <= S_M6_4;
+                        m6_pref_c_valid <= 1'b1;                   // short LOAD exit — last read = C
+                        state           <= S_M6_4;
+                    end else if (ctr_load == 3'd1) begin
+                        ctr_load <= 3'd3;
+                        state    <= S_M6_1;
                     end else begin
                         ctr_load <= ctr_load + 3'd1;
                         state    <= S_M6_1;
                     end
                 end
                 S_M6_4: begin
-                    // DAB MUL2: m1 = dt·A[s] → exp → dA;  m2 = dt·B[s] → dB
+                    // Phase 6.2c: DAB MUL2 fire + latch C[s] in parallel when valid.
+                    // C source: (a) prefetch from S_M6_12 (m_rd_data = ram[C_addr_s+1])
+                    //           (b) short LOAD slot 1 (m_rd_data = ram[C_addr_s])
+                    //           (c) full LOAD slot 4 exit → m_rd_data = u_word → SKIP
                     cl_op_mode   <= `MAMBA_PE_MUL2;
                     cl_in_W1_vec <= m6_dt_broadcast;
-                    cl_in_H_ext  <= m6_w2_reg;                    // A[s] from LOAD
+                    cl_in_H_ext  <= m6_w2_reg;                    // A[s]
                     cl_in_W2_vec <= m6_dt_broadcast;
-                    cl_in_X_vec  <= m6_w0_reg;                    // B[s] from LOAD
+                    cl_in_X_vec  <= m6_w0_reg;                    // B[s]
+                    if (m6_pref_c_valid)
+                        m6_w1_reg <= m_rd_data;                   // C[s] — prefetch or short-LOAD
+                    // else full-LOAD path already latched C at slot 1 of S_M6_3.
                     state        <= S_M6_5;
                 end
                 S_M6_5: state <= S_M6_6;
@@ -1322,55 +1403,91 @@ module Mamba_Top (
                 // picks cl_out_vec). Adding an ADD_WAIT state between would let
                 // the default cl_op_mode <= IDLE clear PE mode before SSM_LATCH,
                 // wiping cl_out_vec to 0 (IDLE out_next default).
-                // Phase 3: WRITE_H + FIFO_PUSH + iteration control.
-                // Keep cl_op_mode = ADD throughout S_M6_10 (including stall cycles) so PE
-                // continuously produces h_new in cl_out_next_vec (comb) and cl_out_vec (reg).
-                // Both H_RegFile write (uses cl_out_vec at edge) and FIFO push (uses
-                // cl_out_next_vec at push cycle) get correct h_new even under stall.
+                // Phase 5: WRITE_H (no FIFO), advance to Y_MAC. c1 stepping evens (+2 g).
                 S_M6_10: begin
-                    cl_op_mode        <= `MAMBA_PE_ADD;            // hold ADD → PE re-fires idempotently
-                    // cl_in_W1_vec, cl_in_H_ext still = T1, T2 from S_M6_9 (regs, not cleared).
                     m6_h_wr_en_r      <= 1'b1;
-                    m6_h_wr_addr_r    <= m6_c;                     // Widened 14-bit
+                    m6_h_wr_addr_r    <= m6_c;
                     m6_h_wr_from_pe_r <= 1'b1;
-                    // fifo_push comb-driven when state == S_M6_10 && c1_m6_can_advance.
-                    // Iterate only when advance possible (FIFO not full, c2 not using main).
-                    if (c1_m6_can_advance) begin
-                        if (ctr_s != `N_STATE_GRP_MAX) begin
-                            ctr_s    <= ctr_s + 3'd1;
-                            ctr_load <= 3'd0;
-                            state    <= S_M6_1;
-                        end else if (ctr_l != `LANE_MAX) begin
-                            ctr_l    <= ctr_l + 4'd1;
-                            ctr_s    <= 3'd0;
-                            ctr_load <= 3'd0;
-                            state    <= S_M6_1;
-                        end else if (ctr_g != inner_grp_last) begin
-                            ctr_g    <= ctr_g + 7'd1;
-                            ctr_l    <= 4'd0;
-                            ctr_s    <= 3'd0;
-                            ctr_load <= 3'd0;
-                            state    <= S_M6_1;
-                        end else begin
-                            // All (g, l, s) pushed. Wait for cluster2 to drain FIFO + write last y_gated.
-                            state <= S_M6_WAIT_C2;
-                        end
-                    end
-                    // else: stall in S_M6_10. h_wr_en re-fires (idempotent — same addr, same data).
+                    state             <= S_M6_11;
                 end
-                // Wait for cluster2 to finish all Y+DU+YSUM+gate+write for all groups.
-                // Cluster2 signals c2_done when last WRITE completed.
+                // Phase 6.2b: Y_MAC + prefetch next (s+1) LOAD in parallel.
+                // Y_MAC uses PE, LOAD uses BRAM ports — orthogonal resources.
+                // Prefetch only when NOT last s (l-boundary reload uses old LOAD path).
+                S_M6_11: begin
+                    cl_op_mode   <= `MAMBA_PE_MAC;
+                    cl_clear_acc <= 1'b1;
+                    cl_in_W1_vec <= cl_out_vec;                 // h_new[l,s]
+                    cl_in_H_ext  <= m6_w1_reg;                  // C[s]
+                    if (ctr_s != `N_STATE_GRP_MAX) begin
+                        m_rd_addr      <= m6_B_addr_s_next;     // prefetch B[s+1]
+                        w_rd_addr      <= m6_A_addr_s_next;     // prefetch A[s+1] on weight port
+                        m6_h_rd_addr_r <= m6_c_next;            // prefetch h_old for (l, s+1)
+                    end
+                    state <= S_M6_12;
+                end
+                S_M6_12: begin
+                    if (ctr_s != `N_STATE_GRP_MAX)
+                        m_rd_addr <= m6_C_addr_s_next;          // prefetch C[s+1]
+                    state <= S_M6_13;
+                end
+                // Phase 6.2c: skip S_M6_13B state, latch C at S_M6_4 in parallel with DAB.
+                S_M6_13: begin
+                    if (ctr_s == 3'd0)
+                        m6_y_ch_reg <= {{8{m6_y_ch_sat[15]}}, m6_y_ch_sat};
+                    else
+                        m6_y_ch_reg <= m6_y_ch_reg + {{8{m6_y_ch_sat[15]}}, m6_y_ch_sat};
+
+                    if (ctr_s == `N_STATE_GRP_MAX) begin
+                        state <= S_M6_14;
+                    end else begin
+                        m6_w0_reg       <= m_rd_data;             // B[s+1]
+                        m6_w2_reg       <= w_rd_data;             // A[s+1]
+                        m6_pref_c_valid <= 1'b1;                  // prefetch path — C at m_rd_data next cyc
+                        ctr_s           <= ctr_s + 3'd1;
+                        state           <= S_M6_4;
+                    end
+                end
+                S_M6_14: begin
+                    cl_op_mode   <= `MAMBA_PE_MUL;
+                    cl_in_W1_vec <= m6_D_broadcast;
+                    cl_in_H_ext  <= m6_u_broadcast;
+                    state        <= S_M6_15;
+                end
+                S_M6_15: state <= S_M6_16;
+                S_M6_16: begin
+                    cl_op_mode   <= `MAMBA_PE_ADD;
+                    cl_in_W1_vec <= {16{m6_y_ch_reg_sat}};
+                    cl_in_H_ext  <= {16{cl_out_vec[15:0]}};     // D·u (lane 0)
+                    state        <= S_M6_17;
+                end
+                S_M6_17: state <= S_M6_18;
+                S_M6_18: begin
+                    m6_ssm_grp_acc[ctr_l*16 +: 16] <= cl_out_vec[15:0];
+                    if (ctr_l == `LANE_MAX) begin
+                        // All lanes done for this group → go to gate chain (skip y_ssm write).
+                        state <= S_M7_1;
+                    end else begin
+                        ctr_l    <= ctr_l + 4'd1;
+                        ctr_s    <= 3'd0;
+                        ctr_load <= 3'd0;
+                        state    <= S_M6_1;
+                    end
+                end
+                // S_M6_19 removed — y_ssm not written to ram_main; m6_ssm_grp_acc holds it.
+
+                // c1 waits here after last even-group gate write, until c2 finishes odds.
                 S_M6_WAIT_C2: begin
-                    if (c2_done && fifo_empty) begin
+                    if (c2_done) begin
                         ctr_g     <= 7'd0;
                         ctr_l     <= 4'd0;
                         ctr_s     <= 3'd0;
-                        cur_stage <= STG_M8;                       // Skip STG_M7 (merged into c2)
+                        cur_stage <= STG_M8;
                         ctr_k     <= 11'd0;
                         state     <= S_MAC1;
                     end
                 end
 
+                // Phase 5 c1 M7 gate chain (per even group). Uses m6_ssm_grp_acc directly.
                 S_M7_1: begin
                     m_rd_addr <= m7_z_addr;
                     state     <= S_M7_2;
@@ -1378,17 +1495,13 @@ module Mamba_Top (
                 S_M7_2: state <= S_M7_3;
                 S_M7_3: begin
                     silu_z_reg <= silu_out_w;
-                    m_rd_addr  <= m7_y_addr;
                     state      <= S_M7_4;
                 end
                 S_M7_4: state <= S_M7_5;
                 S_M7_5: begin
                     cl_op_mode   <= `MAMBA_PE_MUL;
-                    cl_in_W1_vec <= m_rd_data;
+                    cl_in_W1_vec <= m6_ssm_grp_acc;             // in-reg y_ssm[g]
                     cl_in_H_ext  <= silu_z_reg;
-                    if (ctr_g != inner_grp_last) begin
-                        m_rd_addr <= m7_z_addr_p1;
-                    end
                     state        <= S_M7_6;
                 end
                 S_M7_6: state <= S_M7_7;
@@ -1396,14 +1509,16 @@ module Mamba_Top (
                     m_we      <= 1'b1;
                     m_wr_addr <= m7_wr_addr;
                     m_wr_data <= cl_out_vec;
-                    if (ctr_g == inner_grp_last) begin
-                        ctr_g <= 7'd0;
-                        ctr_k  <= 11'd0;
-                        cur_stage <= STG_M8;
-                        state     <= S_MAC1;
+                    // c1 stepping evens: exit when ctr_g == inner_grp_last - 1 (i.e., 94 for M2).
+                    if (ctr_g_p1 == inner_grp_last[6:0]) begin
+                        // Last even group written. Wait for c2 to finish odds.
+                        state <= S_M6_WAIT_C2;
                     end else begin
-                        ctr_g <= ctr_g + 7'd1;
-                        state     <= S_M7_3;
+                        ctr_g    <= ctr_g_p2;
+                        ctr_l    <= 4'd0;
+                        ctr_s    <= 3'd0;
+                        ctr_load <= 3'd0;
+                        state    <= S_M6_1;
                     end
                 end
 
@@ -1418,107 +1533,256 @@ module Mamba_Top (
     end
 
     // ============================================================================
-    // Phase 3: Cluster2 FSM + PE input driver (unified — avoids dual-driver conflict).
+    // Phase 5: Cluster2 FSM — full M6+M7 chain for ODD groups (g=1,3,...,95).
     // Two roles:
-    //   (1) M-stage ping-pong partner (M1A/M1B/M4/M8) — mirrors cluster1's MAC2
-    //       fire, but weights come from bank_B (w_rd_data3/4).
-    //   (2) M6 substep aux — consumes FIFO items from cluster1 (h_new + C + u + D + IDs),
-    //       runs Y_MAC + accumulate + D·u + YSUM + gate MUL + write y_gated. M7 merged.
-    //
-    // Both roles are mutually exclusive by cur_stage (M-stage PP → cur_stage in
-    // {M1A/M1B/M4/M8}; M6-aux → cur_stage == STG_M6). No conflict.
+    //   (1) M-stage ping-pong partner (M1A/M1B/M4/M8) — mirrors cluster1's MAC2.
+    //   (2) M6+M7 (own H_RegFile_B): LOAD → DAB → SSM → WRITE_H_B → Y_MAC →
+    //       ACCUM → DU → YSUM → LATCH per l → LOADZ → GATE → WRITE_YG per g.
+    // Memory arbitration: c1 has priority; c2 stalls when c1 issues same-cyc.
     // ============================================================================
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            c2_state        <= S_C2_IDLE;
-            cl2_op_mode     <= `MAMBA_PE_IDLE;
-            cl2_clear_acc   <= 1'b0;
-            cl2_in_W1_vec   <= 256'b0;
-            cl2_in_H_ext    <= 256'b0;
-            cl2_in_W2_vec   <= 256'b0;
-            cl2_in_X_vec    <= 256'b0;
-            c2_h_new_reg    <= 256'b0;
-            c2_C_reg        <= 256'b0;
-            c2_u_scalar_reg <= 16'sd0;
-            c2_D_scalar_reg <= 16'sd0;
-            c2_g_id         <= 7'd0;
-            c2_l_id         <= 4'd0;
-            c2_s_id         <= 3'd0;
-            c2_y_ch_reg     <= 24'sd0;
-            c2_ssm_grp_acc  <= 256'b0;
-            c2_silu_z_reg   <= 256'b0;
-            c2_done         <= 1'b0;
-            c2_m_rd_addr    <= 15'd0;
-            c2_m_wr_addr    <= 15'd0;
-            c2_m_wr_data    <= 256'b0;
-            c2_m_we         <= 1'b0;
+            c2_state           <= S_C2_IDLE;
+            cl2_op_mode        <= `MAMBA_PE_IDLE;
+            cl2_clear_acc      <= 1'b0;
+            cl2_in_W1_vec      <= 256'b0;
+            cl2_in_H_ext       <= 256'b0;
+            cl2_in_W2_vec      <= 256'b0;
+            cl2_in_X_vec       <= 256'b0;
+            c2_g               <= 7'd1;
+            c2_l               <= 4'd0;
+            c2_s               <= 3'd0;
+            c2_load            <= 3'd0;
+            c2_h_init_cnt      <= 14'd0;
+            c2_delta_word      <= 256'b0;
+            c2_u_word          <= 256'b0;
+            c2_w0_reg          <= 256'b0;
+            c2_w1_reg          <= 256'b0;
+            c2_w2_reg          <= 256'b0;
+            c2_D_word          <= 256'b0;
+            c2_dA_reg          <= 256'b0;
+            c2_dB_reg          <= 256'b0;
+            c2_ssm_grp_acc     <= 256'b0;
+            c2_silu_z_reg      <= 256'b0;
+            c2_y_ch_reg        <= 24'sd0;
+            c2_h_from_rf_r     <= 1'b0;
+            c2_h_rd_addr_r     <= 14'd0;
+            c2_h_wr_en_r       <= 1'b0;
+            c2_h_wr_addr_r     <= 14'd0;
+            c2_h_wr_from_pe_r  <= 1'b0;
+            c2_h_wr_data_ext_r <= 256'b0;
+            c2_m_rd_addr       <= 15'd0;
+            c2_m_wr_addr       <= 15'd0;
+            c2_m_wr_data       <= 256'b0;
+            c2_m_we            <= 1'b0;
+            c2_w_rd_addr       <= 15'd0;
+            c2_const_rd_addr   <= 15'd0;
+            c2_done            <= 1'b0;
+            c2_pref_pending    <= 1'b0;
         end else begin
             // Defaults (case may override).
             cl2_op_mode   <= `MAMBA_PE_IDLE;
             cl2_clear_acc <= 1'b0;
             c2_m_we       <= 1'b0;
+            c2_h_wr_en_r  <= 1'b0;
 
             // ------------------------------------------------------------
             // Role (1): M-stage ping-pong (mirrors cluster1's MAC2 in S_MAC3/S_MAC4).
-            // Same 1-cyc NBA latency as cluster1 → PEs fire in lockstep.
             // ------------------------------------------------------------
             if (pp_enable && (state == S_MAC3 || state == S_MAC4)) begin
                 cl2_op_mode   <= `MAMBA_PE_MAC2;
-                cl2_clear_acc <= (state == S_MAC3);        // matches cluster1's clear pattern
-                cl2_in_W1_vec <= w_rd_data3;               // bank_B W1
-                cl2_in_W2_vec <= w_rd_data4;               // bank_B W2
+                cl2_clear_acc <= (state == S_MAC3);
+                cl2_in_W1_vec <= w_rd_data3;
+                cl2_in_W2_vec <= w_rd_data4;
                 cl2_in_H_ext  <= y_broadcast;
                 cl2_in_X_vec  <= y_broadcast2;
             end
 
             // ------------------------------------------------------------
-            // Role (2): M6 substep aux — cluster2 FSM.
+            // Role (2): full M6+M7 FSM for odd groups.
             // ------------------------------------------------------------
             case (c2_state)
+                // Wait for main FSM to enter M6, or piggyback H_INIT with c1.
                 S_C2_IDLE: begin
                     if (cur_stage != STG_M6) c2_done <= 1'b0;
-                    if (cur_stage == STG_M6 && !fifo_empty && !c2_done)
-                        c2_state <= S_C2_POP;
+                    if (state == S_H_INIT) begin
+                        c2_h_init_cnt <= 14'd0;
+                        c2_state      <= S_C2_H_INIT;
+                    end else if (cur_stage == STG_M6 && !c2_done) begin
+                        c2_g     <= 7'd1;             // odd starts at 1
+                        c2_l     <= 4'd0;
+                        c2_s     <= 3'd0;
+                        c2_load  <= 3'd0;
+                        c2_state <= S_C2_M6_LOAD1;
+                    end
                 end
 
-                S_C2_POP: begin
-                    c2_h_new_reg    <= fifo_r_h_new;
-                    c2_C_reg        <= fifo_r_C;
-                    c2_u_scalar_reg <= fifo_r_u_scalar;
-                    c2_D_scalar_reg <= fifo_r_D_scalar;
-                    c2_g_id         <= fifo_r_g_id;
-                    c2_l_id         <= fifo_r_l_id;
-                    c2_s_id         <= fifo_r_s_id;
-                    c2_state        <= S_C2_YMAC;
+                S_C2_H_INIT: begin
+                    if ({2'b0, c2_h_init_cnt} < h_init_limit) begin
+                        c2_h_wr_en_r       <= 1'b1;
+                        c2_h_wr_addr_r     <= c2_h_init_cnt;
+                        c2_h_wr_from_pe_r  <= 1'b0;
+                        c2_h_wr_data_ext_r <= 256'd0;
+                        c2_h_init_cnt      <= c2_h_init_cnt + 14'd1;
+                    end else begin
+                        c2_h_init_cnt <= 14'd0;
+                        c2_state      <= S_C2_IDLE;
+                    end
                 end
 
+                // Phase 6 post-mirror: c2 reads from ram_main_c2 port_b (own copy).
+                // Writes go to port_a of BOTH mirrors -> port_b reads never clobbered.
+                // No stall guard needed. OPT-2a: slot 0 issues A[s] on bank_B parallel.
+                S_C2_M6_LOAD1: begin
+                    case (c2_load)
+                        3'd0: begin
+                            c2_m_rd_addr   <= c2_m6_B_addr_s;
+                            c2_h_rd_addr_r <= c2_m6_c;
+                            c2_w_rd_addr   <= c2_m6_A_addr_s;
+                        end
+                        3'd1: c2_m_rd_addr <= c2_m6_C_addr_s;
+                        3'd3: begin
+                            c2_m_rd_addr     <= c2_m6_delta_addr;
+                            c2_const_rd_addr <= c2_m6_D_addr_const;
+                        end
+                        3'd4: c2_m_rd_addr <= c2_m6_u_addr;
+                        default: ;
+                    endcase
+                    c2_state <= S_C2_M6_LOAD2;
+                end
+
+                S_C2_M6_LOAD2: c2_state <= S_C2_M6_LOAD3;
+
+                S_C2_M6_LOAD3: begin
+                    case (c2_load)
+                        3'd0: begin
+                            c2_w0_reg <= m_rd_data2;              // B[s]
+                            c2_w2_reg <= w_rd_data3;              // A[s] parallel (bank_B)
+                        end
+                        3'd1: c2_w1_reg <= m_rd_data2;             // C[s]
+                        3'd3: begin
+                            c2_delta_word <= m_rd_data2;
+                            c2_D_word     <= const_rd_data2;
+                        end
+                        3'd4: c2_u_word <= m_rd_data2;
+                        default: ;
+                    endcase
+                    // Set c2_pref_pending to signal DAB whether m_rd_data2 will hold C
+                    // at DAB fire (Phase 6.2c fold semantics — reuse pref_pending flag).
+                    if (c2_load == 3'd4) begin
+                        c2_pref_pending <= 1'b0;                   // full LOAD → data = u_word
+                        c2_state        <= S_C2_M6_DAB_MUL2;
+                    end else if (c2_load == 3'd1 &&
+                                 !(c2_l == 4'd0 && c2_s == 3'd0)) begin
+                        c2_pref_pending <= 1'b1;                   // short LOAD → data = C
+                        c2_state        <= S_C2_M6_DAB_MUL2;
+                    end else if (c2_load == 3'd1) begin
+                        c2_load  <= 3'd3;
+                        c2_state <= S_C2_M6_LOAD1;
+                    end else begin
+                        c2_load  <= c2_load + 3'd1;
+                        c2_state <= S_C2_M6_LOAD1;
+                    end
+                end
+
+                S_C2_M6_DAB_MUL2: begin
+                    cl2_op_mode   <= `MAMBA_PE_MUL2;
+                    cl2_in_W1_vec <= c2_dt_broadcast;
+                    cl2_in_H_ext  <= c2_w2_reg;                 // A[s]
+                    cl2_in_W2_vec <= c2_dt_broadcast;
+                    cl2_in_X_vec  <= c2_w0_reg;                 // B[s]
+                    // Phase 6.2c: latch C from prefetch or short-LOAD when valid.
+                    if (c2_pref_pending)
+                        c2_w1_reg <= m_rd_data2;
+                    c2_state      <= S_C2_M6_EXP_WAIT;
+                end
+
+                S_C2_M6_EXP_WAIT: c2_state <= S_C2_M6_DAB_LATCH;
+
+                S_C2_M6_DAB_LATCH: begin
+                    c2_dA_reg      <= c2_exp_out_w;             // c2's own LUT bank
+                    c2_dB_reg      <= cl2_out_vec2;
+                    c2_h_from_rf_r <= 1'b1;
+                    c2_state       <= S_C2_M6_SSM_MUL2;
+                end
+
+                S_C2_M6_SSM_MUL2: begin
+                    cl2_op_mode   <= `MAMBA_PE_MUL2;
+                    cl2_in_W1_vec <= c2_dA_reg;                 // dA · h_old (H via h_from_rf=1)
+                    cl2_in_W2_vec <= c2_dB_reg;
+                    cl2_in_X_vec  <= c2_u_broadcast;
+                    c2_state      <= S_C2_M6_SSM_WAIT;
+                end
+
+                S_C2_M6_SSM_WAIT: c2_state <= S_C2_M6_ADD_ISSUE;
+
+                S_C2_M6_ADD_ISSUE: begin
+                    cl2_op_mode    <= `MAMBA_PE_ADD;
+                    cl2_in_W1_vec  <= cl2_out_vec;              // T1
+                    cl2_in_H_ext   <= cl2_out_vec2;             // T2
+                    c2_h_from_rf_r <= 1'b0;
+                    c2_state       <= S_C2_M6_SSM_LATCH;
+                end
+
+                // WRITE_H_B + advance to Y_MAC (mirror of c1's S_M6_10 → S_M6_11).
+                S_C2_M6_SSM_LATCH: begin
+                    c2_h_wr_en_r      <= 1'b1;
+                    c2_h_wr_addr_r    <= c2_m6_c;
+                    c2_h_wr_from_pe_r <= 1'b1;
+                    c2_state          <= S_C2_YMAC;
+                end
+
+                // Phase 6 post-mirror: c2 reads own ram_main_c2 -> no write conflict.
+                // Prefetch always valid when s != last.
                 S_C2_YMAC: begin
-                    // Fire MAC (h_new · C[s]) — fresh MAC per s (clear_acc=1).
                     cl2_op_mode   <= `MAMBA_PE_MAC;
                     cl2_clear_acc <= 1'b1;
-                    cl2_in_W1_vec <= c2_h_new_reg;
-                    cl2_in_H_ext  <= c2_C_reg;
-                    c2_state      <= S_C2_YWAIT;
+                    cl2_in_W1_vec <= cl2_out_vec;
+                    cl2_in_H_ext  <= c2_w1_reg;
+                    if (c2_s != `N_STATE_GRP_MAX) begin
+                        c2_m_rd_addr    <= c2_m6_B_addr_s_next;
+                        c2_w_rd_addr    <= c2_m6_A_addr_s_next;
+                        c2_h_rd_addr_r  <= c2_m6_c_next;
+                        c2_pref_pending <= 1'b1;
+                    end else begin
+                        c2_pref_pending <= 1'b0;
+                    end
+                    c2_state <= S_C2_YWAIT;
                 end
 
-                S_C2_YWAIT: c2_state <= S_C2_ACCUM;
+                S_C2_YWAIT: begin
+                    if (c2_pref_pending)
+                        c2_m_rd_addr <= c2_m6_C_addr_s_next;
+                    c2_state <= S_C2_ACCUM;
+                end
 
                 S_C2_ACCUM: begin
-                    if (c2_s_id == 3'd0)
+                    if (c2_s == 3'd0)
                         c2_y_ch_reg <= {{8{cl2_y_ch_sat[15]}}, cl2_y_ch_sat};
                     else
                         c2_y_ch_reg <= c2_y_ch_reg + {{8{cl2_y_ch_sat[15]}}, cl2_y_ch_sat};
 
-                    if (c2_s_id == `N_STATE_GRP_MAX)
+                    if (c2_s == `N_STATE_GRP_MAX) begin
                         c2_state <= S_C2_DUMUL;
-                    else
-                        c2_state <= S_C2_IDLE;             // wait for next FIFO (l, s+1)
+                    end else if (c2_pref_pending) begin
+                        // Phase 6.2c fast path: latch B+A, jump direct to DAB (C latched there).
+                        c2_w0_reg <= m_rd_data2;
+                        c2_w2_reg <= w_rd_data3;
+                        c2_s      <= c2_s + 3'd1;
+                        c2_state  <= S_C2_M6_DAB_MUL2;
+                        // c2_pref_pending stays 1 → DAB will latch C from m_rd_data2 next cyc
+                    end else begin
+                        // Fall-back: full LOAD via old path.
+                        c2_s     <= c2_s + 3'd1;
+                        c2_load  <= 3'd0;
+                        c2_state <= S_C2_M6_LOAD1;
+                    end
                 end
 
                 S_C2_DUMUL: begin
                     cl2_op_mode   <= `MAMBA_PE_MUL;
-                    cl2_in_W1_vec <= {16{c2_D_scalar_reg}};
-                    cl2_in_H_ext  <= {16{c2_u_scalar_reg}};
+                    cl2_in_W1_vec <= c2_D_broadcast;
+                    cl2_in_H_ext  <= c2_u_broadcast;
                     c2_state      <= S_C2_DUWAIT;
                 end
 
@@ -1534,22 +1798,26 @@ module Mamba_Top (
                 S_C2_YSUM_WAIT: c2_state <= S_C2_YSUM_LATCH;
 
                 S_C2_YSUM_LATCH: begin
-                    c2_ssm_grp_acc[c2_l_id*16 +: 16] <= cl2_out_vec[15:0];
-                    if (c2_l_id == `LANE_MAX)
+                    c2_ssm_grp_acc[c2_l*16 +: 16] <= cl2_out_vec[15:0];
+                    if (c2_l == `LANE_MAX) begin
                         c2_state <= S_C2_LOADZ;
-                    else
-                        c2_state <= S_C2_IDLE;
+                    end else begin
+                        c2_l     <= c2_l + 4'd1;
+                        c2_s     <= 3'd0;
+                        c2_load  <= 3'd0;
+                        c2_state <= S_C2_M6_LOAD1;
+                    end
                 end
 
                 S_C2_LOADZ: begin
-                    c2_m_rd_addr <= PT_Z_GATE + {8'b0, c2_g_id};
+                    c2_m_rd_addr <= c2_m7_z_addr;
                     c2_state     <= S_C2_ZWAIT1;
                 end
 
                 S_C2_ZWAIT1: c2_state <= S_C2_ZWAIT2;
 
                 S_C2_ZWAIT2: begin
-                    c2_silu_z_reg <= silu_out_w;
+                    c2_silu_z_reg <= c2_silu_out_w;             // c2's own LUT
                     c2_state      <= S_C2_GATE;
                 end
 
@@ -1562,20 +1830,28 @@ module Mamba_Top (
 
                 S_C2_GATE_WAIT: c2_state <= S_C2_WRITE;
 
+                // Write y_gated. Stall if c1 writes this cyc OR next cyc (predicted).
                 S_C2_WRITE: begin
-                    c2_m_we      <= 1'b1;
-                    c2_m_wr_addr <= PT_Y_GATED + {8'b0, c2_g_id};
-                    c2_m_wr_data <= cl2_out_vec;
-                    c2_state     <= S_C2_WRITE2;
+                    if (!c1_writes_main && !c1_will_write_next) begin
+                        c2_m_we      <= 1'b1;
+                        c2_m_wr_addr <= c2_m7_wr_addr;
+                        c2_m_wr_data <= cl2_out_vec;
+                        c2_state     <= S_C2_WRITE2;
+                    end
                 end
 
                 S_C2_WRITE2: begin
-                    c2_m_we <= 1'b1;
-                    if (c2_g_id == inner_grp_last[6:0]) begin
+                    c2_m_we <= 1'b1;                            // hold 1 more cyc
+                    // c2 stepping odds: exit when c2_g == inner_grp_last (95).
+                    if (c2_g == inner_grp_last[6:0]) begin
                         c2_done  <= 1'b1;
                         c2_state <= S_C2_DONE;
                     end else begin
-                        c2_state <= S_C2_IDLE;
+                        c2_g     <= c2_g + 7'd2;                // next odd
+                        c2_l     <= 4'd0;
+                        c2_s     <= 3'd0;
+                        c2_load  <= 3'd0;
+                        c2_state <= S_C2_M6_LOAD1;
                     end
                 end
 

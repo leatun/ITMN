@@ -23,7 +23,8 @@
 // ============================================================================
 module M_Cluster #(
     parameter H_ADDR_W = `H_ADDR_W,
-    parameter H_DEPTH  = `H_DEPTH
+    parameter H_DEPTH  = `H_DEPTH,
+    parameter HAS_H    = 1        // Phase 6: 0 → skip H_RegFile (cluster2 aux role); in_H_ext then drives PE.H directly
 ) (
     input  wire                clk,
     input  wire                rst,
@@ -55,25 +56,33 @@ module M_Cluster #(
     output wire [16*`DATA_W-1:0] out_next_vec2     // MUL2 secondary combinational next-outputs
 );
 
-    // ---- H_RegFile instance ----
-    wire [16*`DATA_W-1:0] h_rd_data;
-    wire [16*`DATA_W-1:0] h_wr_data = h_wr_from_pe ? out_vec : h_wr_data_ext;
+    // ---- H_RegFile instance (conditional on HAS_H) ----
+    wire [16*`DATA_W-1:0] in_H_vec;
 
-    H_RegFile #(
-        .ADDR_W(H_ADDR_W),
-        .DEPTH (H_DEPTH)
-    ) u_hrf (
-        .clk     (clk),
-        .rst     (rst),
-        .wr_en   (h_wr_en),
-        .wr_addr (h_wr_addr),
-        .wr_data (h_wr_data),
-        .rd_addr (h_rd_addr),
-        .rd_data (h_rd_data)
-    );
+    generate
+    if (HAS_H) begin : HAS_H_GEN
+        wire [16*`DATA_W-1:0] h_rd_data;
+        wire [16*`DATA_W-1:0] h_wr_data = h_wr_from_pe ? out_vec : h_wr_data_ext;
 
-    // ---- in_H vector mux ----
-    wire [16*`DATA_W-1:0] in_H_vec = h_from_rf ? h_rd_data : in_H_ext;
+        H_RegFile #(
+            .ADDR_W(H_ADDR_W),
+            .DEPTH (H_DEPTH)
+        ) u_hrf (
+            .clk     (clk),
+            .rst     (rst),
+            .wr_en   (h_wr_en),
+            .wr_addr (h_wr_addr),
+            .wr_data (h_wr_data),
+            .rd_addr (h_rd_addr),
+            .rd_data (h_rd_data)
+        );
+
+        assign in_H_vec = h_from_rf ? h_rd_data : in_H_ext;
+    end else begin : NO_H_GEN
+        // Cluster2 aux role — always uses external H input; h_from_rf/h_rd_addr/h_wr_* ignored.
+        assign in_H_vec = in_H_ext;
+    end
+    endgenerate
 
     // ---- 16 × Mamba_PE ----
     genvar i;

@@ -75,6 +75,23 @@
 `define W_INPROJ_Z_BASE   15'd3264
 `define W_OUTPROJ_BASE    15'd5312
 
+// Weight bank B (Phase 6 backport, DENSE PACK):
+//   Holds ONLY odd-group PP weight slots + odd-group W_A, densely packed.
+//   Layout (max B4: d_inner=256 → 16 grp → 8 odd grp):
+//     W_A dense odds     [0..128)     — 8 grp × 16 = 128 words
+//     W_INPROJ_X dense   [128..1152)  — 8 grp × 128 = 1024 words
+//     W_INPROJ_Z dense   [1152..2176) — 8 grp × 128 = 1024 words
+//     W_OUTPROJ dense    [2176..3200) — 8 grp × 128 = 1024 words
+//     spare              [3200..4096)
+//   c2 dense index = (ctr_g_p1 - 1) / 2 = ctr_g / 2 = ctr_g[4:1]
+//   TB writes bank_B ONLY for odd groups (c_out_grp[0]==1), at dense addr.
+`define W_MEM_DEPTH_B     4096
+`define W_MEM_ADDR_W_B    12
+`define W_A_BASE_B        15'd0
+`define W_INPROJ_X_BASE_B 15'd128
+`define W_INPROJ_Z_BASE_B 15'd1152
+`define W_OUTPROJ_BASE_B  15'd2176
+
 // Const RAM (target=2)
 `define C_W_NORM_BASE     15'd0
 `define C_B_DW_BASE       15'd8

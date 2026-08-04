@@ -13,7 +13,7 @@ verilog xil_defaultlib  -i "../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_
 "../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/mamba/Reduce16Wide.v" \
 "../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Silu_LUT.v" \
 "../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/common/Softplus_LUT.v" \
-"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_FULL.v" \
+"../../../../../ITMN_NEWEST/ITMN_NEWEST.srcs/sources_v3/tb/tb_Mamba_Top_5BLOCK.v" \
 
 # compile glbl module
 verilog xil_defaultlib "glbl.v"

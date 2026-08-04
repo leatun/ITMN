@@ -55,11 +55,11 @@ module tb_Mamba_Top_5BLOCK;
     reg  [3:0]  run_stage = 4'd0;
 
     reg          dma_write_en = 0;
-    reg  [1:0]   dma_target   = 0;
+    reg  [2:0]   dma_target   = 0;   // Phase 6: widened 2->3 bit
     reg  [14:0]  dma_addr     = 0;
     reg  [255:0] dma_wdata    = 0;
     reg          dma_read_en  = 0;
-    reg  [1:0]   dma_rtarget  = 0;
+    reg  [2:0]   dma_rtarget  = 0;   // Phase 6: widened 2->3 bit
     reg  [14:0]  dma_raddr    = 0;
     wire [255:0] dma_rdata;
 
@@ -86,7 +86,7 @@ module tb_Mamba_Top_5BLOCK;
     reg [255:0] word_tmp;
 
     task dma_wr;
-        input [1:0]   target;
+        input [2:0]   target;   // Phase 6: widened 2->3 bit
         input [14:0]  addr;
         input [255:0] data;
         begin
@@ -195,31 +195,41 @@ module tb_Mamba_Top_5BLOCK;
     // ---- DMA-preload current block's weights + consts + input ----
     task preload_block;
         begin
-            // W_InProj_X → SLOT_A
+            // W_InProj_X → bank_A ALL groups, bank_B ODD groups only at DENSE address.
+            // Bank_B layout (Phase 6 opt, DEPTH=4096): odd group dense_idx = c_out_grp/2.
             for (c_out_grp=0; c_out_grp<(cur_D_INNER/16); c_out_grp=c_out_grp+1)
                 for (c_in=0; c_in<cur_D_MODEL; c_in=c_in+1) begin
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wx_mem[(c_out_grp*16+lane)*cur_D_MODEL + c_in];
-                    dma_wr(2'd2, `W_INPROJ_X_BASE + c_out_grp*cur_D_MODEL + c_in, word_tmp);
+                    dma_wr(3'd2, `W_INPROJ_X_BASE + c_out_grp*cur_D_MODEL + c_in, word_tmp);
+                    if (c_out_grp[0]) begin  // odd group only
+                        dma_wr(3'd4, `W_INPROJ_X_BASE_B + (c_out_grp>>1)*cur_D_MODEL + c_in, word_tmp);
+                    end
                 end
 
-            // W_InProj_Z → SLOT_B
+            // W_InProj_Z → bank_A ALL, bank_B ODD only at dense addr
             for (c_out_grp=0; c_out_grp<(cur_D_INNER/16); c_out_grp=c_out_grp+1)
                 for (c_in=0; c_in<cur_D_MODEL; c_in=c_in+1) begin
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wz_mem[(c_out_grp*16+lane)*cur_D_MODEL + c_in];
-                    dma_wr(2'd2, `W_INPROJ_Z_BASE + c_out_grp*cur_D_MODEL + c_in, word_tmp);
+                    dma_wr(3'd2, `W_INPROJ_Z_BASE + c_out_grp*cur_D_MODEL + c_in, word_tmp);
+                    if (c_out_grp[0]) begin
+                        dma_wr(3'd4, `W_INPROJ_Z_BASE_B + (c_out_grp>>1)*cur_D_MODEL + c_in, word_tmp);
+                    end
                 end
 
-            // W_OutProj → permanent region (post-refactor: all blocks preload)
+            // W_OutProj → bank_A ALL, bank_B ODD only at dense addr
             for (c_out_grp=0; c_out_grp<(cur_D_MODEL/16); c_out_grp=c_out_grp+1)
                 for (c_in=0; c_in<cur_D_INNER; c_in=c_in+1) begin
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wo_mem[(c_out_grp*16+lane)*cur_D_INNER + c_in];
-                    dma_wr(2'd2, `W_OUTPROJ_BASE + c_out_grp*cur_D_INNER + c_in, word_tmp);
+                    dma_wr(3'd2, `W_OUTPROJ_BASE + c_out_grp*cur_D_INNER + c_in, word_tmp);
+                    if (c_out_grp[0]) begin
+                        dma_wr(3'd4, `W_OUTPROJ_BASE_B + (c_out_grp>>1)*cur_D_INNER + c_in, word_tmp);
+                    end
                 end
 
             // W_DW
@@ -228,7 +238,7 @@ module tb_Mamba_Top_5BLOCK;
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wdw_mem[(c_grp_in*16+lane)*4 + k];
-                    dma_wr(2'd2, `W_DW_BASE + c_grp_in*4 + k, word_tmp);
+                    dma_wr(3'd2, `W_DW_BASE + c_grp_in*4 + k, word_tmp);
                 end
 
             // W_XProj
@@ -237,7 +247,7 @@ module tb_Mamba_Top_5BLOCK;
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wxp_mem[(c_grp_out*16+lane)*cur_D_INNER + c_in];
-                    dma_wr(2'd2, `W_XPROJ_BASE + c_grp_out*cur_D_INNER + c_in, word_tmp);
+                    dma_wr(3'd2, `W_XPROJ_BASE + c_grp_out*cur_D_INNER + c_in, word_tmp);
                 end
 
             // W_DtProj
@@ -246,15 +256,20 @@ module tb_Mamba_Top_5BLOCK;
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = wdt_mem[(c_grp_out*16+lane)*cur_DT_RANK + k];
-                    dma_wr(2'd2, `W_DTPROJ_BASE + c_grp_out*cur_DT_RANK + k, word_tmp);
+                    dma_wr(3'd2, `W_DTPROJ_BASE + c_grp_out*cur_DT_RANK + k, word_tmp);
                 end
 
-            // W_A (1 word per channel)
+            // W_A (1 word per channel) — bank_A ALL channels, bank_B ODD-group channels only at DENSE
+            // c_in in odd group when c_in[4]==1 (group idx = c_in>>4). Dense addr:
+            //   dense_c_in = ((c_in>>5) << 4) | c_in[3:0] = W_A_BASE_B + (c_in>>5)*16 + c_in[3:0]
             for (c_in=0; c_in<cur_D_INNER; c_in=c_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<cur_D_STATE; lane=lane+1)
                     word_tmp[lane*16+:16] = wA_mem[c_in*cur_D_STATE + lane];
-                dma_wr(2'd2, `W_A_BASE + c_in, word_tmp);
+                dma_wr(3'd2, `W_A_BASE + c_in, word_tmp);
+                if (c_in[4]) begin  // channel belongs to odd group
+                    dma_wr(3'd4, `W_A_BASE_B + ((c_in>>5) << 4) + (c_in & 15), word_tmp);
+                end
             end
 
             // ---- Constants ----
@@ -262,25 +277,25 @@ module tb_Mamba_Top_5BLOCK;
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = gam_mem[c_grp_in*16 + lane];
-                dma_wr(2'd3, `C_W_NORM_BASE + c_grp_in, word_tmp);
+                dma_wr(3'd3, `C_W_NORM_BASE + c_grp_in, word_tmp);
             end
             for (c_grp_in=0; c_grp_in<(cur_D_INNER/16); c_grp_in=c_grp_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = bdw_mem[c_grp_in*16 + lane];
-                dma_wr(2'd3, `C_B_DW_BASE + c_grp_in, word_tmp);
+                dma_wr(3'd3, `C_B_DW_BASE + c_grp_in, word_tmp);
             end
             for (c_grp_in=0; c_grp_in<(cur_D_INNER/16); c_grp_in=c_grp_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = bdt_mem[c_grp_in*16 + lane];
-                dma_wr(2'd3, `C_B_DT_BASE + c_grp_in, word_tmp);
+                dma_wr(3'd3, `C_B_DT_BASE + c_grp_in, word_tmp);
             end
             for (c_grp_in=0; c_grp_in<(cur_D_INNER/16); c_grp_in=c_grp_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = Dp_mem[c_grp_in*16 + lane];
-                dma_wr(2'd3, `C_D_PARAM_BASE + c_grp_in, word_tmp);
+                dma_wr(3'd3, `C_D_PARAM_BASE + c_grp_in, word_tmp);
             end
 
             // ---- INPUT ----
@@ -289,7 +304,7 @@ module tb_Mamba_Top_5BLOCK;
                     word_tmp = 256'b0;
                     for (lane=0; lane<16; lane=lane+1)
                         word_tmp[lane*16+:16] = xn_mem[(c_grp_in*16+lane)*cur_T_TOT + t_cur];
-                    dma_wr(2'd0, `PT_INPUT + t_cur*(cur_D_MODEL/16) + c_grp_in, word_tmp);
+                    dma_wr(3'd0, `PT_INPUT + t_cur*(cur_D_MODEL/16) + c_grp_in, word_tmp);
                 end
             @(negedge clk); dma_write_en = 0;
         end

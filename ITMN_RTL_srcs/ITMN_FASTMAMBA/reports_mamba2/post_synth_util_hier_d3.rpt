@@ -1,0 +1,74 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
+| Date         : Wed Jul 29 02:51:54 2026
+| Host         : letun running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -hierarchical_depth 3 -file C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/reports_mamba2/post_synth_util_hier_d3.rpt
+| Design       : Mamba_Top
+| Device       : xck26-sfvc784-2LV-c
+| Speed File   : -2LV
+| Design State : Synthesized
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++----------------------+-----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+|       Instance       |            Module           | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | URAM | DSP Blocks |
++----------------------+-----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+| Mamba_Top            |                       (top) |      27900 |      26876 |    1024 |    0 | 12115 |    150 |      0 |   32 |         99 |
+|   (Mamba_Top)        |                       (top) |       2885 |       2885 |       0 |    0 |  8783 |      0 |      0 |    0 |          3 |
+|   u_mc               |                   M_Cluster |       9439 |       9439 |       0 |    0 |  1410 |      0 |      0 |   16 |         48 |
+|     (u_mc)           |                   M_Cluster |        128 |        128 |       0 |    0 |   256 |      0 |      0 |    0 |          0 |
+|     HAS_H_GEN.u_hrf  |                H_RegFile_18 |        148 |        148 |       0 |    0 |     2 |      0 |      0 |   16 |          0 |
+|     PE_LANE[0].u_pe  |                 Mamba_PE_19 |        980 |        980 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[10].u_pe |                 Mamba_PE_20 |        547 |        547 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[11].u_pe |                 Mamba_PE_21 |        546 |        546 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[12].u_pe |                 Mamba_PE_22 |        547 |        547 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[13].u_pe |                 Mamba_PE_23 |        546 |        546 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[14].u_pe |                 Mamba_PE_24 |        547 |        547 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[15].u_pe |                 Mamba_PE_25 |        548 |        548 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[1].u_pe  |                 Mamba_PE_26 |        543 |        543 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[2].u_pe  |                 Mamba_PE_27 |        545 |        545 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[3].u_pe  |                 Mamba_PE_28 |        543 |        543 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[4].u_pe  |                 Mamba_PE_29 |        544 |        544 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[5].u_pe  |                 Mamba_PE_30 |        543 |        543 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[6].u_pe  |                 Mamba_PE_31 |        544 |        544 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[7].u_pe  |                 Mamba_PE_32 |        547 |        547 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[8].u_pe  |                 Mamba_PE_33 |        547 |        547 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[9].u_pe  |                 Mamba_PE_34 |        546 |        546 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|   u_mc2              |                 M_Cluster_0 |       7980 |       7980 |       0 |    0 |  1410 |      0 |      0 |   16 |         48 |
+|     (u_mc2)          |                 M_Cluster_0 |        256 |        256 |       0 |    0 |   256 |      0 |      0 |    0 |          0 |
+|     HAS_H_GEN.u_hrf  |                   H_RegFile |        128 |        128 |       0 |    0 |     2 |      0 |      0 |   16 |          0 |
+|     PE_LANE[0].u_pe  |                    Mamba_PE |        956 |        956 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[10].u_pe |                  Mamba_PE_3 |        444 |        444 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[11].u_pe |                  Mamba_PE_4 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[12].u_pe |                  Mamba_PE_5 |        445 |        445 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[13].u_pe |                  Mamba_PE_6 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[14].u_pe |                  Mamba_PE_7 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[15].u_pe |                  Mamba_PE_8 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[1].u_pe  |                  Mamba_PE_9 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[2].u_pe  |                 Mamba_PE_10 |        444 |        444 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[3].u_pe  |                 Mamba_PE_11 |        444 |        444 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[4].u_pe  |                 Mamba_PE_12 |        444 |        444 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[5].u_pe  |                 Mamba_PE_13 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[6].u_pe  |                 Mamba_PE_14 |        445 |        445 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[7].u_pe  |                 Mamba_PE_15 |        443 |        443 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[8].u_pe  |                 Mamba_PE_16 |        444 |        444 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|     PE_LANE[9].u_pe  |                 Mamba_PE_17 |        429 |        429 |       0 |    0 |    72 |      0 |      0 |    0 |          3 |
+|   u_mem              |               Memory_System |       6270 |       5246 |    1024 |    0 |   512 |    150 |      0 |    0 |          0 |
+|     ram_const        |   BRAM_256b__parameterized1 |       1370 |        346 |    1024 |    0 |   512 |      0 |      0 |    0 |          0 |
+|     ram_main         |                   BRAM_256b |       4200 |       4200 |       0 |    0 |     0 |     36 |      0 |    0 |          0 |
+|     ram_weight_A     |   BRAM_256b__parameterized0 |        355 |        355 |       0 |    0 |     0 |     57 |      0 |    0 |          0 |
+|     ram_weight_B     | BRAM_256b__parameterized0_2 |        345 |        345 |       0 |    0 |     0 |     57 |      0 |    0 |          0 |
+|   u_rw               |                Reduce16Wide |        727 |        727 |       0 |    0 |     0 |      0 |      0 |    0 |          0 |
+|   u_rw2              |              Reduce16Wide_1 |        647 |        647 |       0 |    0 |     0 |      0 |      0 |    0 |          0 |
++----------------------+-----------------------------+------------+------------+---------+------+-------+--------+--------+------+------------+
+
+

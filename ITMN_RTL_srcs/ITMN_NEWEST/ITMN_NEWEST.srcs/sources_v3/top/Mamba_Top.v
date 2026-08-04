@@ -124,12 +124,12 @@ module Mamba_Top (
     input  wire [3:0]   DT_RANK,
 
     input  wire         dma_write_en,
-    input  wire [1:0]   dma_target,
+    input  wire [2:0]   dma_target,        // Phase 6: widened 2→3 bit (0=main, 2=wA, 3=const, 4=wB)
     input  wire [14:0]  dma_addr,
     input  wire [255:0] dma_wdata,
 
     input  wire         dma_read_en,
-    input  wire [1:0]   dma_rtarget,
+    input  wire [2:0]   dma_rtarget,       // Phase 6: widened 2→3 bit
     input  wire [14:0]  dma_raddr,
     output wire [255:0] dma_rdata
 );
@@ -160,6 +160,11 @@ module Mamba_Top (
     localparam [14:0] W_XPROJ_BASE     = `W_XPROJ_BASE;
     localparam [14:0] W_DTPROJ_BASE    = `W_DTPROJ_BASE;
     localparam [14:0] W_A_BASE         = `W_A_BASE;
+    // Bank_B DENSE bases (Phase 6 optimization — DEPTH 8192->4096, save 30 BRAM)
+    localparam [14:0] W_A_BASE_B        = `W_A_BASE_B;
+    localparam [14:0] W_INPROJ_X_BASE_B = `W_INPROJ_X_BASE_B;
+    localparam [14:0] W_INPROJ_Z_BASE_B = `W_INPROJ_Z_BASE_B;
+    localparam [14:0] W_OUTPROJ_BASE_B  = `W_OUTPROJ_BASE_B;
     localparam [14:0] C_W_NORM_BASE    = `C_W_NORM_BASE;
     localparam [14:0] C_B_DW_BASE      = `C_B_DW_BASE;
     localparam [14:0] C_B_DT_BASE      = `C_B_DT_BASE;
@@ -224,7 +229,8 @@ module Mamba_Top (
     localparam [6:0] S_M7_5        = 7'd53;
     localparam [6:0] S_M7_6      = 7'd54;
     localparam [6:0] S_M7_7      = 7'd55;
-    localparam [6:0] S_MAC5        = 7'd98;
+    localparam [6:0] S_MAC5        = 7'd98;   // Phase 6 pp: c1 write cyc (was single-cluster write)
+    localparam [6:0] S_MAC5_B      = 7'd103;  // Phase 6 pp: c2 write cyc (only used when ping-pong active)
     localparam [6:0] S_M6_8      = 7'd99;
     localparam [6:0] S_M6_15       = 7'd101;
     localparam [6:0] S_MAC3         = 7'd102;
@@ -255,6 +261,7 @@ module Mamba_Top (
     localparam [6:0] S_M6_17     = 7'd91;
     localparam [6:0] S_M6_18    = 7'd92;
     localparam [6:0] S_M6_19     = 7'd93;
+    localparam [6:0] S_M6_19_B   = 7'd104;   // Phase 3: c2 write y_ssm at odd group
     localparam [6:0] S_DONE             = 7'd127;
 
     reg [6:0]   state;
@@ -276,6 +283,13 @@ module Mamba_Top (
     reg [255:0] m6_dA_reg, m6_dB_reg, m6_ssm_grp_acc;
     reg signed [15:0] m6_y_ch_reg;
 
+    // Phase 3: c2 parallel M6 registers (odd groups). Mirror c1's m6_* set.
+    // w0/w1/w2/B/C are SAME data for both clusters (B/C at PT_X_PROJ+0/1/2 shared per t)
+    // → we don't duplicate m6_w0/w1/w2_reg. delta/u/D/dA/dB are per-group → duplicate.
+    reg [255:0] c2_m6_delta_word, c2_m6_u_word, c2_m6_D_word;
+    reg [255:0] c2_m6_dA_reg, c2_m6_dB_reg, c2_m6_ssm_grp_acc;
+    reg signed [15:0] c2_m6_y_ch_reg;
+
     wire [8:0]  m6_dt_shift = {DT_RANK, 4'b0};
     wire [8:0]  m6_dt_comp  = `DT_SHIFT_BASE - m6_dt_shift;
     wire [255:0] m6_B_word  = (m6_w1_reg << m6_dt_comp) | (m6_w0_reg >> m6_dt_shift);
@@ -288,6 +302,10 @@ module Mamba_Top (
     reg  [14:0]  w_rd_addr, w_rd_addr2;
     wire [255:0] m_rd_data, w_rd_data, w_rd_data2;
 
+    // Phase 6: cluster2 weight bank_B read ports (odds during ping-pong MAC / M6-parallel).
+    reg  [14:0]  w_rd_addr3, w_rd_addr4;
+    wire [255:0] w_rd_data3, w_rd_data4;
+
     reg  [2:0]                cl_op_mode;
     reg                       cl_clear_acc;
     reg  [16*`DATA_W-1:0]     cl_in_W1_vec, cl_in_H_ext, cl_in_W2_vec, cl_in_X_vec;
@@ -295,6 +313,18 @@ module Mamba_Top (
     wire [16*`DATA_W-1:0]     cl_out_vec2, cl_out_next_vec2;
     wire [16*`ACC_W-1:0]      cl_acc_raw_vec;
     wire [`DATA_W+4:0]        cl_y_reduce_out;
+
+    // Phase 6: cluster2 SIMD control (ping-pong MAC + parallel M6 later).
+    reg  [2:0]                cl2_op_mode;
+    reg                       cl2_clear_acc;
+    reg  [16*`DATA_W-1:0]     cl2_in_W1_vec, cl2_in_H_ext, cl2_in_W2_vec, cl2_in_X_vec;
+    wire [16*`DATA_W-1:0]     cl2_out_vec, cl2_out_next_vec;
+    wire [16*`DATA_W-1:0]     cl2_out_vec2, cl2_out_next_vec2;
+    wire [16*`ACC_W-1:0]      cl2_acc_raw_vec;
+    wire [`DATA_W+4:0]        cl2_y_reduce_out;
+    // Snap c2 output at S_MAC5 (same cyc c1 captures cl_out_vec), so S_MAC5_B
+    // writes the pre-extra-iter MAC value — symmetric with c1's write timing.
+    reg  [16*`DATA_W-1:0]     cl2_out_snap;
 
     wire [3:0]   y_lane_sel  = ctr_k[3:0];
     wire [15:0]  y_scalar    = m_rd_data[y_lane_sel*16 +: 16];
@@ -311,11 +341,26 @@ module Mamba_Top (
 
     wire [255:0] silu_in_drv, sp_in_drv, exp_in_drv;
 
+    // Phase 3: c2 LUT_Bank (parallel Exp for M6 DAB). Duplicate keeps c2 M6 chain
+    // fully parallel — sharing u_lut would serialize DAB and defeat speedup.
+    reg  [14:0]  const_rd_addr2_r;
+    wire [255:0] const_rd_data2;
+    wire [255:0] c2_silu_out_w, c2_sp_out_w, c2_exp_out_w;
+    wire [255:0] c2_silu_in_drv, c2_sp_in_drv, c2_exp_in_drv;
+
+    // Phase 6: Memory_System dual-cluster wiring.
+    //   Phase 2: c2 ping-pong MAC uses bank_B + core_read_addr2 mirror.
+    //   Phase 3: c2 parallel M6 uses const_read_addr2 (D const) as well.
+    reg  [14:0]  core_read_addr2_r;         // c2 main-RAM read addr
+    wire [255:0] core_read_data2;           // c2 main-RAM read data
+
     Memory_System u_mem (
         .clk              (clk),
         .reset            (rst),
         .core_read_addr   (m_rd_addr),
         .core_read_data   (m_rd_data),
+        .core_read_addr2  (core_read_addr2_r),
+        .core_read_data2  (core_read_data2),
         .core_write_en    (m_we),
         .core_write_addr  (m_wr_addr),
         .core_write_data  (m_wr_data),
@@ -323,8 +368,14 @@ module Mamba_Top (
         .weight_read_data (w_rd_data),
         .weight_read_addr2(w_rd_addr2),
         .weight_read_data2(w_rd_data2),
+        .weight_read_addr3(w_rd_addr3),
+        .weight_read_data3(w_rd_data3),
+        .weight_read_addr4(w_rd_addr4),
+        .weight_read_data4(w_rd_data4),
         .const_read_addr  (const_rd_addr_r),
         .const_read_data  (const_rd_data),
+        .const_read_addr2 (const_rd_addr2_r),
+        .const_read_data2 (const_rd_data2),
         .dma_write_en     (dma_write_en),
         .dma_target       (dma_target),
         .dma_addr         (dma_addr),
@@ -346,12 +397,33 @@ module Mamba_Top (
         .rsqrt_data    (rsqrt_data)
     );
 
+    // Phase 3: c2 LUT_Bank for parallel M6 Exp. Sp/Silu/RSqrt inputs tied 0
+    // (M5 softplus + RN rsqrt single-cluster; M7 silu single-cluster).
+    LUT_Bank u_lut2 (
+        .silu_in_flat  (c2_silu_in_drv),
+        .sp_in_flat    (c2_sp_in_drv),
+        .exp_in_flat   (c2_exp_in_drv),
+        .silu_out_flat (c2_silu_out_w),
+        .sp_out_flat   (c2_sp_out_w),
+        .exp_out_flat  (c2_exp_out_w),
+        .rsqrt_idx     (13'b0),
+        .rsqrt_data    ()
+    );
+
     reg                       m6_h_from_rf_r;
     reg  [8:0]                m6_h_rd_addr_r;
     reg                       m6_h_wr_en_r;
     reg  [8:0]                m6_h_wr_addr_r;
     reg                       m6_h_wr_from_pe_r;
     reg  [16*`DATA_W-1:0]     m6_h_wr_data_ext_r;
+
+    // Phase 3: c2 H_RegFile_B control regs (parallel M6 SSM, odd groups).
+    reg                       c2_m6_h_from_rf_r;
+    reg  [8:0]                c2_m6_h_rd_addr_r;
+    reg                       c2_m6_h_wr_en_r;
+    reg  [8:0]                c2_m6_h_wr_addr_r;
+    reg                       c2_m6_h_wr_from_pe_r;
+    reg  [16*`DATA_W-1:0]     c2_m6_h_wr_data_ext_r;
 
     wire h_ctrl_active = (cur_stage == STG_M6) || (state == S_H_INIT);
     wire                      cl_h_from_rf_w     = h_ctrl_active ? m6_h_from_rf_r     : 1'b0;
@@ -361,7 +433,17 @@ module Mamba_Top (
     wire                      cl_h_wr_from_pe_w  = h_ctrl_active ? m6_h_wr_from_pe_r  : 1'b0;
     wire [16*`DATA_W-1:0]     cl_h_wr_data_ext_w = h_ctrl_active ? m6_h_wr_data_ext_r : 256'b0;
 
-    M_Cluster #(.H_ADDR_W(9), .H_DEPTH(256)) u_mc (
+    // Phase 3: c2 h_ctrl active only in M6 (no H_INIT for c2 — H_RegFile_B zero-init via
+    // dedicated parallel H_INIT loop). is_pp_m6 checks cur_stage == STG_M6.
+    wire is_pp_m6 = (cur_stage == STG_M6);
+    wire                      cl2_h_from_rf_w     = is_pp_m6 ? c2_m6_h_from_rf_r     : 1'b0;
+    wire [8:0]                cl2_h_rd_addr_w     = is_pp_m6 ? c2_m6_h_rd_addr_r     : 9'b0;
+    wire                      cl2_h_wr_en_w       = is_pp_m6 ? c2_m6_h_wr_en_r       : 1'b0;
+    wire [8:0]                cl2_h_wr_addr_w     = is_pp_m6 ? c2_m6_h_wr_addr_r     : 9'b0;
+    wire                      cl2_h_wr_from_pe_w  = is_pp_m6 ? c2_m6_h_wr_from_pe_r  : 1'b0;
+    wire [16*`DATA_W-1:0]     cl2_h_wr_data_ext_w = is_pp_m6 ? c2_m6_h_wr_data_ext_r : 256'b0;
+
+    M_Cluster #(.H_ADDR_W(9), .H_DEPTH(256), .HAS_H(1)) u_mc (
         .clk          (clk),
         .rst          (rst),
         .op_mode      (cl_op_mode),
@@ -384,10 +466,43 @@ module Mamba_Top (
         .out_next_vec2(cl_out_next_vec2)
     );
 
+    // Phase 6: Cluster2 (ping-pong partner for MAC stages + parallel M6 partner in Phase 3).
+    // Phase 3: HAS_H=1 → own H_RegFile_B for odd-group h_state (parallel M6 SSM).
+    // Same H_DEPTH as c1; c2 addresses odd groups via c2_m6_c wire.
+    M_Cluster #(.H_ADDR_W(9), .H_DEPTH(256), .HAS_H(1)) u_mc2 (
+        .clk          (clk),
+        .rst          (rst),
+        .op_mode      (cl2_op_mode),
+        .clear_acc    (cl2_clear_acc),
+        .in_W1_vec    (cl2_in_W1_vec),
+        .in_H_ext     (cl2_in_H_ext),
+        .in_W2_vec    (cl2_in_W2_vec),
+        .in_X_vec     (cl2_in_X_vec),
+        .h_from_rf    (cl2_h_from_rf_w),
+        .h_rd_addr    (cl2_h_rd_addr_w),
+        .h_wr_en      (cl2_h_wr_en_w),
+        .h_wr_addr    (cl2_h_wr_addr_w),
+        .h_wr_from_pe (cl2_h_wr_from_pe_w),
+        .h_wr_data_ext(cl2_h_wr_data_ext_w),
+        .out_vec      (cl2_out_vec),
+        .acc_raw_vec  (cl2_acc_raw_vec),
+        .y_reduce_out (cl2_y_reduce_out),
+        .out_next_vec (cl2_out_next_vec),
+        .out_vec2     (cl2_out_vec2),
+        .out_next_vec2(cl2_out_next_vec2)
+    );
+
     wire signed [`ACC_W+4:0] sum_d_wide;
     Reduce16Wide u_rw (
         .in_vec (cl_acc_raw_vec),
         .out_sum(sum_d_wide)
+    );
+
+    // Phase 3: c2 y-reduce for M6 Y_MAC path
+    wire signed [`ACC_W+4:0] c2_sum_d_wide;
+    Reduce16Wide u_rw2 (
+        .in_vec (cl2_acc_raw_vec),
+        .out_sum(c2_sum_d_wide)
     );
 
     wire signed [`ACC_W+4:0] mean_i_signed = sum_d_wide >>> rn_total_shift;
@@ -402,6 +517,11 @@ module Mamba_Top (
                                                     256'b0;
     assign sp_in_drv   = (state == S_M5_9  ) ? cl_out_vec : 256'b0;
     assign exp_in_drv  = (state == S_M6_6) ? cl_out_vec : 256'b0;
+
+    // Phase 3: c2 LUT drivers. Only Exp used in M6 parallel; silu/sp tied 0.
+    assign c2_silu_in_drv = 256'b0;
+    assign c2_sp_in_drv   = 256'b0;
+    assign c2_exp_in_drv  = (state == S_M6_6) ? cl2_out_vec : 256'b0;
 
     wire [8:0]  mac_len =
         (cur_stage == STG_M4) ? d_inner :
@@ -453,9 +573,48 @@ module Mamba_Top (
     wire [14:0] mac_w_addr_k4  = w_grp_base + {6'b0, ctr_k_p4};
 
     wire [4:0]  ctr_g_p1 = ctr_g + 5'd1;
+    wire [4:0]  ctr_g_p2 = ctr_g + 5'd2;
     wire [14:0] w_grp_base_next = mac_w_base + ({10'b0, ctr_g_p1} * mac_len_ext);
     wire [14:0] mac_w_addr_gnext = w_grp_base_next;
     wire [14:0] mac_rd_addr_g0 = mac_in_base;
+
+    // Phase 6: ping-pong MAC infrastructure.
+    //   is_pp_mac = 1 for M1A/M1B/M8 (even group count, dual cluster active).
+    //   c2 reads bank_B at DENSE-odd index = ctr_g/2 = ctr_g[4:1] (Phase 6 optimize).
+    //   ctr_g steps by 2, last iteration triggers when ctr_g == mac_grp_count - 2.
+    wire is_pp_mac = (cur_stage == STG_M1A) || (cur_stage == STG_M1B) || (cur_stage == STG_M8);
+    wire [4:0]  ctr_g_step        = is_pp_mac ? 5'd2 : 5'd1;
+    wire [4:0]  ctr_g_step_next   = ctr_g + ctr_g_step;
+    wire [4:0]  mac_grp_last_active = is_pp_mac ? (mac_grp_count - 5'd2) : mac_grp_last;
+    // Bank_B DENSE base per stage (M1A→X_B, M1B→Z_B, M8→OUT_B; M4 not PP so bank_B unused).
+    wire [14:0] mac_wB_base =
+        (cur_stage == STG_M1A) ? W_INPROJ_X_BASE_B :
+        (cur_stage == STG_M1B) ? W_INPROJ_Z_BASE_B :
+                                 W_OUTPROJ_BASE_B;
+    // Dense idx for c2 odd group = ctr_g/2. For ctr_g=0,2,4,... → 0,1,2,...
+    wire [4:0]  c2_dense_idx           = {1'b0, ctr_g[4:1]};             // ctr_g/2
+    wire [4:0]  c2_dense_idx_gnext_pp  = c2_dense_idx + 5'd1;            // (ctr_g+2)/2
+    wire [14:0] w_grp_base_c2          = mac_wB_base + ({10'b0, c2_dense_idx}          * mac_len_ext);
+    wire [14:0] w_grp_base_gnext_pp    = mac_w_base  + ({10'b0, ctr_g_step_next}        * mac_len_ext); // c1 next-pair base (ctr_g+2) in bank_A
+    wire [14:0] w_grp_base_c2_gnext_pp = mac_wB_base + ({10'b0, c2_dense_idx_gnext_pp} * mac_len_ext);  // c2 next-pair base in bank_B dense
+    // Bank_B addressing dense (only odd groups present). c2 pair = ctr_g+1 → dense idx ctr_g/2.
+    wire [14:0] mac_wB_addr_k0     = w_grp_base_c2 + {6'b0, ctr_k};
+    wire [14:0] mac_wB_addr_k2     = w_grp_base_c2 + {6'b0, ctr_k_p2};
+    wire [14:0] mac_wB_addr_k4     = w_grp_base_c2 + {6'b0, ctr_k_p4};
+    wire [14:0] mac_wA_addr_gnext_pp = w_grp_base_gnext_pp;              // c1 next-pair k=0
+    wire [14:0] mac_wB_addr_gnext_pp = w_grp_base_c2_gnext_pp;           // c2 next-pair k=0
+    // c2 write addresses (odd group = ctr_g + 1).
+    wire [14:0] m1a_wr_addr_c2 = PT_X_INNER_CIRC
+                                  + ({13'b0, t_cnt[1:0]} * {10'b0, ch_m_act})
+                                  + {10'b0, ctr_g_p1};
+    wire [14:0] m1b_wr_addr_c2 = PT_Z_GATE + {10'b0, ctr_g_p1};
+    wire [14:0] m8_wr_addr_c2  = PT_MAMBA_OUT
+                                  + (t_cnt * {11'b0, CH_OUT})
+                                  + {10'b0, ctr_g_p1};
+    wire [14:0] mac_wr_addr_c2 =
+        (cur_stage == STG_M1A) ? m1a_wr_addr_c2 :
+        (cur_stage == STG_M1B) ? m1b_wr_addr_c2 :
+                                  m8_wr_addr_c2;
 
     wire [4:0]  inner_grp_last = ch_m_act - 5'd1;
 
@@ -546,11 +705,40 @@ module Mamba_Top (
     wire [14:0]  m6_D_addr_const = C_D_PARAM_BASE + {10'b0, ctr_g};
     wire [14:0]  m6_y_ssm_wr_addr = PT_Y_SSM + {10'b0, ctr_g};
 
+    // Phase 3: c2 addresses for odd group ctr_g_p1. B/C/w0 SAME as c1 (single word per t
+    // shared across all groups) — c2 reads bank_A/main_c2 at PT_X_PROJ+0/1/2 via mirror.
+    // delta/u/D per-group → offset by ctr_g_p1. W_A per (g,l) → W_A_BASE + g_p1*16 + l.
+    wire [8:0]   c2_m6_c = {ctr_g_p1[3:0], ctr_l};
+    wire [14:0]  c2_m6_delta_addr    = PT_DELTA + {10'b0, ctr_g_p1};
+    wire [14:0]  c2_m6_u_addr        = PT_U     + {10'b0, ctr_g_p1};
+    wire [14:0]  c2_m6_D_addr_const  = C_D_PARAM_BASE + {10'b0, ctr_g_p1};
+    wire [14:0]  c2_m6_y_ssm_wr_addr = PT_Y_SSM + {10'b0, ctr_g_p1};
+
+    // c2 M6 broadcasts (per-lane scalar of c2's delta/u/D words)
+    wire [15:0]  c2_m6_dt_scalar    = c2_m6_delta_word[ctr_l*16 +: 16];
+    wire [255:0] c2_m6_dt_broadcast = {16{c2_m6_dt_scalar}};
+    wire [15:0]  c2_m6_u_scalar     = c2_m6_u_word[ctr_l*16 +: 16];
+    wire [255:0] c2_m6_u_broadcast  = {16{c2_m6_u_scalar}};
+    wire [15:0]  c2_m6_D_scalar     = c2_m6_D_word[ctr_l*16 +: 16];
+    wire [255:0] c2_m6_D_broadcast  = {16{c2_m6_D_scalar}};
+
+    // c2 B/C shifted words: SAME shift math as c1 but using SHARED m6_w0/w1/w2 (loaded
+    // into c1's regs, c2 reads them directly via wire).
+    wire [255:0] c2_m6_B_word  = (m6_w1_reg << m6_dt_comp) | (m6_w0_reg >> m6_dt_shift);
+    wire [255:0] c2_m6_C_word  = (m6_w2_reg << m6_dt_comp) | (m6_w1_reg >> m6_dt_shift);
+
     wire signed [`ACC_W+4:0] m6_y_ch_full = sum_d_wide >>> `FRAC_BITS;
     wire signed [15:0] m6_y_ch_sat =
         (m6_y_ch_full >  45'sd32767)  ? 16'sh7FFF :
         (m6_y_ch_full < -45'sd32768)  ? 16'sh8000 :
                                          m6_y_ch_full[15:0];
+
+    // Phase 3: c2 y_ch sat (mirror c1 formula on c2's acc)
+    wire signed [`ACC_W+4:0] c2_m6_y_ch_full = c2_sum_d_wide >>> `FRAC_BITS;
+    wire signed [15:0] c2_m6_y_ch_sat =
+        (c2_m6_y_ch_full >  45'sd32767)  ? 16'sh7FFF :
+        (c2_m6_y_ch_full < -45'sd32768)  ? 16'sh8000 :
+                                            c2_m6_y_ch_full[15:0];
     // Phase 3.6: m6_ysum comb-add+sat removed. y_ch + du now computed by
     // PE ADD (see S_M6_16 / S_M6_17 / S_M6_18).
     // Store reads cl_out_vec[15:0] directly at YSUM_LATCH.
@@ -576,12 +764,23 @@ module Mamba_Top (
             m_wr_data          <= 256'd0;
             w_rd_addr          <= 15'd0;
             w_rd_addr2         <= 15'd0;
+            w_rd_addr3         <= 15'd0;
+            w_rd_addr4         <= 15'd0;
+            core_read_addr2_r  <= 15'd0;
+            const_rd_addr2_r   <= 15'd0;
             cl_op_mode         <= `MAMBA_PE_IDLE;
             cl_clear_acc       <= 1'b0;
             cl_in_W1_vec       <= 256'd0;
             cl_in_H_ext        <= 256'd0;
             cl_in_W2_vec       <= 256'd0;
             cl_in_X_vec        <= 256'd0;
+            cl2_op_mode        <= `MAMBA_PE_IDLE;
+            cl2_clear_acc      <= 1'b0;
+            cl2_in_W1_vec      <= 256'd0;
+            cl2_in_H_ext       <= 256'd0;
+            cl2_in_W2_vec      <= 256'd0;
+            cl2_in_X_vec       <= 256'd0;
+            cl2_out_snap       <= 256'd0;
             const_rd_addr_r    <= 15'd0;
             rsqrt_idx_r        <= 13'd0;
             S_reg              <= 16'd0;
@@ -603,13 +802,30 @@ module Mamba_Top (
             m6_h_wr_addr_r     <= 9'd0;
             m6_h_wr_from_pe_r  <= 1'b0;
             m6_h_wr_data_ext_r <= 256'd0;
+            // Phase 3: c2 M6 regs
+            c2_m6_delta_word      <= 256'd0;
+            c2_m6_u_word          <= 256'd0;
+            c2_m6_D_word          <= 256'd0;
+            c2_m6_dA_reg          <= 256'd0;
+            c2_m6_dB_reg          <= 256'd0;
+            c2_m6_ssm_grp_acc     <= 256'd0;
+            c2_m6_y_ch_reg        <= 16'sd0;
+            c2_m6_h_from_rf_r     <= 1'b0;
+            c2_m6_h_rd_addr_r     <= 9'd0;
+            c2_m6_h_wr_en_r       <= 1'b0;
+            c2_m6_h_wr_addr_r     <= 9'd0;
+            c2_m6_h_wr_from_pe_r  <= 1'b0;
+            c2_m6_h_wr_data_ext_r <= 256'd0;
             done_stage         <= 1'b0;
             done_all           <= 1'b0;
         end else begin
             cl_op_mode           <= `MAMBA_PE_IDLE;
             cl_clear_acc         <= 1'b0;
+            cl2_op_mode          <= `MAMBA_PE_IDLE;
+            cl2_clear_acc        <= 1'b0;
             m_we                 <= 1'b0;
             m6_h_wr_en_r         <= 1'b0;
+            c2_m6_h_wr_en_r      <= 1'b0;
 
             case (state)
                 S_IDLE: begin
@@ -636,6 +852,11 @@ module Mamba_Top (
                         m6_h_wr_addr_r     <= h_init_cnt;
                         m6_h_wr_from_pe_r  <= 1'b0;
                         m6_h_wr_data_ext_r <= 256'd0;
+                        // Phase 3: parallel init H_RegFile_B (both clusters zero-init)
+                        c2_m6_h_wr_en_r       <= 1'b1;
+                        c2_m6_h_wr_addr_r     <= h_init_cnt;
+                        c2_m6_h_wr_from_pe_r  <= 1'b0;
+                        c2_m6_h_wr_data_ext_r <= 256'd0;
                         h_init_cnt         <= h_init_cnt + 9'd1;
                     end else begin
                         h_init_cnt <= 9'd0;
@@ -648,11 +869,16 @@ module Mamba_Top (
                     m_rd_addr  <= mac_rd_addr_k0;
                     w_rd_addr  <= mac_w_addr_k0;
                     w_rd_addr2 <= mac_w_addr_k0 + 15'd1;
+                    // Phase 6 ping-pong: also issue bank_B reads for c2 (odd group).
+                    w_rd_addr3 <= mac_wB_addr_k0;
+                    w_rd_addr4 <= mac_wB_addr_k0 + 15'd1;
                     state      <= S_MAC2;
                 end
                 S_MAC2: begin
                     w_rd_addr    <= mac_w_addr_k2;
                     w_rd_addr2   <= mac_w_addr_k2 + 15'd1;
+                    w_rd_addr3   <= mac_wB_addr_k2;
+                    w_rd_addr4   <= mac_wB_addr_k2 + 15'd1;
                     m_rd_addr    <= mac_rd_addr_k2;
                     ctr_k     <= 9'd0;
                     state        <= S_MAC3;
@@ -664,9 +890,21 @@ module Mamba_Top (
                     cl_in_X_vec  <= y_broadcast2;
                     cl_op_mode   <= `MAMBA_PE_MAC2;
                     cl_clear_acc <= 1'b1;
+                    // Phase 6 ping-pong: SIMD broadcast to c2 (odd group, bank_B weights).
+                    // Input x_norm/y-bus broadcast is shared (same y_broadcast/y_broadcast2).
+                    if (is_pp_mac) begin
+                        cl2_in_W1_vec <= w_rd_data3;
+                        cl2_in_W2_vec <= w_rd_data4;
+                        cl2_in_H_ext  <= y_broadcast;
+                        cl2_in_X_vec  <= y_broadcast2;
+                        cl2_op_mode   <= `MAMBA_PE_MAC2;
+                        cl2_clear_acc <= 1'b1;
+                    end
                     m_rd_addr    <= mac_rd_addr_k4;
                     w_rd_addr    <= mac_w_addr_k4;
                     w_rd_addr2   <= mac_w_addr_k4 + 15'd1;
+                    w_rd_addr3   <= mac_wB_addr_k4;
+                    w_rd_addr4   <= mac_wB_addr_k4 + 15'd1;
                     ctr_k     <= ctr_k_p2;
                     state        <= S_MAC4;
                 end
@@ -676,24 +914,39 @@ module Mamba_Top (
                     cl_in_W2_vec <= w_rd_data2;
                     cl_in_H_ext  <= y_broadcast;
                     cl_in_X_vec  <= y_broadcast2;
+                    if (is_pp_mac) begin
+                        cl2_op_mode   <= `MAMBA_PE_MAC2;
+                        cl2_in_W1_vec <= w_rd_data3;
+                        cl2_in_W2_vec <= w_rd_data4;
+                        cl2_in_H_ext  <= y_broadcast;
+                        cl2_in_X_vec  <= y_broadcast2;
+                    end
                     m_rd_addr  <= mac_rd_addr_k4;
                     w_rd_addr  <= mac_w_addr_k4;
                     w_rd_addr2 <= mac_w_addr_k4 + 15'd1;
+                    w_rd_addr3 <= mac_wB_addr_k4;
+                    w_rd_addr4 <= mac_wB_addr_k4 + 15'd1;
                     ctr_k   <= ctr_k_p2;
                     if (ctr_k == mac_len) begin
                         state <= S_MAC5;
                     end
                 end
                 S_MAC5: begin
+                    // c1 write. In ping-pong mode, c2 write follows in S_MAC5_B (+1 cyc);
+                    // otherwise branch directly to next g / next stage.
                     m_we      <= 1'b1;
                     m_wr_addr <= mac_wr_addr;
                     m_wr_data <= cl_out_vec;
-                    if (ctr_g == mac_grp_last) begin
+                    // Snap c2 output NOW (same cyc c1 captures cl_out_vec). Both PEs
+                    // finished last MAC at posedge P-1; at posedge P their out_val REG
+                    // still reflects the final valid result before extra-iter corruption.
+                    if (is_pp_mac) begin
+                        cl2_out_snap <= cl2_out_vec;
+                        state <= S_MAC5_B;
+                    end else if (ctr_g == mac_grp_last_active) begin
                         ctr_g <= 5'd0;
                         ctr_k  <= 9'd0;
                         case (cur_stage)
-                            STG_M1A: begin cur_stage <= STG_M1B; state <= S_MAC1; end
-                            STG_M1B: begin cur_stage <= STG_M2;  state <= S_M2_1;  end
                             STG_M4: begin
                                 // Prefetch dt_raw during LATCH (port A used for write, port B free)
                                 // → skip S_M5_DT_READ. Keep DT_WAIT: BRAM needs 1-cyc read latency
@@ -702,6 +955,29 @@ module Mamba_Top (
                                 m_rd_addr <= m5_dt_addr;
                                 state     <= S_M5_1;
                             end
+                            default: state <= S_IDLE;
+                        endcase
+                    end else begin
+                        ctr_g  <= ctr_g_step_next;    // step by 1 (non-pp)
+                        ctr_k  <= 9'd0;
+                        m_rd_addr  <= mac_rd_addr_g0;
+                        w_rd_addr  <= mac_w_addr_gnext;
+                        w_rd_addr2 <= mac_w_addr_gnext + 15'd1;
+                        state      <= S_MAC2;
+                    end
+                end
+                S_MAC5_B: begin
+                    // Phase 6 ping-pong: c2 write (odd group at ctr_g+1). Uses snap reg
+                    // captured at S_MAC5 (pre-extra-iter value) — symmetric with c1.
+                    m_we      <= 1'b1;
+                    m_wr_addr <= mac_wr_addr_c2;
+                    m_wr_data <= cl2_out_snap;
+                    if (ctr_g == mac_grp_last_active) begin
+                        ctr_g <= 5'd0;
+                        ctr_k <= 9'd0;
+                        case (cur_stage)
+                            STG_M1A: begin cur_stage <= STG_M1B; state <= S_MAC1; end
+                            STG_M1B: begin cur_stage <= STG_M2;  state <= S_M2_1; end
                             STG_M8: begin
                                 if (t_cnt == t_last) begin
                                     state <= S_DONE;
@@ -714,11 +990,13 @@ module Mamba_Top (
                             default: state <= S_IDLE;
                         endcase
                     end else begin
-                        ctr_g  <= ctr_g_p1;
-                        ctr_k   <= 9'd0;
+                        ctr_g  <= ctr_g_step_next;    // step by 2 (pp)
+                        ctr_k  <= 9'd0;
                         m_rd_addr  <= mac_rd_addr_g0;
-                        w_rd_addr  <= mac_w_addr_gnext;
-                        w_rd_addr2 <= mac_w_addr_gnext + 15'd1;
+                        w_rd_addr  <= mac_wA_addr_gnext_pp;
+                        w_rd_addr2 <= mac_wA_addr_gnext_pp + 15'd1;
+                        w_rd_addr3 <= mac_wB_addr_gnext_pp;
+                        w_rd_addr4 <= mac_wB_addr_gnext_pp + 15'd1;
                         state      <= S_MAC2;
                     end
                 end
@@ -934,43 +1212,62 @@ module Mamba_Top (
                 // -----------------------------------------------------------
                 S_M6_1: begin
                     if (ctr_load == 3'd0) begin
-                        m_rd_addr <= m6_w0_addr;                 // slot 0
+                        m_rd_addr <= m6_w0_addr;                 // slot 0 (w0 shared)
                     end else begin  // ctr_load == 3'd3, re-entry from WRITE_GRP
                         m_rd_addr       <= m6_delta_addr;        // slot 3
                         const_rd_addr_r <= m6_D_addr_const;
                         w_rd_addr       <= W_A_BASE + {6'b0, ctr_g[3:0], 4'd0};
                         m6_h_rd_addr_r  <= {ctr_g[3:0], 4'd0};
+                        // Phase 3: c2 parallel slot 3 issue (odd group ctr_g_p1)
+                        // Bank_B DENSE: W_A_BASE_B + (ctr_g_p1-1)/2 * 16 + l = W_A_BASE_B + ctr_g_p1[3:1]*16
+                        core_read_addr2_r  <= c2_m6_delta_addr;
+                        const_rd_addr2_r   <= c2_m6_D_addr_const;
+                        w_rd_addr3         <= W_A_BASE_B + {7'b0, ctr_g_p1[3:1], 4'd0};
+                        c2_m6_h_rd_addr_r  <= {ctr_g_p1[3:0], 4'd0};
                     end
                     state <= S_M6_2;
                 end
                 S_M6_2: begin
-                    if (ctr_load == 3'd0) m_rd_addr <= m6_B_addr;   // slot 1
-                    else                   m_rd_addr <= m6_u_addr;   // slot 4
+                    if (ctr_load == 3'd0) begin
+                        m_rd_addr <= m6_B_addr;   // slot 1 (B shared)
+                    end else begin
+                        m_rd_addr         <= m6_u_addr;   // slot 4 c1
+                        core_read_addr2_r <= c2_m6_u_addr; // slot 4 c2
+                    end
                     state <= S_M6_3;
                 end
                 S_M6_3: begin
                     case (ctr_load)
                         3'd0: begin
                             m6_w0_reg <= m_rd_data;
-                            m_rd_addr <= m6_C_addr;                  // issue slot 2
+                            m_rd_addr <= m6_C_addr;                  // issue slot 2 (C shared)
                         end
                         3'd1: begin
                             m6_w1_reg       <= m_rd_data;
-                            m_rd_addr       <= m6_delta_addr;        // issue slot 3
-                            const_rd_addr_r <= m6_D_addr_const;      // side-issue D
+                            m_rd_addr       <= m6_delta_addr;        // issue slot 3 c1
+                            const_rd_addr_r <= m6_D_addr_const;
                             w_rd_addr       <= W_A_BASE + {6'b0, ctr_g[3:0], 4'd0};
                             m6_h_rd_addr_r  <= {ctr_g[3:0], 4'd0};
+                            // Phase 3: c2 parallel slot 3 issue (odd) — bank_B DENSE
+                            core_read_addr2_r  <= c2_m6_delta_addr;
+                            const_rd_addr2_r   <= c2_m6_D_addr_const;
+                            w_rd_addr3         <= W_A_BASE_B + {7'b0, ctr_g_p1[3:1], 4'd0};
+                            c2_m6_h_rd_addr_r  <= {ctr_g_p1[3:0], 4'd0};
                         end
                         3'd2: begin
                             m6_w2_reg <= m_rd_data;
-                            m_rd_addr <= m6_u_addr;                  // issue slot 4
+                            m_rd_addr         <= m6_u_addr;          // issue slot 4 c1
+                            core_read_addr2_r <= c2_m6_u_addr;       // issue slot 4 c2
                         end
                         3'd3: begin
-                            m6_delta_word <= m_rd_data;
-                            m6_D_word     <= const_rd_data;
+                            m6_delta_word    <= m_rd_data;
+                            m6_D_word        <= const_rd_data;
+                            c2_m6_delta_word <= core_read_data2;
+                            c2_m6_D_word     <= const_rd_data2;
                         end
                         3'd4: begin
-                            m6_u_word <= m_rd_data;
+                            m6_u_word    <= m_rd_data;
+                            c2_m6_u_word <= core_read_data2;
                         end
                         default: ;
                     endcase
@@ -987,6 +1284,12 @@ module Mamba_Top (
                     cl_in_H_ext  <= w_rd_data;
                     cl_in_W2_vec <= m6_dt_broadcast;
                     cl_in_X_vec  <= m6_B_word;
+                    // Phase 3: c2 parallel DAB — own dt, W_A[g_p1,l] from bank_B port_b, shared B
+                    cl2_op_mode   <= `MAMBA_PE_MUL2;
+                    cl2_in_W1_vec <= c2_m6_dt_broadcast;
+                    cl2_in_H_ext  <= w_rd_data3;
+                    cl2_in_W2_vec <= c2_m6_dt_broadcast;
+                    cl2_in_X_vec  <= c2_m6_B_word;
                     state        <= S_M6_5;
                 end
                 S_M6_5: state <= S_M6_6;
@@ -994,6 +1297,10 @@ module Mamba_Top (
                     m6_dA_reg      <= exp_out_w;
                     m6_dB_reg      <= cl_out_vec2;
                     m6_h_from_rf_r <= 1'b1;
+                    // Phase 3: c2 dA/dB capture from own LUT + PE
+                    c2_m6_dA_reg      <= c2_exp_out_w;
+                    c2_m6_dB_reg      <= cl2_out_vec2;
+                    c2_m6_h_from_rf_r <= 1'b1;
                     state          <= S_M6_7;
                 end
                 // T1/T2 fusion via MUL2 + ADD:
@@ -1008,6 +1315,11 @@ module Mamba_Top (
                     cl_in_W1_vec <= m6_dA_reg;       // m1 W1 = dA (H via h_from_rf=1)
                     cl_in_W2_vec <= m6_dB_reg;       // m2 W2 = dB
                     cl_in_X_vec  <= m6_u_broadcast;  // m2 X  = u
+                    // Phase 3: c2 SSM_MUL2 (own dA, dB, u; H via c2 h_from_rf=1)
+                    cl2_op_mode   <= `MAMBA_PE_MUL2;
+                    cl2_in_W1_vec <= c2_m6_dA_reg;
+                    cl2_in_W2_vec <= c2_m6_dB_reg;
+                    cl2_in_X_vec  <= c2_m6_u_broadcast;
                     state        <= S_M6_8;
                 end
                 S_M6_8: state <= S_M6_9;
@@ -1016,21 +1328,21 @@ module Mamba_Top (
                     cl_in_W1_vec   <= cl_out_vec;     // T1 registered from MUL2
                     cl_in_H_ext    <= cl_out_vec2;    // T2 registered from MUL2
                     m6_h_from_rf_r <= 1'b0;
+                    // Phase 3: c2 ADD_ISSUE
+                    cl2_op_mode       <= `MAMBA_PE_ADD;
+                    cl2_in_W1_vec     <= cl2_out_vec;
+                    cl2_in_H_ext      <= cl2_out_vec2;
+                    c2_m6_h_from_rf_r <= 1'b0;
                     state          <= S_M6_10;
                 end
-                // Direct ADD_ISSUE → SSM_LATCH (no wait):
-                // At ADD_ISSUE edge, PE mode = ADD, inputs = T1, T2.
-                // During SSM_LATCH cycle, PE ADD combinationally computes
-                // out_next = sat16(T1+T2) = h_new, registered at SSM_LATCH edge
-                // → cl_out_vec = h_new. Y_MAC captures W1 <= cl_out_vec = h_new
-                // and asserts wr_en → H_RegFile writes h_new (h_wr_data mux
-                // picks cl_out_vec). Adding an ADD_WAIT state between would let
-                // the default cl_op_mode <= IDLE clear PE mode before SSM_LATCH,
-                // wiping cl_out_vec to 0 (IDLE out_next default).
                 S_M6_10: begin
                     m6_h_wr_en_r      <= 1'b1;
                     m6_h_wr_addr_r    <= m6_c[8:0];
                     m6_h_wr_from_pe_r <= 1'b1;
+                    // Phase 3: c2 SSM_LATCH — h_new_c2 → H_RegFile_B at odd (g_p1, l)
+                    c2_m6_h_wr_en_r      <= 1'b1;
+                    c2_m6_h_wr_addr_r    <= c2_m6_c[8:0];
+                    c2_m6_h_wr_from_pe_r <= 1'b1;
                     state             <= S_M6_11;
                 end
                 S_M6_11: begin
@@ -1038,36 +1350,51 @@ module Mamba_Top (
                     cl_clear_acc <= 1'b1;
                     cl_in_W1_vec <= cl_out_vec;
                     cl_in_H_ext  <= m6_C_word;
+                    // Phase 3: c2 Y_MAC — own h_new (from cl2_out_vec = h_new from ADD), C shared
+                    cl2_op_mode   <= `MAMBA_PE_MAC;
+                    cl2_clear_acc <= 1'b1;
+                    cl2_in_W1_vec <= cl2_out_vec;
+                    cl2_in_H_ext  <= c2_m6_C_word;
                     if (ctr_l != `LANE_MAX) begin
-                        w_rd_addr      <= W_A_BASE + {6'b0, ctr_g[3:0], (ctr_l + 4'd1)};
+                        w_rd_addr      <= W_A_BASE + {6'b0, ctr_g[3:0],    (ctr_l + 4'd1)};
                         m6_h_rd_addr_r <= {ctr_g[3:0], (ctr_l + 4'd1)};
+                        // Phase 3: c2 prefetch next-lane W_A and H_rd — bank_B DENSE
+                        w_rd_addr3         <= W_A_BASE_B + {7'b0, ctr_g_p1[3:1], (ctr_l + 4'd1)};
+                        c2_m6_h_rd_addr_r  <= {ctr_g_p1[3:0], (ctr_l + 4'd1)};
                     end
                     state        <= S_M6_12;
                 end
                 S_M6_12: state <= S_M6_13;
                 S_M6_13: begin
-                    m6_y_ch_reg <= m6_y_ch_sat;
+                    m6_y_ch_reg    <= m6_y_ch_sat;
+                    c2_m6_y_ch_reg <= c2_m6_y_ch_sat;
                     state       <= S_M6_14;
                 end
                 S_M6_14: begin
                     cl_op_mode   <= `MAMBA_PE_MUL;
                     cl_in_W1_vec <= m6_D_broadcast;
                     cl_in_H_ext  <= m6_u_broadcast;
+                    // Phase 3: c2 DU_MUL — own D, u broadcast
+                    cl2_op_mode   <= `MAMBA_PE_MUL;
+                    cl2_in_W1_vec <= c2_m6_D_broadcast;
+                    cl2_in_H_ext  <= c2_m6_u_broadcast;
                     state        <= S_M6_15;
                 end
                 S_M6_15: state <= S_M6_16;
-                // Fire PE ADD: sat16(y_ch_reg + cl_out_vec[15:0]).
-                // cl_in_H_ext captures cl_out_vec[15:0]=D*u while still valid.
-                // Lane-0 broadcast is enough since only lane 0 of PE output is read.
                 S_M6_16: begin
                     cl_op_mode   <= `MAMBA_PE_ADD;
                     cl_in_W1_vec <= {16{m6_y_ch_reg}};
                     cl_in_H_ext  <= {16{cl_out_vec[15:0]}};
+                    // Phase 3: c2 YSUM ADD
+                    cl2_op_mode   <= `MAMBA_PE_ADD;
+                    cl2_in_W1_vec <= {16{c2_m6_y_ch_reg}};
+                    cl2_in_H_ext  <= {16{cl2_out_vec[15:0]}};
                     state        <= S_M6_17;
                 end
                 S_M6_17: state <= S_M6_18;
                 S_M6_18: begin
-                    m6_ssm_grp_acc[ctr_l*16 +: 16] <= cl_out_vec[15:0];
+                    m6_ssm_grp_acc[ctr_l*16 +: 16]    <= cl_out_vec[15:0];
+                    c2_m6_ssm_grp_acc[ctr_l*16 +: 16] <= cl2_out_vec[15:0];
                     if (ctr_l == `LANE_MAX) begin
                         state <= S_M6_19;
                     end else begin
@@ -1076,18 +1403,27 @@ module Mamba_Top (
                     end
                 end
                 S_M6_19: begin
+                    // c1 write y_ssm[g]. Phase 3: transition to S_M6_19_B for c2 write.
                     m_we      <= 1'b1;
                     m_wr_addr <= m6_y_ssm_wr_addr;
                     m_wr_data <= m6_ssm_grp_acc;
-                    if (ctr_g == inner_grp_last) begin
+                    state     <= S_M6_19_B;
+                end
+                S_M6_19_B: begin
+                    // Phase 3: c2 write y_ssm[g_p1] (odd group). Then loop with ctr_g += 2.
+                    m_we      <= 1'b1;
+                    m_wr_addr <= c2_m6_y_ssm_wr_addr;
+                    m_wr_data <= c2_m6_ssm_grp_acc;
+                    if (ctr_g == inner_grp_last - 5'd1) begin
+                        // Last pair done (c1 = inner_grp_last - 1, c2 = inner_grp_last).
                         ctr_g <= 5'd0;
                         cur_stage <= STG_M7;
                         state     <= S_M7_1;
                     end else begin
-                        ctr_g <= ctr_g + 5'd1;
-                        ctr_l   <= 4'd0;
-                        ctr_load  <= 3'd3;                // skip w0/w1/w2 (unchanged)
-                        state     <= S_M6_1;
+                        ctr_g    <= ctr_g + 5'd2;    // ping-pong step
+                        ctr_l    <= 4'd0;
+                        ctr_load <= 3'd3;            // skip w0/w1/w2 (shared, unchanged)
+                        state    <= S_M6_1;
                     end
                 end
 

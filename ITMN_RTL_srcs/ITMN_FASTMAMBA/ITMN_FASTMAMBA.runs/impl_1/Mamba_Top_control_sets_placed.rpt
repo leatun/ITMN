@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date         : Sat Jul 25 13:07:32 2026
+| Date         : Wed Jul 29 03:07:54 2026
 | Host         : letun running 64-bit major release  (build 9200)
 | Command      : report_control_sets -verbose -file Mamba_Top_control_sets_placed.rpt
 | Design       : Mamba_Top
@@ -23,11 +23,11 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Total control sets                                       |    63 |
-|    Minimum number of control sets                        |    63 |
+| Total control sets                                       |    87 |
+|    Minimum number of control sets                        |    87 |
 |    Addition due to synthesis replication                 |     0 |
 |    Addition due to physical synthesis replication        |     0 |
-| Unused register locations in slices containing registers |    50 |
+| Unused register locations in slices containing registers |    52 |
 +----------------------------------------------------------+-------+
 * Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
 ** Run report_qor_suggestions for automated merging and remapping suggestions
@@ -39,15 +39,15 @@ Table of Contents
 +--------------------+-------+
 |       Fanout       | Count |
 +--------------------+-------+
-| Total control sets |    63 |
-| >= 0 to < 4        |     4 |
-| >= 4 to < 6        |     3 |
-| >= 6 to < 8        |     4 |
+| Total control sets |    87 |
+| >= 0 to < 4        |     5 |
+| >= 4 to < 6        |     2 |
+| >= 6 to < 8        |     6 |
 | >= 8 to < 10       |     1 |
-| >= 10 to < 12      |     2 |
+| >= 10 to < 12      |     3 |
 | >= 12 to < 14      |     3 |
-| >= 14 to < 16      |     5 |
-| >= 16              |    41 |
+| >= 14 to < 16      |     4 |
+| >= 16              |    63 |
 +--------------------+-------+
 * Control sets can be remapped at either synth_design or opt_design
 
@@ -59,83 +59,107 @@ Table of Contents
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | No           | No                    | No                     |               0 |            0 |
-| No           | No                    | Yes                    |            2483 |         1110 |
+| No           | No                    | Yes                    |            3016 |         1235 |
 | No           | Yes                   | No                     |               0 |            0 |
-| Yes          | No                    | No                     |            1086 |          307 |
-| Yes          | No                    | Yes                    |            6523 |         2041 |
-| Yes          | Yes                   | No                     |              30 |            4 |
+| Yes          | No                    | No                     |               0 |            0 |
+| Yes          | No                    | Yes                    |            8608 |         2438 |
+| Yes          | Yes                   | No                     |               0 |            0 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
 4. Detailed Control Set Information
 -----------------------------------
 
-+--------------+-----------------------------------+-------------------------------+------------------+----------------+--------------+
-| Clock Signal |           Enable Signal           |        Set/Reset Signal       | Slice Load Count | Bel Load Count | Bels / Slice |
-+--------------+-----------------------------------+-------------------------------+------------------+----------------+--------------+
-|  clk         | u_fifo_m6/count[1]_i_1_n_0        | rst                           |                1 |              2 |         2.00 |
-|  clk         | tap_cnt                           | rst                           |                1 |              2 |         2.00 |
-|  clk         | u_fifo_m6/state_reg[6]_rep__3[0]  | rst                           |                1 |              3 |         3.00 |
-|  clk         | u_fifo_m6/state_reg[6]_rep__9[0]  | rst                           |                2 |              3 |         1.50 |
-|  clk         | u_fifo_m6/state_reg[3]_rep__13[0] | rst                           |                2 |              4 |         2.00 |
-|  clk         | u_fifo_m6/c2_state_reg[4][0]      | rst                           |                4 |              5 |         1.25 |
-|  clk         | ctr_r                             | rst                           |                2 |              5 |         2.50 |
-|  clk         | u_fifo_m6/state_reg[0]_rep__1     | rst                           |                3 |              7 |         2.33 |
-|  clk         | u_fifo_m6/E[0]                    | rst                           |                6 |              7 |         1.17 |
-|  clk         | const_rd_addr_r[6]_i_1_n_0        | rst                           |                4 |              7 |         1.75 |
-|  clk         | m3_wr_ptr[6]_i_1_n_0              | rst                           |                4 |              7 |         1.75 |
-|  clk         | c2_m_rd_addr[7]_i_1_n_0           | rst                           |                5 |              8 |         1.60 |
-|  clk         | t_cnt                             | rst                           |                3 |             10 |         3.33 |
-|  clk         | u_fifo_m6/state_reg[4]_rep__2[0]  | rst                           |                6 |             11 |         1.83 |
-|  clk         | m_rd_addr                         | rst                           |               11 |             13 |         1.18 |
-|  clk         | w_rd_addr                         | rst                           |               12 |             13 |         1.08 |
-|  clk         | w_rd_addr2                        | rst                           |                3 |             13 |         4.33 |
-|  clk         | h_init_cnt[13]_i_1_n_0            | rst                           |                5 |             14 |         2.80 |
-|  clk         | m6_h_rd_addr_r                    | rst                           |                3 |             14 |         4.67 |
-|  clk         | S_reg                             | rst                           |               13 |             15 |         1.15 |
-|  clk         | u_fifo_m6/mem[0][557]_i_1_n_0     | u_fifo_m6/mem[0][222]_i_1_n_0 |                2 |             15 |         7.50 |
-|  clk         | u_fifo_m6/mem[1][557]_i_1_n_0     | u_fifo_m6/mem[1][222]_i_1_n_0 |                3 |             15 |         5.00 |
-|  clk         | c2_ssm_grp_acc[79]                | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[63]                | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[191]               | rst                           |               11 |             16 |         1.45 |
-|  clk         | c2_ssm_grp_acc[95]                | rst                           |               13 |             16 |         1.23 |
-|  clk         | c2_ssm_grp_acc[223]               | rst                           |                9 |             16 |         1.78 |
-|  clk         | c2_ssm_grp_acc[143]               | rst                           |               14 |             16 |         1.14 |
-|  clk         | c2_ssm_grp_acc[31]                | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[127]               | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[255]               | rst                           |               11 |             16 |         1.45 |
-|  clk         | c2_ssm_grp_acc[15]                | rst                           |               11 |             16 |         1.45 |
-|  clk         | c2_ssm_grp_acc[47]                | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[159]               | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[207]               | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[239]               | rst                           |               11 |             16 |         1.45 |
-|  clk         | c2_ssm_grp_acc[175]               | rst                           |               12 |             16 |         1.33 |
-|  clk         | c2_ssm_grp_acc[111]               | rst                           |               13 |             16 |         1.23 |
-|  clk         | m6_h_wr_en_r                      | rst                           |                8 |             18 |         2.25 |
-|  clk         | c2_y_ch_reg[23]_i_1_n_0           | rst                           |                3 |             24 |         8.00 |
-|  clk         | rsqrt_idx_r                       | rst                           |                7 |             35 |         5.00 |
-|  clk         | u_fifo_m6/state                   | rst                           |               35 |             73 |         2.09 |
-|  clk         | c2_silu_z_reg[255]_i_1_n_0        | rst                           |              172 |            256 |         1.49 |
-|  clk         | m6_u_word                         | rst                           |               46 |            256 |         5.57 |
-|  clk         | m6_w0_reg                         | rst                           |              145 |            256 |         1.77 |
-|  clk         | m6_w1_reg                         | rst                           |              128 |            256 |         2.00 |
-|  clk         | m6_w2_reg                         | rst                           |              206 |            256 |         1.24 |
-|  clk         | silu_z_reg                        | rst                           |              198 |            256 |         1.29 |
-|  clk         | m5_dt_word_reg                    | rst                           |               40 |            256 |         6.40 |
-|  clk         | cl_in_W1_vec[255]_i_1_n_0         | rst                           |              234 |            256 |         1.09 |
-|  clk         | cl_in_H_ext[255]_i_1_n_0          | rst                           |              202 |            256 |         1.27 |
-|  clk         | cl2_out_reg                       | rst                           |              200 |            256 |         1.28 |
-|  clk         | c2_m_wr_data                      | rst                           |              197 |            263 |         1.34 |
-|  clk         | m_wr_data[255]_i_1_n_0            | rst                           |              223 |            269 |         1.21 |
-|  clk         | cl2_op_mode1                      | rst                           |              116 |            272 |         2.34 |
-|  clk         | m6_dA_reg                         | rst                           |              334 |            496 |         1.49 |
-|  clk         | cl2_in_W1_vec[255]_i_1_n_0        | rst                           |              268 |            512 |         1.91 |
-|  clk         | m6_delta_word                     | rst                           |              128 |            512 |         4.00 |
-|  clk         | cl_op_mode[2]                     | rst                           |              284 |            512 |         1.80 |
-|  clk         | u_fifo_m6/mem[1][557]_i_1_n_0     |                               |              275 |            543 |         1.97 |
-|  clk         | u_fifo_m6/mem[0][557]_i_1_n_0     |                               |              289 |            543 |         1.88 |
-|  clk         | c2_s_id                           | rst                           |              193 |            558 |         2.89 |
-|  clk         |                                   | rst                           |             1110 |           2483 |         2.24 |
-+--------------+-----------------------------------+-------------------------------+------------------+----------------+--------------+
++--------------+-----------------------------+------------------+------------------+----------------+--------------+
+| Clock Signal |        Enable Signal        | Set/Reset Signal | Slice Load Count | Bel Load Count | Bels / Slice |
++--------------+-----------------------------+------------------+------------------+----------------+--------------+
+|  clk         | tap_cnt                     | rst              |                1 |              2 |         2.00 |
+|  clk         | ctr_s                       | rst              |                2 |              3 |         1.50 |
+|  clk         | ctr_load                    | rst              |                1 |              3 |         3.00 |
+|  clk         | c2_load                     | rst              |                2 |              3 |         1.50 |
+|  clk         | c2_s                        | rst              |                1 |              3 |         3.00 |
+|  clk         | cur_stage                   | rst              |                2 |              4 |         2.00 |
+|  clk         | ctr_r                       | rst              |                2 |              5 |         2.50 |
+|  clk         | c2_g[6]_i_1_n_0             | rst              |                3 |              6 |         2.00 |
+|  clk         | const_rd_addr_r[6]_i_1_n_0  | rst              |                6 |              7 |         1.17 |
+|  clk         | c2_const_rd_addr[6]_i_1_n_0 | rst              |                2 |              7 |         3.50 |
+|  clk         | c2_l                        | rst              |                2 |              7 |         3.50 |
+|  clk         | m3_wr_ptr[6]_i_1_n_0        | rst              |                2 |              7 |         3.50 |
+|  clk         | ctr_g[6]_i_1_n_0            | rst              |                5 |              7 |         1.40 |
+|  clk         | c2_m_rd_addr                | rst              |                3 |              8 |         2.67 |
+|  clk         | t_cnt                       | rst              |                5 |             10 |         2.00 |
+|  clk         | ctr_l                       | rst              |                5 |             10 |         2.00 |
+|  clk         | ctr_k                       | rst              |                5 |             11 |         2.20 |
+|  clk         | m_rd_addr                   | rst              |                9 |             13 |         1.44 |
+|  clk         | w_rd_addr                   | rst              |               11 |             13 |         1.18 |
+|  clk         | w_rd_addr2                  | rst              |                3 |             13 |         4.33 |
+|  clk         | c2_h_init_cnt[13]_i_1_n_0   | rst              |                5 |             14 |         2.80 |
+|  clk         | h_init_cnt[13]_i_1_n_0      | rst              |                4 |             14 |         3.50 |
+|  clk         | m6_h_rd_addr_r              | rst              |                6 |             14 |         2.33 |
+|  clk         | S_reg                       | rst              |               11 |             15 |         1.36 |
+|  clk         | c2_ssm_grp_acc[207]         | rst              |               13 |             16 |         1.23 |
+|  clk         | c2_ssm_grp_acc[223]         | rst              |                8 |             16 |         2.00 |
+|  clk         | c2_ssm_grp_acc[239]         | rst              |               15 |             16 |         1.07 |
+|  clk         | c2_ssm_grp_acc[255]         | rst              |               15 |             16 |         1.07 |
+|  clk         | m6_ssm_grp_acc[223]         | rst              |                2 |             16 |         8.00 |
+|  clk         | m6_ssm_grp_acc[255]         | rst              |                8 |             16 |         2.00 |
+|  clk         | m6_ssm_grp_acc[15]          | rst              |               11 |             16 |         1.45 |
+|  clk         | m6_ssm_grp_acc[95]          | rst              |                8 |             16 |         2.00 |
+|  clk         | m6_ssm_grp_acc[79]          | rst              |               11 |             16 |         1.45 |
+|  clk         | m6_ssm_grp_acc[111]         | rst              |               10 |             16 |         1.60 |
+|  clk         | m6_ssm_grp_acc[159]         | rst              |                9 |             16 |         1.78 |
+|  clk         | m6_ssm_grp_acc[63]          | rst              |                9 |             16 |         1.78 |
+|  clk         | m6_ssm_grp_acc[191]         | rst              |                6 |             16 |         2.67 |
+|  clk         | m6_ssm_grp_acc[143]         | rst              |               10 |             16 |         1.60 |
+|  clk         | m6_ssm_grp_acc[207]         | rst              |                8 |             16 |         2.00 |
+|  clk         | m6_ssm_grp_acc[31]          | rst              |                8 |             16 |         2.00 |
+|  clk         | m6_ssm_grp_acc[47]          | rst              |                6 |             16 |         2.67 |
+|  clk         | m6_ssm_grp_acc[239]         | rst              |                9 |             16 |         1.78 |
+|  clk         | m6_ssm_grp_acc[127]         | rst              |                9 |             16 |         1.78 |
+|  clk         | m6_ssm_grp_acc[175]         | rst              |                8 |             16 |         2.00 |
+|  clk         | c2_ssm_grp_acc[31]          | rst              |               16 |             16 |         1.00 |
+|  clk         | c2_ssm_grp_acc[47]          | rst              |               14 |             16 |         1.14 |
+|  clk         | c2_ssm_grp_acc[79]          | rst              |               15 |             16 |         1.07 |
+|  clk         | c2_ssm_grp_acc[95]          | rst              |               12 |             16 |         1.33 |
+|  clk         | c2_ssm_grp_acc[111]         | rst              |               12 |             16 |         1.33 |
+|  clk         | c2_ssm_grp_acc[127]         | rst              |               10 |             16 |         1.60 |
+|  clk         | c2_ssm_grp_acc[15]          | rst              |                9 |             16 |         1.78 |
+|  clk         | c2_ssm_grp_acc[143]         | rst              |                9 |             16 |         1.78 |
+|  clk         | c2_ssm_grp_acc[159]         | rst              |               12 |             16 |         1.33 |
+|  clk         | c2_ssm_grp_acc[191]         | rst              |               14 |             16 |         1.14 |
+|  clk         | c2_ssm_grp_acc[63]          | rst              |               12 |             16 |         1.33 |
+|  clk         | c2_ssm_grp_acc[175]         | rst              |               11 |             16 |         1.45 |
+|  clk         | c2_h_rd_addr_r              | rst              |               11 |             18 |         1.64 |
+|  clk         | c2_h_wr_from_pe_r           | rst              |                6 |             18 |         3.00 |
+|  clk         | m6_h_wr_en_r                | rst              |                8 |             18 |         2.25 |
+|  clk         | c2_state[4]_i_1_n_0         | rst              |               12 |             22 |         1.83 |
+|  clk         | m6_y_ch_reg[23]_i_1_n_0     | rst              |                3 |             24 |         8.00 |
+|  clk         | c2_y_ch_reg[23]_i_1_n_0     | rst              |                3 |             24 |         8.00 |
+|  clk         | rsqrt_idx_r                 | rst              |                9 |             35 |         3.89 |
+|  clk         | state                       | rst              |               45 |             70 |         1.56 |
+|  clk         | c2_silu_z_reg[255]_i_1_n_0  | rst              |              178 |            256 |         1.44 |
+|  clk         | cl2_out_reg                 | rst              |              182 |            256 |         1.41 |
+|  clk         | cl_in_H_ext[255]_i_1_n_0    | rst              |              183 |            256 |         1.40 |
+|  clk         | cl_in_W1_vec[255]_i_1_n_0   | rst              |              176 |            256 |         1.45 |
+|  clk         | m5_dt_word_reg              | rst              |               38 |            256 |         6.74 |
+|  clk         | m6_u_word[255]_i_1_n_0      | rst              |               35 |            256 |         7.31 |
+|  clk         | m6_w1_reg                   | rst              |              206 |            256 |         1.24 |
+|  clk         | c2_w1_reg                   | rst              |              191 |            256 |         1.34 |
+|  clk         | cl2_in_H_ext[255]_i_1_n_0   | rst              |              167 |            256 |         1.53 |
+|  clk         | cl2_in_W1_vec[255]_i_1_n_0  | rst              |              190 |            256 |         1.35 |
+|  clk         | silu_z_reg                  | rst              |              223 |            256 |         1.15 |
+|  clk         | c2_u_word[255]_i_1_n_0      | rst              |               35 |            256 |         7.31 |
+|  clk         | c2_m_wr_data                | rst              |              190 |            263 |         1.38 |
+|  clk         | m_we_i_1_n_0                | rst              |              191 |            269 |         1.41 |
+|  clk         | c2_dB_reg                   | rst              |              350 |            496 |         1.42 |
+|  clk         | m6_dA_reg                   | rst              |              359 |            496 |         1.38 |
+|  clk         | c2_D_word                   | rst              |              109 |            512 |         4.70 |
+|  clk         | cl2_in_X_vec[255]_i_1_n_0   | rst              |              278 |            512 |         1.84 |
+|  clk         | cl_in_X_vec[255]_i_1_n_0    | rst              |              270 |            512 |         1.90 |
+|  clk         | m6_w0_reg                   | rst              |              266 |            512 |         1.92 |
+|  clk         | m6_delta_word[255]_i_1_n_0  | rst              |              105 |            512 |         4.88 |
+|  clk         | c2_w0_reg                   | rst              |              315 |            512 |         1.63 |
+|  clk         |                             | rst              |             1235 |           3016 |         2.44 |
++--------------+-----------------------------+------------------+------------------+----------------+--------------+
 
 

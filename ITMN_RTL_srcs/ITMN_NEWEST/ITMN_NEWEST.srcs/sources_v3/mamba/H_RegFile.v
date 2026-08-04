@@ -43,7 +43,7 @@ module H_RegFile #(
     output reg  [16*`DATA_W-1:0] rd_data
 );
 
-    (* ram_style = "block" *)
+    (* ram_style = "ultra" *)
     reg [16*`DATA_W-1:0] mem [0:DEPTH-1];
 
     // Synchronous write

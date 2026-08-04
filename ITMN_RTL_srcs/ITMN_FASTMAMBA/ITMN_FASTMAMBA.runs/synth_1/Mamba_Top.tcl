@@ -70,6 +70,11 @@ proc create_report { reportName command } {
   }
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
+set_param power.BramSDPPropagationFix 1
+set_param chipscope.maxJobs 4
+set_param power.enableUnconnectedCarry8PinPower 1
+set_param power.enableCarry8RouteBelPower 1
+set_param power.enableLutRouteBelPower 1
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xck26-sfvc784-2LV-c
 
@@ -94,7 +99,6 @@ read_verilog -library xil_defaultlib {
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/common/BRAM_256b.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/common/Exp_LUT.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/mamba/H_RegFile.v
-  C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/mamba/Handshake_FIFO.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/common/LUT_Bank.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/mamba/M_Cluster.v
   C:/Users/ADMIN/Downloads/DoAn1/DoAn1/ITMN_FASTMAMBA/mamba/Mamba_PE.v

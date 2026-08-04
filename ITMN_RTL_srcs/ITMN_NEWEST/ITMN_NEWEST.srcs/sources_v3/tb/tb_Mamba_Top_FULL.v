@@ -27,6 +27,11 @@ module tb_Mamba_Top_FULL;
     localparam W_INPROJ_X_BASE = `W_INPROJ_X_BASE;
     localparam W_INPROJ_Z_BASE = `W_INPROJ_Z_BASE;
     localparam W_OUTPROJ_BASE  = `W_OUTPROJ_BASE;
+    // Phase 6 dense bank_B bases
+    localparam W_INPROJ_X_BASE_B = `W_INPROJ_X_BASE_B;
+    localparam W_INPROJ_Z_BASE_B = `W_INPROJ_Z_BASE_B;
+    localparam W_OUTPROJ_BASE_B  = `W_OUTPROJ_BASE_B;
+    localparam W_A_BASE_B        = `W_A_BASE_B;
     localparam W_DW_BASE       = `W_DW_BASE;
     localparam W_XPROJ_BASE    = `W_XPROJ_BASE;
     localparam W_DTPROJ_BASE   = `W_DTPROJ_BASE;
@@ -50,11 +55,11 @@ module tb_Mamba_Top_FULL;
     reg  [3:0]  DT_RANK   = 4'd4;
 
     reg          dma_write_en = 0;
-    reg  [1:0]   dma_target   = 0;
+    reg  [2:0]   dma_target   = 0;
     reg  [14:0]  dma_addr     = 0;
     reg  [255:0] dma_wdata    = 0;
     reg          dma_read_en  = 0;
-    reg  [1:0]   dma_rtarget  = 0;
+    reg  [2:0]   dma_rtarget  = 0;
     reg  [14:0]  dma_raddr    = 0;
     wire [255:0] dma_rdata;
 
@@ -97,7 +102,7 @@ module tb_Mamba_Top_FULL;
     end
 
     task dma_wr;
-        input [1:0]   target;
+        input [2:0]   target;
         input [14:0]  addr;
         input [255:0] data;
         begin
@@ -129,34 +134,43 @@ module tb_Mamba_Top_FULL;
         @(negedge clk); rst = 0;
         @(posedge clk);
 
-        // ---- W_InProj_X → ram_weight ----
-        $display("[DMA] W_InProj_X (%0d words)", (D_INNER/16)*D_MODEL);
+        // ---- W_InProj_X → bank_A ALL, bank_B ODD only at DENSE addr (Phase 6 opt) ----
+        $display("[DMA] W_InProj_X (%0d words + odd-only dense bank_B)", (D_INNER/16)*D_MODEL);
         for (c_out_grp=0; c_out_grp<(D_INNER/16); c_out_grp=c_out_grp+1)
             for (c_in=0; c_in<D_MODEL; c_in=c_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wx_mem[(c_out_grp*16+lane)*D_MODEL + c_in];
-                dma_wr(2'd2, W_INPROJ_X_BASE + c_out_grp*D_MODEL + c_in, word_tmp);
+                dma_wr(3'd2, W_INPROJ_X_BASE + c_out_grp*D_MODEL + c_in, word_tmp);
+                if (c_out_grp[0]) begin
+                    dma_wr(3'd4, W_INPROJ_X_BASE_B + (c_out_grp>>1)*D_MODEL + c_in, word_tmp);
+                end
             end
 
         // ---- W_InProj_Z ----
-        $display("[DMA] W_InProj_Z");
+        $display("[DMA] W_InProj_Z (+ odd-only dense bank_B)");
         for (c_out_grp=0; c_out_grp<(D_INNER/16); c_out_grp=c_out_grp+1)
             for (c_in=0; c_in<D_MODEL; c_in=c_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wz_mem[(c_out_grp*16+lane)*D_MODEL + c_in];
-                dma_wr(2'd2, W_INPROJ_Z_BASE + c_out_grp*D_MODEL + c_in, word_tmp);
+                dma_wr(3'd2, W_INPROJ_Z_BASE + c_out_grp*D_MODEL + c_in, word_tmp);
+                if (c_out_grp[0]) begin
+                    dma_wr(3'd4, W_INPROJ_Z_BASE_B + (c_out_grp>>1)*D_MODEL + c_in, word_tmp);
+                end
             end
 
         // ---- W_OutProj (d_out=d_model, d_inner) ----
-        $display("[DMA] W_OutProj");
+        $display("[DMA] W_OutProj (+ odd-only dense bank_B)");
         for (c_out_grp=0; c_out_grp<(D_MODEL/16); c_out_grp=c_out_grp+1)
             for (c_in=0; c_in<D_INNER; c_in=c_in+1) begin
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wo_mem[(c_out_grp*16+lane)*D_INNER + c_in];
-                dma_wr(2'd2, W_OUTPROJ_BASE + c_out_grp*D_INNER + c_in, word_tmp);
+                dma_wr(3'd2, W_OUTPROJ_BASE + c_out_grp*D_INNER + c_in, word_tmp);
+                if (c_out_grp[0]) begin
+                    dma_wr(3'd4, W_OUTPROJ_BASE_B + (c_out_grp>>1)*D_INNER + c_in, word_tmp);
+                end
             end
 
         // ---- W_DW: 4-tap depthwise ----
@@ -166,7 +180,7 @@ module tb_Mamba_Top_FULL;
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wdw_mem[(c_grp_in*16+lane)*4 + k];
-                dma_wr(2'd2, W_DW_BASE + c_grp_in*4 + k, word_tmp);
+                dma_wr(3'd2, W_DW_BASE + c_grp_in*4 + k, word_tmp);
             end
 
         // ---- W_XProj (n_pad, d_inner) ----
@@ -176,7 +190,7 @@ module tb_Mamba_Top_FULL;
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wxp_mem[(c_grp_out*16+lane)*D_INNER + c_in];
-                dma_wr(2'd2, W_XPROJ_BASE + c_grp_out*D_INNER + c_in, word_tmp);
+                dma_wr(3'd2, W_XPROJ_BASE + c_grp_out*D_INNER + c_in, word_tmp);
             end
 
         // ---- W_DtProj (d_inner, dt_rank) ----
@@ -186,16 +200,19 @@ module tb_Mamba_Top_FULL;
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = wdt_mem[(c_grp_out*16+lane)*DT_RANK_V + k];
-                dma_wr(2'd2, W_DTPROJ_BASE + c_grp_out*DT_RANK_V + k, word_tmp);
+                dma_wr(3'd2, W_DTPROJ_BASE + c_grp_out*DT_RANK_V + k, word_tmp);
             end
 
-        // ---- W_A signed (d_inner, d_state) — 1 word per channel ----
-        $display("[DMA] W_A");
+        // ---- W_A signed (d_inner, d_state) — bank_A ALL, bank_B ODD-group channels DENSE ----
+        $display("[DMA] W_A (+ odd-group dense bank_B for c2 M6)");
         for (c_in=0; c_in<D_INNER; c_in=c_in+1) begin
             word_tmp = 256'b0;
             for (lane=0; lane<D_STATE; lane=lane+1)
                 word_tmp[lane*16+:16] = wA_mem[c_in*D_STATE + lane];
-            dma_wr(2'd2, W_A_BASE + c_in, word_tmp);
+            dma_wr(3'd2, W_A_BASE + c_in, word_tmp);
+            if (c_in[4]) begin
+                dma_wr(3'd4, W_A_BASE_B + ((c_in>>5) << 4) + (c_in & 15), word_tmp);
+            end
         end
 
         // ---- Constants ----
@@ -204,7 +221,7 @@ module tb_Mamba_Top_FULL;
             word_tmp = 256'b0;
             for (lane=0; lane<16; lane=lane+1)
                 word_tmp[lane*16+:16] = gam_mem[c_grp_in*16 + lane];
-            dma_wr(2'd3, C_W_NORM_BASE + c_grp_in, word_tmp);
+            dma_wr(3'd3, C_W_NORM_BASE + c_grp_in, word_tmp);
         end
 
         $display("[DMA] B_DW");
@@ -212,7 +229,7 @@ module tb_Mamba_Top_FULL;
             word_tmp = 256'b0;
             for (lane=0; lane<16; lane=lane+1)
                 word_tmp[lane*16+:16] = bdw_mem[c_grp_in*16 + lane];
-            dma_wr(2'd3, C_B_DW_BASE + c_grp_in, word_tmp);
+            dma_wr(3'd3, C_B_DW_BASE + c_grp_in, word_tmp);
         end
 
         $display("[DMA] B_DT");
@@ -220,7 +237,7 @@ module tb_Mamba_Top_FULL;
             word_tmp = 256'b0;
             for (lane=0; lane<16; lane=lane+1)
                 word_tmp[lane*16+:16] = bdt_mem[c_grp_in*16 + lane];
-            dma_wr(2'd3, C_B_DT_BASE + c_grp_in, word_tmp);
+            dma_wr(3'd3, C_B_DT_BASE + c_grp_in, word_tmp);
         end
 
         $display("[DMA] D_param");
@@ -228,7 +245,7 @@ module tb_Mamba_Top_FULL;
             word_tmp = 256'b0;
             for (lane=0; lane<16; lane=lane+1)
                 word_tmp[lane*16+:16] = Dp_mem[c_grp_in*16 + lane];
-            dma_wr(2'd3, C_D_PARAM_BASE + c_grp_in, word_tmp);
+            dma_wr(3'd3, C_D_PARAM_BASE + c_grp_in, word_tmp);
         end
 
         // ---- INPUT (P1 output = block-0 RMSNorm input) ----
@@ -240,7 +257,7 @@ module tb_Mamba_Top_FULL;
                 word_tmp = 256'b0;
                 for (lane=0; lane<16; lane=lane+1)
                     word_tmp[lane*16+:16] = xn_mem[(c_grp_in*16+lane)*T_TOT + t_cur];
-                dma_wr(2'd0, PT_INPUT + t_cur*(D_MODEL/16) + c_grp_in, word_tmp);
+                dma_wr(3'd0, PT_INPUT + t_cur*(D_MODEL/16) + c_grp_in, word_tmp);
             end
         @(negedge clk); dma_write_en = 0;
 

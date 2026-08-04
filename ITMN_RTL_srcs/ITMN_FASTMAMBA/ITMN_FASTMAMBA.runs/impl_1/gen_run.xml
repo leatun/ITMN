@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="impl_1" LaunchPart="xck26-sfvc784-2LV-c" LaunchTime="1784959130">
+<GenRun Id="impl_1" LaunchPart="xck26-sfvc784-2LV-c" LaunchTime="1785268758">
   <File Type="ROUTE-PWR" Name="Mamba_Top_power_routed.rpt"/>
   <File Type="PA-TCL" Name="Mamba_Top.tcl"/>
   <File Type="BITSTR-MMI" Name="Mamba_Top.mmi"/>
@@ -110,13 +110,6 @@
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/mamba/Handshake_FIFO.v">
-      <FileInfo>
-        <Attr Name="UsedIn" Val="synthesis"/>
-        <Attr Name="UsedIn" Val="implementation"/>
-        <Attr Name="UsedIn" Val="simulation"/>
-      </FileInfo>
-    </File>
     <File Path="$PPRDIR/common/LUT_Bank.v">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
@@ -182,6 +175,14 @@
     </File>
     <File Path="$PPRDIR/top/Mamba_Top.v">
       <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <File Path="$PPRDIR/mamba/Handshake_FIFO.v">
+      <FileInfo>
+        <Attr Name="AutoDisabled" Val="1"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>

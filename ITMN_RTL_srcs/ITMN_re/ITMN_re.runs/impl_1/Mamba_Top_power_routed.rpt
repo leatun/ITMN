@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
-| Date             : Thu Jul 16 23:19:55 2026
+| Date             : Sun Aug  2 18:15:33 2026
 | Host             : letun running 64-bit major release  (build 9200)
 | Command          : report_power -file Mamba_Top_power_routed.rpt -pb Mamba_Top_power_summary_routed.pb -rpx Mamba_Top_power_routed.rpx
 | Design           : Mamba_Top
@@ -30,14 +30,14 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.478        |
+| Total On-Chip Power (W)  | 0.614        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.188        |
-| Device Static (W)        | 0.290        |
+| Dynamic (W)              | 0.322        |
+| Device Static (W)        | 0.292        |
 | Effective TJA (C/W)      | 2.3          |
-| Max Ambient (C)          | 83.9         |
-| Junction Temperature (C) | 26.1         |
+| Max Ambient (C)          | 83.6         |
+| Junction Temperature (C) | 26.4         |
 | Confidence Level         | Medium       |
 | Setting File             | ---          |
 | Simulation Activity File | ---          |
@@ -49,23 +49,25 @@ Table of Contents
 1.1 On-Chip Components
 ----------------------
 
-+----------------+-----------+----------+-----------+-----------------+
-| On-Chip        | Power (W) | Used     | Available | Utilization (%) |
-+----------------+-----------+----------+-----------+-----------------+
-| Clocks         |     0.011 |        3 |       --- |             --- |
-| CLB Logic      |     0.049 |    21950 |       --- |             --- |
-|   LUT as Logic |     0.046 |    13692 |    117120 |           11.69 |
-|   CARRY8       |     0.002 |      467 |     14640 |            3.19 |
-|   Register     |    <0.001 |     5299 |    234240 |            2.26 |
-|   Others       |     0.000 |       68 |       --- |             --- |
-|   F7/F8 Muxes  |     0.000 |      298 |    117120 |            0.25 |
-| Signals        |     0.065 |    24451 |       --- |             --- |
-| Block RAM      |     0.039 |       65 |       144 |           45.14 |
-| URAM           |     0.016 |        8 |        64 |           12.50 |
-| DSPs           |     0.009 |       48 |      1248 |            3.85 |
-| Static Power   |     0.290 |          |           |                 |
-| Total          |     0.478 |          |           |                 |
-+----------------+-----------+----------+-----------+-----------------+
++--------------------------+-----------+----------+-----------+-----------------+
+| On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
++--------------------------+-----------+----------+-----------+-----------------+
+| Clocks                   |     0.020 |        3 |       --- |             --- |
+| CLB Logic                |     0.081 |    39814 |       --- |             --- |
+|   LUT as Logic           |     0.074 |    23166 |    117120 |           19.78 |
+|   CARRY8                 |     0.004 |      923 |     14640 |            6.30 |
+|   LUT as Distributed RAM |     0.002 |     1024 |     57600 |            1.78 |
+|   Register               |    <0.001 |     9733 |    234240 |            4.16 |
+|   BUFG                   |    <0.001 |        1 |        32 |            3.13 |
+|   Others                 |     0.000 |      127 |       --- |             --- |
+|   F7/F8 Muxes            |     0.000 |     1365 |    117120 |            1.17 |
+| Signals                  |     0.110 |    41220 |       --- |             --- |
+| Block RAM                |     0.040 |     85.5 |       144 |           59.38 |
+| URAM                     |     0.056 |       24 |        64 |           37.50 |
+| DSPs                     |     0.016 |       96 |      1248 |            7.69 |
+| Static Power             |     0.292 |          |           |                 |
+| Total                    |     0.614 |          |           |                 |
++--------------------------+-----------+----------+-----------+-----------------+
 
 
 1.2 Power Supply Summary
@@ -74,9 +76,9 @@ Table of Contents
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source          | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint          |       0.720 |     0.327 |       0.258 |      0.070 |       NA    | Unspecified | NA         |
+| Vccint          |       0.720 |     0.515 |       0.443 |      0.072 |       NA    | Unspecified | NA         |
 | Vccint_io       |       0.850 |     0.035 |       0.000 |      0.035 |       NA    | Unspecified | NA         |
-| Vccbram         |       0.850 |     0.004 |       0.003 |      0.001 |       NA    | Unspecified | NA         |
+| Vccbram         |       0.850 |     0.005 |       0.004 |      0.001 |       NA    | Unspecified | NA         |
 | Vccaux          |       1.800 |     0.077 |       0.000 |      0.077 |       NA    | Unspecified | NA         |
 | Vccaux_io       |       1.800 |     0.031 |       0.000 |      0.031 |       NA    | Unspecified | NA         |
 | Vcco33          |       3.300 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -161,9 +163,10 @@ Table of Contents
 +----------------------+-----------+
 | Name                 | Power (W) |
 +----------------------+-----------+
-| Mamba_Top            |     0.188 |
-|   u_mc               |     0.077 |
-|     PE_LANE[0].u_pe  |     0.005 |
+| Mamba_Top            |     0.322 |
+|   u_mc               |     0.087 |
+|     HAS_H_GEN.u_hrf  |     0.016 |
+|     PE_LANE[0].u_pe  |     0.006 |
 |     PE_LANE[10].u_pe |     0.004 |
 |     PE_LANE[11].u_pe |     0.004 |
 |     PE_LANE[12].u_pe |     0.004 |
@@ -174,17 +177,37 @@ Table of Contents
 |     PE_LANE[2].u_pe  |     0.004 |
 |     PE_LANE[3].u_pe  |     0.004 |
 |     PE_LANE[4].u_pe  |     0.004 |
-|     PE_LANE[5].u_pe  |     0.004 |
+|     PE_LANE[5].u_pe  |     0.005 |
 |     PE_LANE[6].u_pe  |     0.004 |
 |     PE_LANE[7].u_pe  |     0.004 |
 |     PE_LANE[8].u_pe  |     0.004 |
 |     PE_LANE[9].u_pe  |     0.004 |
-|     u_hrf            |     0.010 |
-|   u_mem              |     0.073 |
-|     ram_const        |     0.011 |
-|     ram_main         |     0.033 |
-|     ram_weight       |     0.029 |
+|   u_mc2              |     0.069 |
+|     HAS_H_GEN.u_hrf  |     0.015 |
+|     PE_LANE[0].u_pe  |     0.004 |
+|     PE_LANE[10].u_pe |     0.004 |
+|     PE_LANE[11].u_pe |     0.003 |
+|     PE_LANE[12].u_pe |     0.003 |
+|     PE_LANE[13].u_pe |     0.003 |
+|     PE_LANE[14].u_pe |     0.003 |
+|     PE_LANE[15].u_pe |     0.003 |
+|     PE_LANE[1].u_pe  |     0.003 |
+|     PE_LANE[2].u_pe  |     0.003 |
+|     PE_LANE[3].u_pe  |     0.003 |
+|     PE_LANE[4].u_pe  |     0.003 |
+|     PE_LANE[5].u_pe  |     0.003 |
+|     PE_LANE[6].u_pe  |     0.003 |
+|     PE_LANE[7].u_pe  |     0.004 |
+|     PE_LANE[8].u_pe  |     0.003 |
+|     PE_LANE[9].u_pe  |     0.003 |
+|   u_mem              |     0.104 |
+|     ram_const        |     0.009 |
+|     ram_main_c1      |     0.035 |
+|     ram_main_c2      |     0.016 |
+|     ram_weight_A     |     0.027 |
+|     ram_weight_B     |     0.018 |
 |   u_rw               |     0.007 |
+|   u_rw2              |     0.006 |
 +----------------------+-----------+
 
 
